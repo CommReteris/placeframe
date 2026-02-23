@@ -86,10 +86,10 @@ namespace Placeframe.Client
             });
 
             control.AddBinding(
-                props.contentConstructor?.Invoke(control).Subscribe(x =>
+                props.contentConstructor?.Invoke(control).ObservableWithPrevious().Subscribe(x =>
                 {
-                    children.Remove(x.currentValue);
-                    children.Add(x.currentValue);
+                    children.Remove(x.previous);
+                    children.Add(x.current);
                 })
             );
 
@@ -267,48 +267,51 @@ namespace Placeframe.Client
         public static IControl Columns(ColumnsProps props)
         {
             props.spacing = props.spacing ?? Props.Value(0f);
-            List<IControl> columns = new List<IControl>();
+            ListObservable<IControl> columns = new ListObservable<IControl>();
             float spacingValue = 0;
 
             var control = Control("Columns", new()
             {
                 element = props.element,
                 layout = props.layout,
-                children = props.columns
+                children = columns // use the intermediary list so we can share the controls instead of generating duplicates
             });
 
-            control.AddBinding(
-                Observables.Any(props.columns, props.spacing).Subscribe(x =>
+            Action layoutColumns = () =>
+            {
+                float step = 1f / columns.count;
+
+                for (int i = 0; i < columns.count; i++)
                 {
-                    if (x.source == props.spacing)
-                    {
-                        spacingValue = ((IValueEventArgs<float>)x).currentValue;
-                    }
-                    else
-                    {
-                        var args = (IListEventArgs<IControl>)x;
-                        if (args.operationType == OpType.Add)
-                        {
-                            columns.Insert(args.index, args.element);
-                        }
-                        else if (args.operationType == OpType.Remove)
-                        {
-                            columns.RemoveAt(args.index);
-                        }
-                    }
+                    var child = columns[i];
+                    child.rectTransform.anchorMin = new Vector2(step * i, 0);
+                    child.rectTransform.anchorMax = new Vector2(step * (i + 1), 1);
 
-                    float step = 1f / columns.Count;
+                    child.rectTransform.offsetMin = new Vector2(Mathf.Lerp(0f, spacingValue, i * step), 0);
+                    child.rectTransform.offsetMax = new Vector2(Mathf.Lerp(-spacingValue, 0f, (i + 1) * step), 0);
+                }
+            };
 
-                    for (int i = 0; i < columns.Count; i++)
+            control.AddBinding(
+                props.columns?.Subscribe(
+                    onAdd: (index, x) =>
                     {
-                        var child = columns[i];
-                        child.rectTransform.anchorMin = new Vector2(step * i, 0);
-                        child.rectTransform.anchorMax = new Vector2(step * (i + 1), 1);
-
-                        child.rectTransform.offsetMin = new Vector2(Mathf.Lerp(0f, spacingValue, i * step), 0);
-                        child.rectTransform.offsetMax = new Vector2(Mathf.Lerp(-spacingValue, 0f, (i + 1) * step), 0);
+                        columns.Insert(index, x);
+                        layoutColumns();
+                    },
+                    onRemove: (index, x) =>
+                    {
+                        columns.RemoveAt(index);
+                        layoutColumns();
                     }
-                })
+                ),
+                props.spacing?.Subscribe(
+                    onNext: x =>
+                    {
+                        spacingValue = x;
+                        layoutColumns();
+                    }
+                )
             );
 
             return control;

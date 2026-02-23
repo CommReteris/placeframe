@@ -42,7 +42,7 @@ namespace Placeframe.Client
                                 InputField(new InputFieldProps()
                                 {
                                     layout = new() { flexibleWidth = Props.Value(true) },
-                                    value = capture.name.AsObservable(),
+                                    value = capture.name.ToObservable(),
                                     placeholderValue = Props.Value($"<i>Unnamed [{capture.id}]"),
                                     inputTextStyle = new TextStyleProps()
                                     {
@@ -77,7 +77,7 @@ namespace Placeframe.Client
                         control = Text(new TextProps()
                         {
                             layout = new() { flexibleWidth = Props.Value(true) },
-                            value = capture.type.AsObservable().SelectDynamic(x => x == PlaceframeApiClient.Model.DeviceType.ARFoundation ? "Mobile" : "Zed"),
+                            value = capture.type.ToObservable().ObservableSelect(x => x == PlaceframeApiClient.Model.DeviceType.ARFoundation ? "Mobile" : "Zed"),
                             style = new TextStyleProps()
                             {
                                 verticalAlignment = Props.Value(VerticalAlignmentOptions.Capline),
@@ -92,7 +92,7 @@ namespace Placeframe.Client
                         control = Text(new TextProps()
                         {
                             layout = new() { flexibleWidth = Props.Value(true) },
-                            value = capture.createdAt.AsObservable().SelectDynamic(x => x.ToString()),
+                            value = capture.createdAt.ToObservable().ObservableSelect(x => x.ToString()),
                             style = new TextStyleProps()
                             {
                                 verticalAlignment = Props.Value(VerticalAlignmentOptions.Capline),
@@ -107,7 +107,7 @@ namespace Placeframe.Client
                         children = Props.List(
                             LabeledButton(new LabeledButtonProps()
                             {
-                                label = capture.status.AsObservable().SelectDynamic(x =>
+                                label = capture.status.ToObservable().ObservableSelect(x =>
                                     x switch
                                     {
                                         CaptureUploadStatus.NotUploaded => "Upload",
@@ -124,7 +124,7 @@ namespace Placeframe.Client
                                         _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
                                     }
                                 ),
-                                interactable = capture.status.AsObservable().SelectDynamic(x =>
+                                interactable = capture.status.ToObservable().ObservableSelect(x =>
                                     x == CaptureUploadStatus.NotUploaded ||
                                     x == CaptureUploadStatus.ReconstructionNotStarted ||
                                     x == CaptureUploadStatus.Uploaded

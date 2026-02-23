@@ -40,7 +40,7 @@ namespace Placeframe.Client
                 children = Props.List(
                     TabbedMenu(new()
                     {
-                        value = props.mode.SelectDynamic(x => (int)x),
+                        value = props.mode.ObservableSelect(x => (int)x),
                         tabs = Props.List("Capture", "Validate"),
                         onValueChanged = x => props.onModeChanged?.Invoke((AppMode)x),
                         layout = new()
@@ -55,7 +55,7 @@ namespace Placeframe.Client
                     Control("Content", new()
                     {
                         layout = Utility.FillParentProps(),
-                        children = Props.List(props.mode.SelectDynamic(x =>
+                        children = Props.List(props.mode.ObservableSelect(x =>
                         {
                             currentScreen?.Dispose();
 
@@ -105,7 +105,7 @@ namespace Placeframe.Client
                             }),
                             LabeledButton(new LabeledButtonProps()
                             {
-                                label = App.state.captureMode.AsObservable().SelectDynamic(x => x == DeviceType.ARFoundation ? "Local" : "Zed"),
+                                label = App.state.captureMode.ToObservable().ObservableSelect(x => x == DeviceType.ARFoundation ? "Local" : "Zed"),
                                 onClick = () => App.state.captureMode.ExecuteSetOrDelay(App.state.captureMode.value == DeviceType.ARFoundation ? DeviceType.Zed : DeviceType.ARFoundation),
                                 layout = new()
                                 {
@@ -119,11 +119,11 @@ namespace Placeframe.Client
                             Toggle(prefab: elements.recordButton, props: new ToggleProps()
                             {
                                 value = App.state.captureStatus
-                                    .AsObservable()
-                                    .SelectDynamic(x => x == CaptureStatus.Capturing || x == CaptureStatus.Starting),
+                                    .ToObservable()
+                                    .ObservableSelect(x => x == CaptureStatus.Capturing || x == CaptureStatus.Starting),
                                 interactable = App.state.captureStatus
-                                    .AsObservable()
-                                    .SelectDynamic(x => x == CaptureStatus.Idle || x == CaptureStatus.Capturing),
+                                    .ToObservable()
+                                    .ObservableSelect(x => x == CaptureStatus.Idle || x == CaptureStatus.Capturing),
                                 layout = new()
                                 {
                                     anchorMin = Props.Value(new Vector2(0.5f, 0.5f)),
@@ -184,8 +184,8 @@ namespace Placeframe.Client
                                                 pivot = Props.Value(new Vector2(0, 1))
                                             }),
                                             children = App.state.captures
-                                                .AsObservable()
-                                                .OrderByDynamic(x => x.Value.name.AsObservable())
+                                                .ToObservable()
+                                                .ObservableOrderBy(x => x.Value.name.ToObservable())
                                                 .CreateDynamic(x => CaptureRow(x.Value))
                                         })
                                     )
@@ -287,7 +287,7 @@ namespace Placeframe.Client
                                 }),
                                 Text(new()
                                 {
-                                    value = target.SelectDynamic(x => x == null ? "--" : getValue(x).ToString()),
+                                    value = target.ObservableSelect(x => x == null ? "--" : getValue(x).ToString()),
                                     layout = new() { flexibleWidth = Props.Value(true) },
                                     style = new()
                                     {
@@ -348,14 +348,20 @@ namespace Placeframe.Client
                             }),
                             LabeledButton(new LabeledButtonProps()
                             {
-                                label = App.state.captures.AsObservable()
-                                    .WhereDynamic(x => x.Value.localizationMapId.AsObservable().SelectDynamic(x => x != Guid.Empty))
-                                    .ToDictionaryDynamic(
-                                        x => x.Value.localizationMapId.AsObservable(),
-                                        x => x.Value
-                                    )
-                                    .TrackDynamic(App.state.mapForLocalization.AsObservable())
-                                    .SelectDynamic(x => x.keyPresent ? x.value.name.AsObservable() : Props.Value("Maps")),
+                                label = App.state.mapForLocalization.ToObservable().ObservableSelect(x =>
+                                {
+                                    if (x == Guid.Empty)
+                                        return Props.Value("Maps");
+
+                                    return App.state.captures.ToObservable()
+                                        .ObservableSelect(x => x.Value)
+                                        .ObservableFirstOrDefault(x => Observables.Combine(
+                                            App.state.mapForLocalization.ToObservable(),
+                                            x.localizationMapId.ToObservable(),
+                                            (targetCapture, capture) => targetCapture == capture
+                                        ))
+                                        .ObservableSelect(x => x?.name.ToObservable() ?? Props.Value("Maps"));
+                                }),
                                 labelStyle = new TextStyleProps()
                                 {
                                     textWrappingMode = Props.Value(TMPro.TextWrappingModes.NoWrap),
@@ -381,8 +387,8 @@ namespace Placeframe.Client
                             }),
                             Toggle(prefab: elements.playButton, props: new ToggleProps()
                             {
-                                value = App.state.localizing.AsObservable(),
-                                interactable = App.state.mapForLocalization.AsObservable().SelectDynamic(x => x != Guid.Empty),
+                                value = App.state.localizing.ToObservable(),
+                                interactable = App.state.mapForLocalization.ToObservable().ObservableSelect(x => x != Guid.Empty),
                                 onValueChanged = x => App.state.localizing.ExecuteSetOrDelay(x),
                                 layout = new()
                                 {
@@ -436,12 +442,12 @@ namespace Placeframe.Client
                                                 fitContentVertical = Props.Value(ContentSizeFitter.FitMode.PreferredSize)
                                             }),
                                             children = App.state.captures
-                                                .AsObservable()
-                                                .WhereDynamic(x => x.Value.localizationMapId.AsObservable().SelectDynamic(x => x != Guid.Empty))
-                                                .OrderByDynamic(x => x.Value.name.AsObservable())
-                                                .SelectDynamic(x => LabeledButton(new LabeledButtonProps()
+                                                .ToObservable()
+                                                .ObservableWhere(x => x.Value.localizationMapId.ToObservable().ObservableSelect(x => x != Guid.Empty))
+                                                .ObservableOrderBy(x => x.Value.name.ToObservable())
+                                                .ObservableSelect(x => LabeledButton(new LabeledButtonProps()
                                                 {
-                                                    label = x.Value.name.AsObservable(),
+                                                    label = x.Value.name.ToObservable(),
                                                     onClick = () => props.onValidationTargetSelected?.Invoke(x.Value.localizationMapId.value)
                                                 }))
                                         })
@@ -595,7 +601,7 @@ namespace Placeframe.Client
                                                     control = InputField(new InputFieldProps()
                                                     {
                                                         layout = new() { flexibleWidth = Props.Value(true) },
-                                                        value = capture.name.AsObservable(),
+                                                        value = capture.name.ToObservable(),
                                                         placeholderValue = Props.Value(capture.id.ToString()),
                                                         onEndEdit = x => capture.name.ExecuteSetOrDelay(x)
                                                     })
@@ -607,7 +613,7 @@ namespace Placeframe.Client
                                                     control = Text(new TextProps()
                                                     {
                                                         layout = new() { flexibleWidth = Props.Value(true) },
-                                                        value = capture.type.AsObservable().SelectDynamic(x => x == DeviceType.ARFoundation ? "Mobile" : "Zed"),
+                                                        value = capture.type.ToObservable().ObservableSelect(x => x == DeviceType.ARFoundation ? "Mobile" : "Zed"),
                                                         style = new TextStyleProps()
                                                         {
                                                             verticalAlignment = Props.Value(TMPro.VerticalAlignmentOptions.Capline),
@@ -622,7 +628,7 @@ namespace Placeframe.Client
                                                     control = Text(new TextProps()
                                                     {
                                                         layout = new() { flexibleWidth = Props.Value(true) },
-                                                        value = capture.createdAt.AsObservable().SelectDynamic(x => x.ToString()),
+                                                        value = capture.createdAt.ToObservable().ObservableSelect(x => x.ToString()),
                                                         style = new TextStyleProps()
                                                         {
                                                             verticalAlignment = Props.Value(TMPro.VerticalAlignmentOptions.Capline),
@@ -643,8 +649,8 @@ namespace Placeframe.Client
                                                         {
                                                             label = Props.Value("Clear Local Files "),
                                                             interactable = Observables.Combine(
-                                                                capture.status.AsObservable(),
-                                                                capture.hasLocalFiles.AsObservable(),
+                                                                capture.status.ToObservable(),
+                                                                capture.hasLocalFiles.ToObservable(),
                                                                 (status, hasLocalFiles) =>
                                                                     hasLocalFiles && (
                                                                         status == CaptureUploadStatus.NotUploaded ||
@@ -678,7 +684,7 @@ namespace Placeframe.Client
                                                         }),
                                                         LabeledButton(new LabeledButtonProps()
                                                         {
-                                                            label = capture.status.AsObservable().SelectDynamic(x =>
+                                                            label = capture.status.ToObservable().ObservableSelect(x =>
                                                                 x switch
                                                                 {
                                                                     CaptureUploadStatus.NotUploaded => "Upload",
@@ -695,7 +701,7 @@ namespace Placeframe.Client
                                                                     _ => throw new ArgumentOutOfRangeException(nameof(x), x, null)
                                                                 }
                                                             ),
-                                                            interactable = capture.status.AsObservable().SelectDynamic(x =>
+                                                            interactable = capture.status.ToObservable().ObservableSelect(x =>
                                                                 x == CaptureUploadStatus.NotUploaded ||
                                                                 x == CaptureUploadStatus.ReconstructionNotStarted ||
                                                                 x == CaptureUploadStatus.Uploaded
@@ -725,7 +731,7 @@ namespace Placeframe.Client
                                                     {
                                                         label = new TextProps() { value = Props.Value("Reconstruction Options") },
                                                         isOpen = Props.Value(false),
-                                                        interactable = capture.manifest.AsObservable().SelectDynamic(x => x != null)
+                                                        interactable = capture.manifest.ToObservable().ObservableSelect(x => x != null)
                                                     },
                                                     isReadonly = Props.Value(true)
                                                 }),
@@ -736,7 +742,7 @@ namespace Placeframe.Client
                                                     {
                                                         label = new TextProps() { value = Props.Value("Reconstruction Metrics") },
                                                         isOpen = Props.Value(false),
-                                                        interactable = capture.manifest.AsObservable().SelectDynamic(x => x != null)
+                                                        interactable = capture.manifest.ToObservable().ObservableSelect(x => x != null)
                                                     },
                                                     isReadonly = Props.Value(true)
                                                 })
