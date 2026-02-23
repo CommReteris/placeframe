@@ -1,3 +1,4 @@
+using FofX.Stateful;
 using Nessle;
 using Placeframe.Core;
 using UnityEngine;
@@ -9,6 +10,7 @@ namespace Plerion.MakeItSing
         public SceneReferences sceneReferences;
         public Prefabs prefabs;
         public UIPrimitiveSet uiPrimitives;
+        public UIElementSet uiElements;
 
         private void Awake()
         {
@@ -24,6 +26,7 @@ namespace Plerion.MakeItSing
             );
 
             UIBuilder.primitives = uiPrimitives;
+            UIElements.elements = uiElements;
 
             Instantiate(Prefabs.LocalizationMapManager);
 
@@ -31,6 +34,14 @@ namespace Plerion.MakeItSing
             gameObject.AddComponent<PhotonConnectionManager>();
             gameObject.AddComponent<SettingsManager>();
             gameObject.AddComponent<AppUI>();
+
+            App.state.activeRooms.ExecuteAction(x =>
+            {
+                x.Add().value = "demo1";
+                x.Add().value = "demo2";
+                x.Add().value = "Let's do this!";
+                x.Add().value = "Join here";
+            });
 
             Destroy(this);
         }
