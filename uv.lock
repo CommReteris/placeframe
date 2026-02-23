@@ -1655,7 +1655,7 @@ dev = [
 
 [[package]]
 name = "placeframe-api-client"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "packages/generated/python/api-client" }
 dependencies = [
     { name = "httpx" },
@@ -1734,7 +1734,7 @@ neural-networks-rocm = [{ name = "neural-networks", extras = ["rocm"], editable 
 
 [[package]]
 name = "placeframe-localizer-client"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "packages/generated/python/localizer-client" }
 dependencies = [
     { name = "httpx" },
@@ -2497,6 +2497,8 @@ dependencies = [
     { name = "typing-extensions", marker = "(sys_platform == 'darwin' and extra == 'extra-15-neural-networks-cpu') or (extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-cuda') or (extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-rocm') or (extra == 'extra-15-neural-networks-cuda' and extra == 'extra-15-neural-networks-rocm')" },
 ]
 wheels = [
+    { url = "https://download.pytorch.org/whl/cpu/torch-2.10.0-1-cp313-none-macosx_11_0_arm64.whl", hash = "sha256:b39cafff7229699f9d6e172cac74d85fd71b568268e439e08d9c540e54732a3e" },
+    { url = "https://download.pytorch.org/whl/cpu/torch-2.10.0-2-cp313-none-macosx_11_0_arm64.whl", hash = "sha256:470de4176007c2700735e003a830828a88d27129032a3add07291da07e2a94e8" },
     { url = "https://download.pytorch.org/whl/cpu/torch-2.10.0-cp313-cp313t-macosx_14_0_arm64.whl", hash = "sha256:339e05502b6c839db40e88720cb700f5a3b50cda332284873e851772d41b2c1e" },
     { url = "https://download.pytorch.org/whl/cpu/torch-2.10.0-cp313-none-macosx_11_0_arm64.whl", hash = "sha256:840351da59cedb7bcbc51981880050813c19ef6b898a7fecf73a3afc71aff3fe" },
 ]

@@ -9,7 +9,7 @@
   "additionalProperties": {
     "library": "httpx",
     "licenseId": "Apache-2.0",
-    "packageVersion": "0.1.1",
+    "packageVersion": "0.1.4",
     "generateSourceCodeOnly": false,
     "hideGenerationTimestamp": true,
     "disallowAdditionalPropertiesIfNotPresent": false,
