@@ -1,5 +1,15 @@
 name: placeframe
 
+volumes:
+  uv_cache:
+  minio_data:
+  postgres_data:
+  cloudbeaver_data:
+  auth_data:
+  keycloak_import:
+  keycloak_data:
+
+
 services:
   minio:
     x-image-ref: docker.io/minio/minio:latest
@@ -273,13 +283,3 @@ services:
       AUTH_TOKEN_URL: "https://${PUBLIC_DOMAIN:?err}/auth/realms/placeframe-dev/protocol/openid-connect/token"
       AUTH_CLIENT_ID: "${AUTH_WORKER_CLIENT_ID:?err}"
       PRIVATE_KEY_PATH: /run/secrets/worker-private-key.pem
-
-volumes:
-  uv_cache:
-  minio_data:
-  postgres_data:
-  cloudbeaver_data:
-  auth_data:
-  keycloak_import:
-  keycloak_data:
-
