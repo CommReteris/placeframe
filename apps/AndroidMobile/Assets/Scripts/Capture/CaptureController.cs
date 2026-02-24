@@ -53,7 +53,7 @@ namespace Placeframe.Client
                 {
                     children = Props.List(
                         App.state.loggedIn.ToObservable()
-                            .CreateDynamic(loggedIn =>
+                            .ObservableCreate(loggedIn =>
                             {
                                 IControl screen = default;
                                 if (loggedIn)

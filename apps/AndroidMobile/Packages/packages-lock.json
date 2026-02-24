@@ -23,7 +23,7 @@
       "dependencies": {
         "com.fofx.observething": "1.0.0"
       },
-      "hash": "d69cfcc7379547bd315299687ced93618878de13"
+      "hash": "5f7f5b2a07e01bd7e7637f42cbbcc3ca9c49ecfe"
     },
     "com.fofx.observething": {
       "version": "https://github.com/outernet-foundation/ObserveThing.git?path=Assets/Package/Core",

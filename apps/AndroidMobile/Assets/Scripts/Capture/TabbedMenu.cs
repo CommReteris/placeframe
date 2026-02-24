@@ -59,7 +59,7 @@ namespace Placeframe.Client
                             offsetMax = Props.Value(new Vector2(-10, -10))
                         }),
                         spacing = props.tabSpacing,
-                        columns = props.tabs.CreateDynamic(tabLabel =>
+                        columns = props.tabs.ObservableCreate(tabLabel =>
                         {
                             var tabIndex = props.tabs.ObservableIndexOf(tabLabel);
                             var currentTabIndex = -1;

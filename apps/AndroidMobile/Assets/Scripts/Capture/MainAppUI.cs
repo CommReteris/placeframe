@@ -186,7 +186,7 @@ namespace Placeframe.Client
                                             children = App.state.captures
                                                 .ToObservable()
                                                 .ObservableOrderBy(x => x.Value.name.ToObservable())
-                                                .CreateDynamic(x => CaptureRow(x.Value))
+                                                .ObservableCreate(x => CaptureRow(x.Value))
                                         })
                                     )
                                 }),
