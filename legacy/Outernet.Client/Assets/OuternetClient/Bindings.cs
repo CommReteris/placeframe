@@ -654,7 +654,7 @@ namespace Outernet.Client
                     localRotation.value = transform.rotation;
                 },
                 ObservationScope.Self,
-                new IObservableNode[] { ecefPosition, ecefRotation, App.state.ecefToLocalMatrix },
+                new IObservableNode[] { ecefPosition, ecefRotation },
                 _ =>
                 {
                     var transform = VisualPositioningSystem.UnityWorldToEcef(localPosition.value, localRotation.value);
@@ -662,7 +662,7 @@ namespace Outernet.Client
                     ecefRotation.value = transform.rotation;
                 },
                 ObservationScope.Self,
-                new IObservableNode[] { localPosition, localRotation, App.state.localToEcefMatrix }
+                new IObservableNode[] { localPosition, localRotation }
             );
         }
 

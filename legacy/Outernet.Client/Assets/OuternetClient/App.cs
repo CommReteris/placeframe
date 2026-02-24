@@ -98,9 +98,6 @@ namespace Outernet.Client
         private void Start()
         {
 #if !AUTHORING_TOOLS_ENABLED
-            VisualPositioningSystem.OnEcefToUnityWorldTransformUpdated += () =>
-                state.ecefToLocalMatrix.ExecuteSetOrDelay(VisualPositioningSystem.EcefToUnityWorldTransform);
-
             VisualPositioningSystem.StartLocalizing(1f);
 
             internetReachable = Application.internetReachability != NetworkReachability.NotReachable;

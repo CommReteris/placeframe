@@ -18,21 +18,9 @@ namespace Outernet.Client
         public ObservableDictionary<Guid, TransformState> transforms { get; private set; }
         public ObservableDictionary<Guid, LayerState> layers { get; private set; }
 
-        public ObservablePrimitive<double4x4> ecefToLocalMatrix { get; private set; } = new ObservablePrimitive<double4x4>(double4x4.identity);
-        public ObservablePrimitive<double4x4> localToEcefMatrix { get; private set; }
-
         public AuthoringToolsState authoringTools { get; private set; }
 
         public SettingsState settings { get; private set; }
-
-        protected override void PostInitializeInternal()
-        {
-            localToEcefMatrix.RegisterDerived(
-                _ => localToEcefMatrix.value = math.inverse(ecefToLocalMatrix.value),
-                ObservationScope.Self,
-                ecefToLocalMatrix
-            );
-        }
     }
 
     public class SettingsState : ObservableObject
