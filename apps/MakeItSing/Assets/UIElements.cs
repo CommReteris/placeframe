@@ -130,7 +130,7 @@ namespace Plerion.MakeItSing
                                             }),
                                             Text(new()
                                             {
-                                                element = { active = props.loginErrorMessage.SelectDynamic(x => !string.IsNullOrEmpty(x)) },
+                                                element = { active = props.loginErrorMessage.ObservableSelect(x => !string.IsNullOrEmpty(x)) },
                                                 value = props.loginErrorMessage,
                                                 style =
                                                 {
@@ -297,7 +297,7 @@ namespace Plerion.MakeItSing
                                                     children = List(
                                                         VerticalLayout(new()
                                                         {
-                                                            element = { active = props.activeRooms.CountDynamic().SelectDynamic(x => x > 0) },
+                                                            element = { active = props.activeRooms.ObservableCount().ObservableSelect(x => x > 0) },
                                                             childControlHeight = Value(true),
                                                             childControlWidth = Value(true),
                                                             childForceExpandWidth = Value(true),
@@ -321,7 +321,7 @@ namespace Plerion.MakeItSing
                                                         VerticalLayout(new()
                                                         {
                                                             element = {
-                                                                active = props.recentRooms.AsObservable().CountDynamic().SelectDynamic(x => x != 0)
+                                                                active = props.recentRooms.AsObservable().ObservableCount().ObservableSelect(x => x != 0)
                                                             },
                                                             childControlHeight = Value(true),
                                                             childControlWidth = Value(true),

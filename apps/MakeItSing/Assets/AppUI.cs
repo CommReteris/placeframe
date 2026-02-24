@@ -27,9 +27,9 @@ namespace Plerion.MakeItSing
             {
                 children = List(
                     Observables.Combine(
-                        App.state.loggedIn.AsObservable(),
-                        App.state.roomConnection.shouldBeConnected.AsObservable(),
-                        App.state.roomConnection.status.AsObservable(),
+                        App.state.loggedIn.ToObservable(),
+                        App.state.roomConnection.shouldBeConnected.ToObservable(),
+                        App.state.roomConnection.status.ToObservable(),
                         (loggedIn, shouldConnectToRoom, connectionStatus) =>
                         {
                             _screen?.Dispose();
@@ -41,9 +41,9 @@ namespace Plerion.MakeItSing
                                 _screen = LoginUI(new()
                                 {
                                     layout = FillParentProps(),
-                                    domain = App.state.userSettings.domain.AsObservable(),
-                                    username = App.state.userSettings.username.AsObservable(),
-                                    password = App.state.userSettings.password.AsObservable(),
+                                    domain = App.state.userSettings.domain.ToObservable(),
+                                    username = App.state.userSettings.username.ToObservable(),
+                                    password = App.state.userSettings.password.ToObservable(),
                                     onDomainChanged = x => App.state.userSettings.domain.ExecuteSetOrDelay(x),
                                     onUsernameChanged = x => App.state.userSettings.username.ExecuteSetOrDelay(x),
                                     onPasswordChanged = x => App.state.userSettings.password.ExecuteSetOrDelay(x),
@@ -77,9 +77,9 @@ namespace Plerion.MakeItSing
                                 _screen = RoomSelectUI(new()
                                 {
                                     layout = FillParentProps(),
-                                    roomName = App.state.roomConnection.connectionString.AsObservable(),
-                                    recentRooms = App.state.userSettings.recentRooms.AsObservable(),
-                                    activeRooms = App.state.activeRooms.AsObservable(),
+                                    roomName = App.state.roomConnection.connectionString.ToObservable(),
+                                    recentRooms = App.state.userSettings.recentRooms.ToObservable(),
+                                    activeRooms = App.state.activeRooms.ToObservable(),
                                     onRoomSelected = x => App.state.roomConnection.connectionString.ExecuteSet(x)
                                 });
                             }
