@@ -30,7 +30,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "e944d79e20127c2ba9fbe5229ebd18074c5f6926"
+      "hash": "e3992c063ba5b566404d2540f6280c3985220bae"
     },
     "com.fofx.observething.statefulextensions": {
       "version": "https://github.com/outernet-foundation/ObserveThing.git?path=Assets/Package/StatefulExtensions",

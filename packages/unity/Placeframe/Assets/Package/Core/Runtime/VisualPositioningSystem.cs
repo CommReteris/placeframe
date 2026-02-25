@@ -193,9 +193,7 @@ namespace Placeframe.Core
             await UniTask.SwitchToMainThread();
 
             if (_maps.Count == 0)
-            {
                 throw new InvalidOperationException("No localization maps loaded");
-            }
 
             using var memoryStream = new MemoryStream(frame.ImageBytes);
 
@@ -211,12 +209,13 @@ namespace Placeframe.Core
             );
 
             if (localizationResults.Count == 0)
-            {
                 throw new InvalidOperationException("Localization failed");
-            }
 
             // TODO: Handle multiple results
             var localizationResult = localizationResults.FirstOrDefault();
+
+            if (localizationResult.Metrics.InlierRatio < .3f || localizationResult.Metrics.ReprojectionErrorMedian < 0.5f)
+                throw new Exception($"Localization rejected based on metrics.\nInlier Ratio: {localizationResult.Metrics.InlierRatio}\nReprojection Error Median: {localizationResult.Metrics.ReprojectionErrorMedian}");
 
             // Get the transform from the map to the camera (The inverse of the camera's pose in the map)
             var translationCameraFromMap = localizationResult.CameraFromMapTransform.Translation.ToDouble3();
@@ -242,14 +241,17 @@ namespace Placeframe.Core
                 quaternion.AxisAngle(new float3(0f, 0f, 1f), math.radians(0f)).ToDouble3x3()
             );
 
-            // Constrain both camera rotations to be gravity-aligned
-            // rotationCameraFromMap = rotationCameraFromMap.RemovePitchAndRoll();
-            // rotationUnityWorldFromCamera = rotationUnityWorldFromCamera.RemovePitchAndRoll();
-
             // Compute the transform from the map to Unity world
             var rotationUnityFromMap = math.mul(rotationUnityWorldFromCamera, rotationCameraFromMap);
+
+            // Align matrix up with unity world up
+            var right = math.rotate(rotationUnityFromMap.ToQuaternion(), new float3(1, 0, 0));
+            var forward = math.cross(right, new float3(0, 1, 0));
+            rotationUnityFromMap = quaternion.LookRotation(forward, new float3(0, 1, 0)).ToDouble3x3();
+
             var translationUnityFromMap =
                 math.mul(rotationUnityWorldFromCamera, translationCameraFromMap) + translationUnityWorldFromCamera;
+
             var transformUnityFromMap = Double4x4.FromTranslationRotation(
                 translationUnityFromMap,
                 rotationUnityFromMap
