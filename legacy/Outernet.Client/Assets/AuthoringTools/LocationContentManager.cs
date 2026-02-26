@@ -147,20 +147,19 @@ namespace Outernet.Client.AuthoringTools
             });
 
             // Determine ground level (height above WGS84 ellipsoid) at the specified latitude and longitude
-            var heights = await CesiumAPI.GetHeights(new List<(double latitude, double longitude)> { (latitude, longitude) });
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (heights == null || heights.Count == 0)
-                throw new Exception("No heights found.");
-
-            var height = heights[0];
+            SceneReferences.GroundTileset.suspendUpdate = false;
+            var heightSamplingResult = await SceneReferences.GroundTileset.SampleHeightMostDetailed(
+                new double3(longitude, latitude, 0)
+            );
+            var groundLevelHeightAboveWGS84Ellipsoid = heightSamplingResult.longitudeLatitudeHeightPositions[0].z;
+            SceneReferences.GroundTileset.suspendUpdate = true;
 
             // Convert cartographic coordinates to ECEF coordinates, and use the ENU frame at that location for orientation
             var ecefPosition = WGS84.CartographicToEcef(
                 CartographicCoordinates.FromLongitudeLatitudeHeight(
                     longitude,
                     latitude,
-                    height
+                    groundLevelHeightAboveWGS84Ellipsoid
                 )
             );
             var ecefRotation = WGS84.GetEastNorthUpFrameInEcef(ecefPosition);

@@ -404,7 +404,7 @@ namespace Outernet.Client
 
                     if (clientNode.interacting.value)
                     {
-                        var ecefExhibitTransform = LocationUtilities.UnityFromEcef(
+                        var ecefExhibitTransform = LocationUtilities.EcefFromUnity(
                             _localToEcefMatrix,
                             clientNode.exhibitPosition.value.ToDoubles(),
                             clientNode.exhibitRotation.value
@@ -415,7 +415,7 @@ namespace Outernet.Client
                     }
                     else
                     {
-                        var localExhibitTransform = LocationUtilities.EcefFromUnity(
+                        var localExhibitTransform = LocationUtilities.UnityFromEcef(
                             _ecefToLocalMatrix,
                             nodeState.exhibitPosition.value,
                             nodeState.exhibitRotation.value

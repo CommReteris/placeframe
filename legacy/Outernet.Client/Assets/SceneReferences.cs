@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.ARFoundation;
+using CesiumForUnity;
 
 namespace Outernet.Client
 {
@@ -16,15 +17,16 @@ namespace Outernet.Client
             public GameObject reference;
         }
 
-        public static CesiumForUnity.CesiumGeoreference CesiumGeoreference => _instance._cesiumGeoreference;
+        public static CesiumGeoreference CesiumGeoreference => _instance._cesiumGeoreference;
         public static IEnumerable<TilesetReference> Tilesets => _instance._tilesets;
         public static XRUIInputModule InputModule => _instance._inputModule;
         public static GameObject XrOrigin => _instance._xrOrigin;
         public static GameObject ArSession => _instance._arSession;
         public static ARAnchorManager AnchorManager => _instance._anchorManager;
+        public static Cesium3DTileset GroundTileset => _instance._groundTileset;
 
         [SerializeField]
-        private CesiumForUnity.CesiumGeoreference _cesiumGeoreference;
+        private CesiumGeoreference _cesiumGeoreference;
 
         [SerializeField]
         private XRUIInputModule _inputModule;
@@ -40,6 +42,9 @@ namespace Outernet.Client
 
         [SerializeField]
         private TilesetReference[] _tilesets;
+
+        [SerializeField]
+        private Cesium3DTileset _groundTileset;
 
         private void Awake()
         {

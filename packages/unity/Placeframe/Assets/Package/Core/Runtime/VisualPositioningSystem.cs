@@ -279,14 +279,6 @@ namespace Placeframe.Core
             OnEcefToUnityWorldTransformUpdated?.Invoke();
         }
 
-        // public static double3x3 RemovePitchAndRoll(this double3x3 rotation)
-        // {
-        //     float3 up = new float3(0f, 1f, 0f);
-        //     float3 right = math.mul(rotation.ToQuaternion(), new float3(1f, 0f, 0f));
-        //     float3 forward = math.normalize(math.cross(right, up));
-        //     return quaternion.LookRotationSafe(forward, up).ToDouble3x3();
-        // }
-
         public static UniTask<LocalizationMapRead> GetMapData(Guid mapID)
         {
             return Api.GetLocalizationMapAsync(mapID).AsUniTask();
