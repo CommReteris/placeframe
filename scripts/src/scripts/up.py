@@ -15,7 +15,7 @@ app = typer.Typer(add_completion=False)
 def up(
     use_lock: bool = typer.Option(False, "--locked", "-l", help="Use .env.lock even if .env.local.lock exists."),
     attached: bool = typer.Option(False, "--attached", "-a", help="Run in foreground (not detached)"),
-    gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm"),
+    gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm|none"),
 ) -> None:
     if not LOCK_FILE.exists() and not LOCAL_LOCK_FILE.exists():
         raise RuntimeError("No lock file found; run 'lock.py' first")
@@ -29,7 +29,7 @@ def up(
     command = (
         "docker compose "
         "-f compose.yml "
-        f"-f compose.{gpu}.yml "
+        f"{f'-f compose.{gpu}.yml ' if gpu != 'none' else ''}"
         "--env-file .env "
         f"--env-file {LOCAL_LOCK_FILE if not use_lock and LOCAL_LOCK_FILE.exists() else LOCK_FILE} "
         "up"

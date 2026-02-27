@@ -53,6 +53,9 @@ CREATE POLICY localization_maps_rls_policy ON localization_maps
     USING (tenant_id = current_tenant())
     WITH CHECK (tenant_id = current_tenant());
 
+CREATE INDEX idx_localization_maps_position_gist ON localization_maps
+  USING GIST (ST_MakePoint(position_x, position_y, position_z));
+
 CREATE TRIGGER localization_maps_touch_updated_at_trigger
   BEFORE UPDATE ON localization_maps
   FOR EACH ROW EXECUTE FUNCTION touch_updated_at();

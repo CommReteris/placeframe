@@ -14,7 +14,7 @@ app = typer.Typer(add_completion=False)
 @app.command()
 def down(
     volumes: bool = typer.Option(False, "--volumes", "-v", help="Remove named volumes."),
-    gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm"),
+    gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm|none"),
 ) -> None:
     """Wrapper for docker compose down."""
     if not ENV_FILE.exists():

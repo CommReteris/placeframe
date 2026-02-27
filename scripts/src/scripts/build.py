@@ -95,6 +95,7 @@ def _check_gc_limits(min_gb: int = 60):
 @app.command()
 def build(
     upgrade: bool = typer.Option(False, "--upgrade", "-u", help="Re-resolve and rewrite base digests."),
+    lock_only: bool = typer.Option(False, "--lock-only", help="Update lock file without building images."),
     mode: Mode = typer.Option("local", "--mode", help="local: updates .env.lock.local; ci: updates .env.lock."),
     gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm"),
     no_cache: bool = typer.Option(False, "--no-cache", help="Force rebuild by disabling cache usage."),
@@ -109,11 +110,11 @@ def build(
         raise typer.BadParameter("In CI mode, --gpu cannot be 'auto'; specify 'cuda' or 'rocm'.")
 
     # For local builds, ensure Docker GC limits are high enough that GPU builds don't cause cache evictions
-    if mode == "local":
+    if mode == "local" and not lock_only:
         _check_gc_limits(min_gb=60)
 
     # Resolve gpu
-    if gpu == "auto":
+    if gpu == "auto" and not lock_only:
         gpu = detect_gpu()
 
     # Resolve base image external dependencies
@@ -127,13 +128,22 @@ def build(
         for name, config in cast(dict[str, Any], compose_data["services"]).items()
         if name not in bake_data["services"]
     }
-    for image, ref in {
-        image: ref for image, ref in third_party_images.items() if upgrade or image not in lock_data
-    }.items():
+
+    def _needs_resolve(image: str, ref: str) -> bool:
+        if upgrade or image not in lock_data:
+            return True
+        # Re-resolve if the image name in compose.yml changed from what's in the lock file
+        # (e.g. postgres:16-alpine → postgis/postgis:16-3.4-alpine)
+        return not lock_data[image].startswith(ref + "@")
+
+    for image, ref in {image: ref for image, ref in third_party_images.items() if _needs_resolve(image, ref)}.items():
         lock_data[image] = f"{ref}@{_get_remote_digest(ref)}"
 
     # Update main lock file
     _write_lock_file(LOCK_FILE, lock_data)
+
+    if lock_only:
+        return
 
     # Load local lock file and merge in updated base/third-party image digests from main lock file
     local_lock_data = _load_lock_file(LOCAL_LOCK_FILE) if (mode == "local" and LOCAL_LOCK_FILE.exists()) else {}

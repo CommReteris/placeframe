@@ -61,7 +61,7 @@ services:
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY:?err}"
 
   postgres:
-    x-image-ref: docker.io/library/postgres:16-alpine
+    x-image-ref: docker.io/postgis/postgis:16-3.4-alpine
     image: "${POSTGRES_IMAGE:?err}"
     ports:
       - "55432:5432"
