@@ -61,6 +61,13 @@ The repo is a `uv` monorepo. Shared Python code lives in `packages/python/`:
 
 Auto-generated packages in `packages/generated/` should not be edited directly — regenerate them with the commands above.
 
+**Generation pipeline**: Code in `packages/generated/` is produced by two scripts that must be run after certain changes:
+
+- **`uv run generate-datamodels`** — Introspects the **live PostgreSQL database** (via `sqlacodegen`) to produce `packages/generated/python/datamodels/` (SQLAlchemy table models + Pydantic DTOs). Must be run after any changes to `database/*.sql` schema files. **Requires Docker + postgres to be running** (`uv run up`, then `uv run migrate-database` to apply schema changes).
+- **`uv run generate-clients`** — Dumps the OpenAPI spec from the Litestar app (no database needed) and runs `openapi-generator-cli` to produce typed API clients in `packages/generated/python/` and `packages/generated/csharp/`. Must be run after any changes to API route signatures (new query params, new response fields, etc.).
+
+**When changing both schema and API routes**: run `generate-datamodels` first (it updates the Pydantic models the API imports), then `generate-clients` (it dumps the updated OpenAPI spec). Both scripts live in `scripts/src/scripts/`.
+
 ### Data Flow
 
 1. **Capture**: Unity mobile app (ARFoundation, C#) records images + sensor data and POSTs to the API.

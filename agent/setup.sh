@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Provisioning Code on Incus (COI) - minimal"
+echo "Provisioning Code on Incus (COI) - minimal (+ containerd pin for nested Docker + GPU + no-yolo)"
 
 # 1) System deps
 sudo apt update
@@ -11,7 +11,7 @@ sudo apt install -y curl git firewalld btrfs-progs uidmap
 sudo ufw disable || true
 sudo systemctl enable --now firewalld
 
-# Allow COI to run firewall-cmd without sudo prompts (fixes "next day firewalld not running" error)
+# Allow COI to run firewall-cmd without sudo prompts (fixes "next day" sudo timestamp issues)
 sudo tee /etc/sudoers.d/coi-firewalld >/dev/null <<EOF
 $USER ALL=(root) NOPASSWD: /usr/bin/firewall-cmd
 EOF
@@ -65,12 +65,20 @@ profiles:
 EOF
 fi
 
+# Docker-in-container needs nesting in most Incus setups
+sudo incus profile set default security.nesting true || true
+
+# GPU passthrough: add a gpu device to the default profile if missing
+# (Idempotent: command will fail if already present; ignore)
+sudo incus profile device add default gpu gpu >/dev/null 2>&1 || true
+
 # 6) Trust the Incus bridge
 sudo firewall-cmd --permanent --zone=trusted --add-interface=incusbr0 || true
 sudo firewall-cmd --reload || true
 
-# 7) COI repo + binary (cloning the repo is a workaround for https://github.com/mensfeld/code-on-incus/issues/50)
-echo "Fetching COI repository and binary..."
+# 7) COI repo + binary
+# Repo clone is a workaround for https://github.com/mensfeld/code-on-incus/issues/50
+echo "Fetching COI repository..."
 COI_DIR="/opt/code-on-incus"
 if [ ! -d "$COI_DIR" ]; then
   sudo git clone --depth 1 https://github.com/mensfeld/code-on-incus.git "$COI_DIR"
@@ -78,11 +86,13 @@ else
   sudo git -C "$COI_DIR" pull
 fi
 
-sudo curl -fsSL -o /usr/local/bin/coi \
-  https://github.com/mensfeld/code-on-incus/releases/latest/download/coi-linux-amd64
-sudo chmod +x /usr/local/bin/coi
+echo "Installing COI binary..."
+TMP_COI="$(mktemp)"
+curl -fsSL -o "$TMP_COI" https://github.com/mensfeld/code-on-incus/releases/latest/download/coi-linux-amd64
+chmod +x "$TMP_COI"
+sudo mv "$TMP_COI" /usr/local/bin/coi
 
-# 8) Build base image
+# 8) Build base image (if missing)
 echo "Ensuring COI base image exists..."
 if ! sg incus-admin -c "incus image info coi >/dev/null 2>&1"; then
   echo "Building COI base image..."
@@ -92,12 +102,72 @@ else
   echo "COI base image already exists. Skipping build."
 fi
 
-# 9) COI config
+# 9) Build a custom image that:
+#    (a) pins containerd.io to avoid nested-Docker sysctl bug (Incus #2623)
+#    (b) disables Claude "bypass permissions / yolo" mode via managed settings (highest precedence)
+#    Bug reference: https://github.com/lxc/incus/issues/2623
+CONTAINERD_FIX="$(mktemp)"
+cat > "$CONTAINERD_FIX" <<'FIXEOF'
+#!/bin/bash
+set -e
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update -y
+
+# --- (a) containerd pin (nested Docker workaround)
+# Docker repo is already present in the COI base image build environment (see logs).
+# Prefer a downgrade that likely bundles older runc (workaround for Incus #2623).
+apt-get install -y --allow-downgrades containerd.io=1.7.18-1 || \
+apt-get install -y --allow-downgrades containerd.io=1.7.28-2~ubuntu.22.04~jammy
+apt-mark hold containerd.io
+
+# --- (b) disable Claude bypassPermissions mode (managed settings override CLI flags)
+install -d -m 0755 /etc/claude-code
+cat > /etc/claude-code/managed-settings.json <<'JSON'
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "disableBypassPermissionsMode": "disable",
+    "defaultMode": "default"
+  }
+}
+JSON
+chmod 0644 /etc/claude-code/managed-settings.json
+FIXEOF
+chmod +x "$CONTAINERD_FIX"
+
+cd "$COI_DIR"
+sg incus-admin -c "coi build --force custom coi-fixed --base coi --script $CONTAINERD_FIX" || \
+  echo "WARNING: custom image build failed; nested Docker may still be broken"
+rm -f "$CONTAINERD_FIX"
+
+# 10) Claude settings: disable bypassPermissions mode by default
+# This is Claude's official setting. COI copies ~/.claude settings into the container.
+mkdir -p "$HOME/.claude"
+cat > "$HOME/.claude/settings.json" <<'EOF'
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "disableBypassPermissionsMode": "disable",
+    "defaultMode": "default"
+  }
+}
+EOF
+chmod 600 "$HOME/.claude/settings.json" || true
+
+# 11) COI config: use the fixed image by default
 echo "Writing COI config..."
 mkdir -p "$HOME/.config/coi"
-
 cat > "$HOME/.config/coi/config.toml" <<'EOF'
 [defaults]
+image = "coi-fixed"
 persistent = true
-mount_claude_config = true
+mount_claude_config = false
 EOF
+
+echo ""
+echo "Done."
+echo "Open a NEW terminal (incus-admin group membership won’t apply to the current shell)."
+echo ""
+echo "Usage (from your repo root):"
+echo "  coi shell"
