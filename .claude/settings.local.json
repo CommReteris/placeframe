@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "allowedTools": ["WebSearch", "WebFetch"],
     "allow": [
       "Bash(find /app/docker/api -name \"*test*\" -o -name \"*spec*\" 2>/dev/null | head -20)",
       "Bash(find /app/packages/python/common/src -type f -name \"*.py\" -exec wc -l {} + | tail -1)",
@@ -12,7 +13,9 @@
       "Bash(export PATH=\"$HOME/.local/bin:$PATH\" && uv sync 2>&1)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "Bash(docker info:*)"
+      "Bash(docker info:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)"
     ]
   }
 }
