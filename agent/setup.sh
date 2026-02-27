@@ -155,8 +155,8 @@ if ! incus image info "$PLACEFRAME_IMAGE" >/dev/null 2>&1; then
     apt-get update -qq
     apt-get install -y -qq --no-install-recommends default-jre-headless
 
-    # Install uv
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # Install uv system-wide (default installs to ~/.local/bin which is root-only)
+    curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
     # Install openapi-generator-cli
     npm install -g @openapitools/openapi-generator-cli
