@@ -1,0 +1,116 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What This Project Is
+
+**Placeframe** is a self-hosted XR spatial localization system ("relocalization as a service"). It determines an XR device's position and rotation relative to a canonical reference frame for a physical space — an open-source alternative to Apple Shared World Anchors, Google ARCore Cloud Anchors, etc.
+
+## Commands
+
+All top-level commands are run via `uv run <command>` from the repo root. These are defined in `scripts/src/scripts/` and registered in `scripts/pyproject.toml`.
+
+| Command | Purpose |
+|---|---|
+| `uv run up` | Start all Docker services (detached). Pass `--attached` for streaming logs. |
+| `uv run down` | Stop all Docker services |
+| `uv run build` | Build Docker images (auto-detects CUDA/ROCm) |
+| `uv run migrate-database` | Run PostgreSQL schema migrations |
+| `uv run generate-clients` | Regenerate OpenAPI client packages |
+| `uv run generate-datamodels` | Regenerate Pydantic data models |
+| `uv run generate-lock-files` | Regenerate per-service `uv.lock` files |
+| `uv run deptry-check` | Check for dependency issues across all packages |
+
+**Linting and type checking** (run from repo root):
+```bash
+uv run ruff check .          # Lint
+uv run ruff format .         # Format
+uv run basedpyright          # Type check (strict mode)
+```
+
+**Tests**: `uv run pytest` from repo root. Tests live alongside each service (e.g. `docker/localizer/tests/`).
+
+## Architecture
+
+The system runs as a set of Docker microservices defined in `compose.yml`, with GPU overrides in `compose.cuda.yml` and `compose.rocm.yml`.
+
+### Core Services
+
+| Service | Path | Technology | Role |
+|---|---|---|---|
+| `api` | `docker/api/` | Litestar (ASGI) | Main REST API: manages users, places, captures, maps |
+| `localizer` | `docker/localizer/` | Litestar (ASGI) | Runs image-to-map localization (LightGlue feature matching + RANSAC) |
+| `reconstructor` | `docker/reconstructor/` | Python + pycolmap | Builds 3D maps from capture sessions |
+| `state-sync` | `docker/orchestrator/` | Python worker | Polls the database and orchestrates async jobs between services |
+| `database-manager` | `docker/database-manager/` | Python | Runs SQL migrations at startup |
+| `auth-initializer` | `docker/auth-initializer/` | Python | Configures Keycloak realm on startup |
+| `gateway` | `docker/gateway/` | ngrok | Public HTTPS tunnel |
+| `keycloak` | `docker/keycloak/` | Keycloak 26 | OpenID Connect / OAuth2 identity provider |
+
+**Backing services**: PostgreSQL 16, MinIO (S3-compatible object storage), CloudBeaver (database UI).
+
+### Python Workspace
+
+The repo is a `uv` monorepo. Shared Python code lives in `packages/python/`:
+
+- **`common`** — utilities for boto/MinIO, Docker SDK, Litestar, JWT
+- **`core`** — domain logic: camera configs, coordinate transforms, metrics
+- **`neural-networks`** — PyTorch models with conditional extras (`cpu`, `cuda`, `rocm`)
+- **`datamodels`** — auto-generated Pydantic models from the OpenAPI schema
+- **`api-client` / `localizer-client`** — auto-generated async API clients
+
+Auto-generated packages in `packages/generated/` should not be edited directly — regenerate them with the commands above.
+
+**Generation pipeline**: Code in `packages/generated/` is produced by two scripts that must be run after certain changes:
+
+- **`uv run generate-datamodels`** — Introspects the **live PostgreSQL database** (via `sqlacodegen`) to produce `packages/generated/python/datamodels/` (SQLAlchemy table models + Pydantic DTOs). Must be run after any changes to `database/*.sql` schema files. **Requires Docker + postgres to be running** (`uv run up`, then `uv run migrate-database` to apply schema changes).
+- **`uv run generate-lock-files`** — Regenerates per-service `uv.lock` files. Must be run before `generate-clients` (which uses `uv run --no_workspace` per-service and needs the lock files). Also re-run after `uv sync --all-packages` since that overwrites per-service locks.
+- **`uv run generate-clients --config openapi-projects.json`** — Dumps the OpenAPI spec from each Litestar app and runs `openapi-generator-cli` to produce typed API clients in `packages/generated/python/` and `packages/generated/csharp/`. Must be run after any changes to API route signatures (new query params, new response fields, etc.). Requires Java and `openapi-generator-cli` (npm) on PATH. Use `--project docker/api` to generate only the API client (the localizer requires PyTorch/pycolmap to dump its spec).
+
+**When changing both schema and API routes**, run in this order:
+1. `uv run generate-datamodels` (updates Pydantic models the API imports; needs live postgres)
+2. `uv run generate-lock-files` (needed before generate-clients)
+3. `uv run generate-clients --config openapi-projects.json` (dumps updated OpenAPI spec, generates clients)
+
+All three scripts live in `scripts/src/scripts/`.
+
+### Data Flow
+
+1. **Capture**: Unity mobile app (ARFoundation, C#) records images + sensor data and POSTs to the API.
+2. **Reconstruction**: The `state-sync` worker triggers the `reconstructor`, which uses pycolmap to build a sparse 3D map (point cloud + camera poses). The result is stored in MinIO.
+3. **Localization**: A Unity client sends a query image to the `localizer`, which matches it against a stored map using LightGlue feature matching, then estimates 6-DOF pose via RANSAC/PnP.
+4. **Georeferencing**: The Map Registration Tool (Unity standalone) can visually align point clouds against Cesium tilesets (OSM / Google Photorealistic Tiles).
+
+### Authentication
+
+All API endpoints require an OAuth2 Bearer token from Keycloak. The default dev credentials are `user` / `password` (configured in `docker/keycloak/realm-export/placeframe.json`). The `state-sync` worker uses client credentials to authenticate service-to-service calls.
+
+## Code Conventions
+
+- **Python 3.13+**, line length 120, Ruff for linting/formatting, BasedPyright in strict mode.
+- **C# (Unity)**: CSharpier formatter, 120 char width (`.csharpierrc.json`).
+- All Python packages use `src/<package>/` layout with `py.typed` marker.
+- Pydantic v2 for data validation everywhere; async/await throughout all services.
+- The `deptry-check` command enforces that all imports match declared dependencies. Per-rule exceptions for platform-specific packages (CUDA/ROCm) are documented in each `pyproject.toml`.
+
+## Initial Setup
+
+1. Copy `.env.sample` to `.env` and fill in `PUBLIC_DOMAIN` (ngrok static domain) and `NGROK_AUTHTOKEN`.
+2. Run `uv run up` to start all services.
+3. Visit your ngrok domain to access the OpenAPI UI.
+
+## Claude Code Environment Notes
+
+When running in a containerized Claude Code environment (no GPU, no ngrok):
+
+1. **Create `.env` from sample**: `cp .env.sample .env` — set `PUBLIC_DOMAIN=localhost`, `NGROK_AUTHTOKEN=dummy`, and clear `COMPOSE_PROFILES=` (remove `ngrok`).
+2. **Use `--gpu none`**: This environment has no GPU. Use `uv run up --gpu none` and `uv run down --gpu none`.
+3. **Use long timeouts for Docker commands**: `uv run up`, `uv run down`, and any `docker compose` commands may need to pull images on first run. Always use `timeout: 600000` (10 minutes) on these Bash calls.
+4. **Migrations run automatically**: `uv run up` starts a `migrate-database` container that has `pg-schema-diff` installed and runs migrations inside Docker. You do NOT need to install `pg-schema-diff` locally or run `uv run migrate-database` separately — just `uv run up` and wait for the migrator container to finish.
+5. **Never run bare `docker compose` commands**: The compose setup requires multiple `--env-file` flags (`.env` + `.env.lock`) and GPU-specific compose files. Always use the `uv run` wrapper scripts (`uv run up`, `uv run down`, etc.) which assemble the correct command. Running `docker compose` directly will fail with missing variable errors.
+6. **Full generation pipeline order** (after schema or API route changes):
+   - `uv run up --gpu none` (starts postgres, runs migrations automatically)
+   - `uv run generate-datamodels` (needs live postgres)
+   - `uv run generate-lock-files` (must precede generate-clients)
+   - `uv run generate-clients --config openapi-projects.json --project docker/api` (localizer can't dump spec without GPU/PyTorch)
+7. **Don't `uv sync` inside a service directory**: Running `uv sync` in e.g. `docker/api/` clobbers the workspace venv. Always sync from the repo root with `uv sync --all-packages`, then re-run `uv run generate-lock-files`.
