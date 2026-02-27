@@ -33,12 +33,12 @@
   "yaml-compose-sorter.topLevelKeyOrder": [
     "version",
     "name",
+    "volumes",
     "x-base-images",
     "x-base-args",
     "x-registry-cache",
     "services",
     "networks",
-    "volumes",
     "secrets",
     "configs"
   ],
@@ -77,5 +77,6 @@
   "basedpyright.analysis.diagnosticMode": "workspace",
   "pgFormatter.configFile": "${workspaceFolder}/pg_format.conf",
   "ruff.nativeServer": "on",
-  "ruff.importStrategy": "useBundled"
+  "ruff.importStrategy": "useBundled",
+  "python-envs.pythonProjects": []
 }

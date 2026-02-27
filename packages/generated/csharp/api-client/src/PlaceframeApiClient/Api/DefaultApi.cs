@@ -507,8 +507,12 @@ namespace PlaceframeApiClient.Api
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
         /// <param name="reconstructionIds">Optional list of Reconstruction Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <returns>List&lt;LocalizationMapRead&gt;</returns>
-        List<LocalizationMapRead> GetLocalizationMaps(List<Guid>? ids = default, List<Guid>? reconstructionIds = default);
+        List<LocalizationMapRead> GetLocalizationMaps(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default);
 
         /// <summary>
         /// GetLocalizationMaps
@@ -519,15 +523,23 @@ namespace PlaceframeApiClient.Api
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
         /// <param name="reconstructionIds">Optional list of Reconstruction Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <returns>ApiResponse of List&lt;LocalizationMapRead&gt;</returns>
-        ApiResponse<List<LocalizationMapRead>> GetLocalizationMapsWithHttpInfo(List<Guid>? ids = default, List<Guid>? reconstructionIds = default);
+        ApiResponse<List<LocalizationMapRead>> GetLocalizationMapsWithHttpInfo(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default);
         /// <summary>
         /// GetNodes
         /// </summary>
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <returns>List&lt;NodeRead&gt;</returns>
-        List<NodeRead> GetNodes(List<Guid>? ids = default);
+        List<NodeRead> GetNodes(List<Guid>? ids = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default);
 
         /// <summary>
         /// GetNodes
@@ -537,8 +549,12 @@ namespace PlaceframeApiClient.Api
         /// </remarks>
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <returns>ApiResponse of List&lt;NodeRead&gt;</returns>
-        ApiResponse<List<NodeRead>> GetNodesWithHttpInfo(List<Guid>? ids = default);
+        ApiResponse<List<NodeRead>> GetNodesWithHttpInfo(List<Guid>? ids = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default);
         /// <summary>
         /// GetReconstruction
         /// </summary>
@@ -1499,9 +1515,13 @@ namespace PlaceframeApiClient.Api
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
         /// <param name="reconstructionIds">Optional list of Reconstruction Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns>Task of List&lt;LocalizationMapRead&gt;</returns>
-        System.Threading.Tasks.Task<List<LocalizationMapRead>> GetLocalizationMapsAsync(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<List<LocalizationMapRead>> GetLocalizationMapsAsync(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
         /// GetLocalizationMaps
@@ -1512,9 +1532,13 @@ namespace PlaceframeApiClient.Api
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
         /// <param name="reconstructionIds">Optional list of Reconstruction Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns>Task of ApiResponse (List&lt;LocalizationMapRead&gt;)</returns>
-        System.Threading.Tasks.Task<ApiResponse<List<LocalizationMapRead>>> GetLocalizationMapsWithHttpInfoAsync(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<ApiResponse<List<LocalizationMapRead>>> GetLocalizationMapsWithHttpInfoAsync(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default, System.Threading.CancellationToken cancellationToken = default);
         /// <summary>
         /// GetNodes
         /// </summary>
@@ -1523,9 +1547,13 @@ namespace PlaceframeApiClient.Api
         /// </remarks>
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns>Task of List&lt;NodeRead&gt;</returns>
-        System.Threading.Tasks.Task<List<NodeRead>> GetNodesAsync(List<Guid>? ids = default, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<List<NodeRead>> GetNodesAsync(List<Guid>? ids = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default, System.Threading.CancellationToken cancellationToken = default);
 
         /// <summary>
         /// GetNodes
@@ -1535,9 +1563,13 @@ namespace PlaceframeApiClient.Api
         /// </remarks>
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns>Task of ApiResponse (List&lt;NodeRead&gt;)</returns>
-        System.Threading.Tasks.Task<ApiResponse<List<NodeRead>>> GetNodesWithHttpInfoAsync(List<Guid>? ids = default, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<ApiResponse<List<NodeRead>>> GetNodesWithHttpInfoAsync(List<Guid>? ids = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default, System.Threading.CancellationToken cancellationToken = default);
         /// <summary>
         /// GetReconstruction
         /// </summary>
@@ -5136,10 +5168,14 @@ namespace PlaceframeApiClient.Api
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
         /// <param name="reconstructionIds">Optional list of Reconstruction Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <returns>List&lt;LocalizationMapRead&gt;</returns>
-        public List<LocalizationMapRead> GetLocalizationMaps(List<Guid>? ids = default, List<Guid>? reconstructionIds = default)
+        public List<LocalizationMapRead> GetLocalizationMaps(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default)
         {
-            PlaceframeApiClient.Client.ApiResponse<List<LocalizationMapRead>> localVarResponse = GetLocalizationMapsWithHttpInfo(ids, reconstructionIds);
+            PlaceframeApiClient.Client.ApiResponse<List<LocalizationMapRead>> localVarResponse = GetLocalizationMapsWithHttpInfo(ids, reconstructionIds, positionX, positionY, positionZ, radius);
             return localVarResponse.Data;
         }
 
@@ -5149,8 +5185,12 @@ namespace PlaceframeApiClient.Api
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
         /// <param name="reconstructionIds">Optional list of Reconstruction Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <returns>ApiResponse of List&lt;LocalizationMapRead&gt;</returns>
-        public PlaceframeApiClient.Client.ApiResponse<List<LocalizationMapRead>> GetLocalizationMapsWithHttpInfo(List<Guid>? ids = default, List<Guid>? reconstructionIds = default)
+        public PlaceframeApiClient.Client.ApiResponse<List<LocalizationMapRead>> GetLocalizationMapsWithHttpInfo(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default)
         {
             PlaceframeApiClient.Client.RequestOptions localVarRequestOptions = new PlaceframeApiClient.Client.RequestOptions();
 
@@ -5175,6 +5215,22 @@ namespace PlaceframeApiClient.Api
             if (reconstructionIds != null)
             {
                 localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("multi", "reconstruction_ids", reconstructionIds));
+            }
+            if (positionX != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_x", positionX));
+            }
+            if (positionY != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_y", positionY));
+            }
+            if (positionZ != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_z", positionZ));
+            }
+            if (radius != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "radius", radius));
             }
 
 
@@ -5196,11 +5252,15 @@ namespace PlaceframeApiClient.Api
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
         /// <param name="reconstructionIds">Optional list of Reconstruction Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns>Task of List&lt;LocalizationMapRead&gt;</returns>
-        public async System.Threading.Tasks.Task<List<LocalizationMapRead>> GetLocalizationMapsAsync(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, System.Threading.CancellationToken cancellationToken = default)
+        public async System.Threading.Tasks.Task<List<LocalizationMapRead>> GetLocalizationMapsAsync(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default, System.Threading.CancellationToken cancellationToken = default)
         {
-            PlaceframeApiClient.Client.ApiResponse<List<LocalizationMapRead>> localVarResponse = await GetLocalizationMapsWithHttpInfoAsync(ids, reconstructionIds, cancellationToken).ConfigureAwait(false);
+            PlaceframeApiClient.Client.ApiResponse<List<LocalizationMapRead>> localVarResponse = await GetLocalizationMapsWithHttpInfoAsync(ids, reconstructionIds, positionX, positionY, positionZ, radius, cancellationToken).ConfigureAwait(false);
             return localVarResponse.Data;
         }
 
@@ -5210,9 +5270,13 @@ namespace PlaceframeApiClient.Api
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
         /// <param name="reconstructionIds">Optional list of Reconstruction Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns>Task of ApiResponse (List&lt;LocalizationMapRead&gt;)</returns>
-        public async System.Threading.Tasks.Task<PlaceframeApiClient.Client.ApiResponse<List<LocalizationMapRead>>> GetLocalizationMapsWithHttpInfoAsync(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, System.Threading.CancellationToken cancellationToken = default)
+        public async System.Threading.Tasks.Task<PlaceframeApiClient.Client.ApiResponse<List<LocalizationMapRead>>> GetLocalizationMapsWithHttpInfoAsync(List<Guid>? ids = default, List<Guid>? reconstructionIds = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default, System.Threading.CancellationToken cancellationToken = default)
         {
 
             PlaceframeApiClient.Client.RequestOptions localVarRequestOptions = new PlaceframeApiClient.Client.RequestOptions();
@@ -5240,6 +5304,22 @@ namespace PlaceframeApiClient.Api
             {
                 localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("multi", "reconstruction_ids", reconstructionIds));
             }
+            if (positionX != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_x", positionX));
+            }
+            if (positionY != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_y", positionY));
+            }
+            if (positionZ != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_z", positionZ));
+            }
+            if (radius != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "radius", radius));
+            }
 
 
             // make the HTTP request
@@ -5260,10 +5340,14 @@ namespace PlaceframeApiClient.Api
         /// </summary>
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <returns>List&lt;NodeRead&gt;</returns>
-        public List<NodeRead> GetNodes(List<Guid>? ids = default)
+        public List<NodeRead> GetNodes(List<Guid>? ids = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default)
         {
-            PlaceframeApiClient.Client.ApiResponse<List<NodeRead>> localVarResponse = GetNodesWithHttpInfo(ids);
+            PlaceframeApiClient.Client.ApiResponse<List<NodeRead>> localVarResponse = GetNodesWithHttpInfo(ids, positionX, positionY, positionZ, radius);
             return localVarResponse.Data;
         }
 
@@ -5272,8 +5356,12 @@ namespace PlaceframeApiClient.Api
         /// </summary>
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <returns>ApiResponse of List&lt;NodeRead&gt;</returns>
-        public PlaceframeApiClient.Client.ApiResponse<List<NodeRead>> GetNodesWithHttpInfo(List<Guid>? ids = default)
+        public PlaceframeApiClient.Client.ApiResponse<List<NodeRead>> GetNodesWithHttpInfo(List<Guid>? ids = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default)
         {
             PlaceframeApiClient.Client.RequestOptions localVarRequestOptions = new PlaceframeApiClient.Client.RequestOptions();
 
@@ -5294,6 +5382,22 @@ namespace PlaceframeApiClient.Api
             if (ids != null)
             {
                 localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("multi", "ids", ids));
+            }
+            if (positionX != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_x", positionX));
+            }
+            if (positionY != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_y", positionY));
+            }
+            if (positionZ != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_z", positionZ));
+            }
+            if (radius != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "radius", radius));
             }
 
 
@@ -5314,11 +5418,15 @@ namespace PlaceframeApiClient.Api
         /// </summary>
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns>Task of List&lt;NodeRead&gt;</returns>
-        public async System.Threading.Tasks.Task<List<NodeRead>> GetNodesAsync(List<Guid>? ids = default, System.Threading.CancellationToken cancellationToken = default)
+        public async System.Threading.Tasks.Task<List<NodeRead>> GetNodesAsync(List<Guid>? ids = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default, System.Threading.CancellationToken cancellationToken = default)
         {
-            PlaceframeApiClient.Client.ApiResponse<List<NodeRead>> localVarResponse = await GetNodesWithHttpInfoAsync(ids, cancellationToken).ConfigureAwait(false);
+            PlaceframeApiClient.Client.ApiResponse<List<NodeRead>> localVarResponse = await GetNodesWithHttpInfoAsync(ids, positionX, positionY, positionZ, radius, cancellationToken).ConfigureAwait(false);
             return localVarResponse.Data;
         }
 
@@ -5327,9 +5435,13 @@ namespace PlaceframeApiClient.Api
         /// </summary>
         /// <exception cref="PlaceframeApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="ids">Optional list of Ids to filter by (optional)</param>
+        /// <param name="positionX"> (optional)</param>
+        /// <param name="positionY"> (optional)</param>
+        /// <param name="positionZ"> (optional)</param>
+        /// <param name="radius"> (optional)</param>
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns>Task of ApiResponse (List&lt;NodeRead&gt;)</returns>
-        public async System.Threading.Tasks.Task<PlaceframeApiClient.Client.ApiResponse<List<NodeRead>>> GetNodesWithHttpInfoAsync(List<Guid>? ids = default, System.Threading.CancellationToken cancellationToken = default)
+        public async System.Threading.Tasks.Task<PlaceframeApiClient.Client.ApiResponse<List<NodeRead>>> GetNodesWithHttpInfoAsync(List<Guid>? ids = default, double? positionX = default, double? positionY = default, double? positionZ = default, double? radius = default, System.Threading.CancellationToken cancellationToken = default)
         {
 
             PlaceframeApiClient.Client.RequestOptions localVarRequestOptions = new PlaceframeApiClient.Client.RequestOptions();
@@ -5352,6 +5464,22 @@ namespace PlaceframeApiClient.Api
             if (ids != null)
             {
                 localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("multi", "ids", ids));
+            }
+            if (positionX != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_x", positionX));
+            }
+            if (positionY != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_y", positionY));
+            }
+            if (positionZ != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "position_z", positionZ));
+            }
+            if (radius != null)
+            {
+                localVarRequestOptions.QueryParameters.Add(PlaceframeApiClient.Client.ClientUtils.ParameterToMultiMap("", "radius", radius));
             }
 
 

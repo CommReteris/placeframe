@@ -41,10 +41,18 @@ namespace PlaceframeApiClient.Model
         /// </summary>
         /// <param name="inlierRatio">inlierRatio (required).</param>
         /// <param name="reprojectionErrorMedian">reprojectionErrorMedian (required).</param>
-        public LocalizationMetrics(double inlierRatio, double reprojectionErrorMedian)
+        /// <param name="numInliers">numInliers (required).</param>
+        /// <param name="numCorrespondences">numCorrespondences (required).</param>
+        /// <param name="numMatches">numMatches (required).</param>
+        /// <param name="inlierCoverage">inlierCoverage (required).</param>
+        public LocalizationMetrics(double inlierRatio, double reprojectionErrorMedian, int numInliers, int numCorrespondences, int numMatches, double inlierCoverage)
         {
             this.InlierRatio = inlierRatio;
             this.ReprojectionErrorMedian = reprojectionErrorMedian;
+            this.NumInliers = numInliers;
+            this.NumCorrespondences = numCorrespondences;
+            this.NumMatches = numMatches;
+            this.InlierCoverage = inlierCoverage;
         }
 
         /// <summary>
@@ -96,6 +104,102 @@ namespace PlaceframeApiClient.Model
             return _flagReprojectionErrorMedian;
         }
         /// <summary>
+        /// Gets or Sets NumInliers
+        /// </summary>
+        [DataMember(Name = "num_inliers", IsRequired = true, EmitDefaultValue = true)]
+        public int NumInliers
+        {
+            get{ return _NumInliers;}
+            set
+            {
+                _NumInliers = value;
+                _flagNumInliers = true;
+            }
+        }
+        private int _NumInliers;
+        private bool _flagNumInliers;
+
+        /// <summary>
+        /// Returns false as NumInliers should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeNumInliers()
+        {
+            return _flagNumInliers;
+        }
+        /// <summary>
+        /// Gets or Sets NumCorrespondences
+        /// </summary>
+        [DataMember(Name = "num_correspondences", IsRequired = true, EmitDefaultValue = true)]
+        public int NumCorrespondences
+        {
+            get{ return _NumCorrespondences;}
+            set
+            {
+                _NumCorrespondences = value;
+                _flagNumCorrespondences = true;
+            }
+        }
+        private int _NumCorrespondences;
+        private bool _flagNumCorrespondences;
+
+        /// <summary>
+        /// Returns false as NumCorrespondences should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeNumCorrespondences()
+        {
+            return _flagNumCorrespondences;
+        }
+        /// <summary>
+        /// Gets or Sets NumMatches
+        /// </summary>
+        [DataMember(Name = "num_matches", IsRequired = true, EmitDefaultValue = true)]
+        public int NumMatches
+        {
+            get{ return _NumMatches;}
+            set
+            {
+                _NumMatches = value;
+                _flagNumMatches = true;
+            }
+        }
+        private int _NumMatches;
+        private bool _flagNumMatches;
+
+        /// <summary>
+        /// Returns false as NumMatches should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeNumMatches()
+        {
+            return _flagNumMatches;
+        }
+        /// <summary>
+        /// Gets or Sets InlierCoverage
+        /// </summary>
+        [DataMember(Name = "inlier_coverage", IsRequired = true, EmitDefaultValue = true)]
+        public double InlierCoverage
+        {
+            get{ return _InlierCoverage;}
+            set
+            {
+                _InlierCoverage = value;
+                _flagInlierCoverage = true;
+            }
+        }
+        private double _InlierCoverage;
+        private bool _flagInlierCoverage;
+
+        /// <summary>
+        /// Returns false as InlierCoverage should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeInlierCoverage()
+        {
+            return _flagInlierCoverage;
+        }
+        /// <summary>
         /// Returns the string presentation of the object
         /// </summary>
         /// <returns>String presentation of the object</returns>
@@ -105,6 +209,10 @@ namespace PlaceframeApiClient.Model
             sb.Append("class LocalizationMetrics {\n");
             sb.Append("  InlierRatio: ").Append(InlierRatio).Append("\n");
             sb.Append("  ReprojectionErrorMedian: ").Append(ReprojectionErrorMedian).Append("\n");
+            sb.Append("  NumInliers: ").Append(NumInliers).Append("\n");
+            sb.Append("  NumCorrespondences: ").Append(NumCorrespondences).Append("\n");
+            sb.Append("  NumMatches: ").Append(NumMatches).Append("\n");
+            sb.Append("  InlierCoverage: ").Append(InlierCoverage).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }

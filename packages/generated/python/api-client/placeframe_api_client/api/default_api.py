@@ -7048,6 +7048,10 @@ class DefaultApi:
         self,
         ids: Annotated[Optional[List[UUID]], Field(description="Optional list of Ids to filter by")] = None,
         reconstruction_ids: Annotated[Optional[List[UUID]], Field(description="Optional list of Reconstruction Ids to filter by")] = None,
+        position_x: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_y: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_z: Optional[Union[StrictFloat, StrictInt]] = None,
+        radius: Optional[Union[StrictFloat, StrictInt]] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -7068,6 +7072,14 @@ class DefaultApi:
         :type ids: List[UUID]
         :param reconstruction_ids: Optional list of Reconstruction Ids to filter by
         :type reconstruction_ids: List[UUID]
+        :param position_x:
+        :type position_x: float
+        :param position_y:
+        :type position_y: float
+        :param position_z:
+        :type position_z: float
+        :param radius:
+        :type radius: float
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -7093,6 +7105,10 @@ class DefaultApi:
         _param = self._get_localization_maps_serialize(
             ids=ids,
             reconstruction_ids=reconstruction_ids,
+            position_x=position_x,
+            position_y=position_y,
+            position_z=position_z,
+            radius=radius,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -7119,6 +7135,10 @@ class DefaultApi:
         self,
         ids: Annotated[Optional[List[UUID]], Field(description="Optional list of Ids to filter by")] = None,
         reconstruction_ids: Annotated[Optional[List[UUID]], Field(description="Optional list of Reconstruction Ids to filter by")] = None,
+        position_x: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_y: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_z: Optional[Union[StrictFloat, StrictInt]] = None,
+        radius: Optional[Union[StrictFloat, StrictInt]] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -7139,6 +7159,14 @@ class DefaultApi:
         :type ids: List[UUID]
         :param reconstruction_ids: Optional list of Reconstruction Ids to filter by
         :type reconstruction_ids: List[UUID]
+        :param position_x:
+        :type position_x: float
+        :param position_y:
+        :type position_y: float
+        :param position_z:
+        :type position_z: float
+        :param radius:
+        :type radius: float
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -7164,6 +7192,10 @@ class DefaultApi:
         _param = self._get_localization_maps_serialize(
             ids=ids,
             reconstruction_ids=reconstruction_ids,
+            position_x=position_x,
+            position_y=position_y,
+            position_z=position_z,
+            radius=radius,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -7190,6 +7222,10 @@ class DefaultApi:
         self,
         ids: Annotated[Optional[List[UUID]], Field(description="Optional list of Ids to filter by")] = None,
         reconstruction_ids: Annotated[Optional[List[UUID]], Field(description="Optional list of Reconstruction Ids to filter by")] = None,
+        position_x: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_y: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_z: Optional[Union[StrictFloat, StrictInt]] = None,
+        radius: Optional[Union[StrictFloat, StrictInt]] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -7210,6 +7246,14 @@ class DefaultApi:
         :type ids: List[UUID]
         :param reconstruction_ids: Optional list of Reconstruction Ids to filter by
         :type reconstruction_ids: List[UUID]
+        :param position_x:
+        :type position_x: float
+        :param position_y:
+        :type position_y: float
+        :param position_z:
+        :type position_z: float
+        :param radius:
+        :type radius: float
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -7235,6 +7279,10 @@ class DefaultApi:
         _param = self._get_localization_maps_serialize(
             ids=ids,
             reconstruction_ids=reconstruction_ids,
+            position_x=position_x,
+            position_y=position_y,
+            position_z=position_z,
+            radius=radius,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -7256,6 +7304,10 @@ class DefaultApi:
         self,
         ids,
         reconstruction_ids,
+        position_x,
+        position_y,
+        position_z,
+        radius,
         _request_auth,
         _content_type,
         _headers,
@@ -7287,6 +7339,22 @@ class DefaultApi:
         if reconstruction_ids is not None:
             
             _query_params.append(('reconstruction_ids', reconstruction_ids))
+            
+        if position_x is not None:
+            
+            _query_params.append(('position_x', position_x))
+            
+        if position_y is not None:
+            
+            _query_params.append(('position_y', position_y))
+            
+        if position_z is not None:
+            
+            _query_params.append(('position_z', position_z))
+            
+        if radius is not None:
+            
+            _query_params.append(('radius', radius))
             
         # process the header parameters
         # process the form parameters
@@ -7328,6 +7396,10 @@ class DefaultApi:
     async def get_nodes(
         self,
         ids: Annotated[Optional[List[UUID]], Field(description="Optional list of Ids to filter by")] = None,
+        position_x: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_y: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_z: Optional[Union[StrictFloat, StrictInt]] = None,
+        radius: Optional[Union[StrictFloat, StrictInt]] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -7346,6 +7418,14 @@ class DefaultApi:
 
         :param ids: Optional list of Ids to filter by
         :type ids: List[UUID]
+        :param position_x:
+        :type position_x: float
+        :param position_y:
+        :type position_y: float
+        :param position_z:
+        :type position_z: float
+        :param radius:
+        :type radius: float
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -7370,6 +7450,10 @@ class DefaultApi:
 
         _param = self._get_nodes_serialize(
             ids=ids,
+            position_x=position_x,
+            position_y=position_y,
+            position_z=position_z,
+            radius=radius,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -7395,6 +7479,10 @@ class DefaultApi:
     async def get_nodes_with_http_info(
         self,
         ids: Annotated[Optional[List[UUID]], Field(description="Optional list of Ids to filter by")] = None,
+        position_x: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_y: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_z: Optional[Union[StrictFloat, StrictInt]] = None,
+        radius: Optional[Union[StrictFloat, StrictInt]] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -7413,6 +7501,14 @@ class DefaultApi:
 
         :param ids: Optional list of Ids to filter by
         :type ids: List[UUID]
+        :param position_x:
+        :type position_x: float
+        :param position_y:
+        :type position_y: float
+        :param position_z:
+        :type position_z: float
+        :param radius:
+        :type radius: float
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -7437,6 +7533,10 @@ class DefaultApi:
 
         _param = self._get_nodes_serialize(
             ids=ids,
+            position_x=position_x,
+            position_y=position_y,
+            position_z=position_z,
+            radius=radius,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -7462,6 +7562,10 @@ class DefaultApi:
     async def get_nodes_without_preload_content(
         self,
         ids: Annotated[Optional[List[UUID]], Field(description="Optional list of Ids to filter by")] = None,
+        position_x: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_y: Optional[Union[StrictFloat, StrictInt]] = None,
+        position_z: Optional[Union[StrictFloat, StrictInt]] = None,
+        radius: Optional[Union[StrictFloat, StrictInt]] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -7480,6 +7584,14 @@ class DefaultApi:
 
         :param ids: Optional list of Ids to filter by
         :type ids: List[UUID]
+        :param position_x:
+        :type position_x: float
+        :param position_y:
+        :type position_y: float
+        :param position_z:
+        :type position_z: float
+        :param radius:
+        :type radius: float
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -7504,6 +7616,10 @@ class DefaultApi:
 
         _param = self._get_nodes_serialize(
             ids=ids,
+            position_x=position_x,
+            position_y=position_y,
+            position_z=position_z,
+            radius=radius,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -7524,6 +7640,10 @@ class DefaultApi:
     def _get_nodes_serialize(
         self,
         ids,
+        position_x,
+        position_y,
+        position_z,
+        radius,
         _request_auth,
         _content_type,
         _headers,
@@ -7550,6 +7670,22 @@ class DefaultApi:
         if ids is not None:
             
             _query_params.append(('ids', ids))
+            
+        if position_x is not None:
+            
+            _query_params.append(('position_x', position_x))
+            
+        if position_y is not None:
+            
+            _query_params.append(('position_y', position_y))
+            
+        if position_z is not None:
+            
+            _query_params.append(('position_z', position_z))
+            
+        if radius is not None:
+            
+            _query_params.append(('radius', radius))
             
         # process the header parameters
         # process the form parameters

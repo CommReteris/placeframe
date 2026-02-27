@@ -31,25 +31,25 @@ class NodeBatchUpdate(BaseModel):
     """ # noqa: E501
     id: UUID
     rotation_z: Optional[Union[StrictFloat, StrictInt]] = None
-    label_width: Optional[Union[StrictFloat, StrictInt]] = None
     position_y: Optional[Union[StrictFloat, StrictInt]] = None
     position_z: Optional[Union[StrictFloat, StrictInt]] = None
     rotation_x: Optional[Union[StrictFloat, StrictInt]] = None
     rotation_y: Optional[Union[StrictFloat, StrictInt]] = None
     rotation_w: Optional[Union[StrictFloat, StrictInt]] = None
-    label_height: Optional[Union[StrictFloat, StrictInt]] = None
     position_x: Optional[Union[StrictFloat, StrictInt]] = None
+    active: Optional[StrictBool] = None
+    layer_id: Optional[UUID] = None
+    parent_id: Optional[UUID] = None
+    label_width: Optional[Union[StrictFloat, StrictInt]] = None
+    label_height: Optional[Union[StrictFloat, StrictInt]] = None
     label_scale: Optional[Union[StrictFloat, StrictInt]] = None
     link_type: Optional[LinkType] = None
     label_type: Optional[LabelType] = None
-    active: Optional[StrictBool] = None
     link: Optional[StrictStr] = None
     label: Optional[StrictStr] = None
     name: Optional[StrictStr] = None
-    layer_id: Optional[UUID] = None
-    parent_id: Optional[UUID] = None
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["id", "rotation_z", "label_width", "position_y", "position_z", "rotation_x", "rotation_y", "rotation_w", "label_height", "position_x", "label_scale", "link_type", "label_type", "active", "link", "label", "name", "layer_id", "parent_id"]
+    __properties: ClassVar[List[str]] = ["id", "rotation_z", "position_y", "position_z", "rotation_x", "rotation_y", "rotation_w", "position_x", "active", "layer_id", "parent_id", "label_width", "label_height", "label_scale", "link_type", "label_type", "link", "label", "name"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -102,11 +102,6 @@ class NodeBatchUpdate(BaseModel):
         if self.rotation_z is None and "rotation_z" in self.model_fields_set:
             _dict['rotation_z'] = None
 
-        # set to None if label_width (nullable) is None
-        # and model_fields_set contains the field
-        if self.label_width is None and "label_width" in self.model_fields_set:
-            _dict['label_width'] = None
-
         # set to None if position_y (nullable) is None
         # and model_fields_set contains the field
         if self.position_y is None and "position_y" in self.model_fields_set:
@@ -132,25 +127,40 @@ class NodeBatchUpdate(BaseModel):
         if self.rotation_w is None and "rotation_w" in self.model_fields_set:
             _dict['rotation_w'] = None
 
-        # set to None if label_height (nullable) is None
-        # and model_fields_set contains the field
-        if self.label_height is None and "label_height" in self.model_fields_set:
-            _dict['label_height'] = None
-
         # set to None if position_x (nullable) is None
         # and model_fields_set contains the field
         if self.position_x is None and "position_x" in self.model_fields_set:
             _dict['position_x'] = None
 
-        # set to None if label_scale (nullable) is None
-        # and model_fields_set contains the field
-        if self.label_scale is None and "label_scale" in self.model_fields_set:
-            _dict['label_scale'] = None
-
         # set to None if active (nullable) is None
         # and model_fields_set contains the field
         if self.active is None and "active" in self.model_fields_set:
             _dict['active'] = None
+
+        # set to None if layer_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.layer_id is None and "layer_id" in self.model_fields_set:
+            _dict['layer_id'] = None
+
+        # set to None if parent_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.parent_id is None and "parent_id" in self.model_fields_set:
+            _dict['parent_id'] = None
+
+        # set to None if label_width (nullable) is None
+        # and model_fields_set contains the field
+        if self.label_width is None and "label_width" in self.model_fields_set:
+            _dict['label_width'] = None
+
+        # set to None if label_height (nullable) is None
+        # and model_fields_set contains the field
+        if self.label_height is None and "label_height" in self.model_fields_set:
+            _dict['label_height'] = None
+
+        # set to None if label_scale (nullable) is None
+        # and model_fields_set contains the field
+        if self.label_scale is None and "label_scale" in self.model_fields_set:
+            _dict['label_scale'] = None
 
         # set to None if link (nullable) is None
         # and model_fields_set contains the field
@@ -167,16 +177,6 @@ class NodeBatchUpdate(BaseModel):
         if self.name is None and "name" in self.model_fields_set:
             _dict['name'] = None
 
-        # set to None if layer_id (nullable) is None
-        # and model_fields_set contains the field
-        if self.layer_id is None and "layer_id" in self.model_fields_set:
-            _dict['layer_id'] = None
-
-        # set to None if parent_id (nullable) is None
-        # and model_fields_set contains the field
-        if self.parent_id is None and "parent_id" in self.model_fields_set:
-            _dict['parent_id'] = None
-
         return _dict
 
     @classmethod
@@ -191,23 +191,23 @@ class NodeBatchUpdate(BaseModel):
         _obj = cls.model_validate({
             "id": obj.get("id"),
             "rotation_z": obj.get("rotation_z"),
-            "label_width": obj.get("label_width"),
             "position_y": obj.get("position_y"),
             "position_z": obj.get("position_z"),
             "rotation_x": obj.get("rotation_x"),
             "rotation_y": obj.get("rotation_y"),
             "rotation_w": obj.get("rotation_w"),
-            "label_height": obj.get("label_height"),
             "position_x": obj.get("position_x"),
+            "active": obj.get("active"),
+            "layer_id": obj.get("layer_id"),
+            "parent_id": obj.get("parent_id"),
+            "label_width": obj.get("label_width"),
+            "label_height": obj.get("label_height"),
             "label_scale": obj.get("label_scale"),
             "link_type": obj.get("link_type"),
             "label_type": obj.get("label_type"),
-            "active": obj.get("active"),
             "link": obj.get("link"),
             "label": obj.get("label"),
-            "name": obj.get("name"),
-            "layer_id": obj.get("layer_id"),
-            "parent_id": obj.get("parent_id")
+            "name": obj.get("name")
         })
         # store additional fields in additional_properties
         for _key in obj.keys():
