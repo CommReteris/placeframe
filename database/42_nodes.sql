@@ -43,11 +43,11 @@ CREATE TABLE nodes (
     rotation_w double precision
         NOT NULL,
     label_type label_type
-        NULL,
+        NOT NULL,
     label text
         NULL,
     link_type link_type
-        NULL,
+        NOT NULL,
     link text
         NULL,
     label_scale double precision

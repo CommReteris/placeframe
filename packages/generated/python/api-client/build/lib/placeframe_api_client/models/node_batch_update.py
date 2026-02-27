@@ -37,19 +37,19 @@ class NodeBatchUpdate(BaseModel):
     rotation_y: Optional[Union[StrictFloat, StrictInt]] = None
     rotation_w: Optional[Union[StrictFloat, StrictInt]] = None
     position_x: Optional[Union[StrictFloat, StrictInt]] = None
+    link_type: Optional[LinkType] = None
+    label_type: Optional[LabelType] = None
     active: Optional[StrictBool] = None
     layer_id: Optional[UUID] = None
     parent_id: Optional[UUID] = None
     label_width: Optional[Union[StrictFloat, StrictInt]] = None
     label_height: Optional[Union[StrictFloat, StrictInt]] = None
     label_scale: Optional[Union[StrictFloat, StrictInt]] = None
-    link_type: Optional[LinkType] = None
-    label_type: Optional[LabelType] = None
     link: Optional[StrictStr] = None
     label: Optional[StrictStr] = None
     name: Optional[StrictStr] = None
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["id", "rotation_z", "position_y", "position_z", "rotation_x", "rotation_y", "rotation_w", "position_x", "active", "layer_id", "parent_id", "label_width", "label_height", "label_scale", "link_type", "label_type", "link", "label", "name"]
+    __properties: ClassVar[List[str]] = ["id", "rotation_z", "position_y", "position_z", "rotation_x", "rotation_y", "rotation_w", "position_x", "link_type", "label_type", "active", "layer_id", "parent_id", "label_width", "label_height", "label_scale", "link", "label", "name"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -197,14 +197,14 @@ class NodeBatchUpdate(BaseModel):
             "rotation_y": obj.get("rotation_y"),
             "rotation_w": obj.get("rotation_w"),
             "position_x": obj.get("position_x"),
+            "link_type": obj.get("link_type"),
+            "label_type": obj.get("label_type"),
             "active": obj.get("active"),
             "layer_id": obj.get("layer_id"),
             "parent_id": obj.get("parent_id"),
             "label_width": obj.get("label_width"),
             "label_height": obj.get("label_height"),
             "label_scale": obj.get("label_scale"),
-            "link_type": obj.get("link_type"),
-            "label_type": obj.get("label_type"),
             "link": obj.get("link"),
             "label": obj.get("label"),
             "name": obj.get("name")

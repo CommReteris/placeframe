@@ -1,6 +1,8 @@
+from io import BytesIO
 from typing import Annotated
 from uuid import UUID
 
+from common.boto_clients import create_s3_client
 from datamodels.public_dtos import (
     LocalizationMapBatchUpdate,
     LocalizationMapCreate,
@@ -17,15 +19,60 @@ from litestar.di import Provide
 from litestar.exceptions import ClientException, HTTPException, NotFoundException
 from litestar.params import Parameter
 from litestar.status_codes import HTTP_409_CONFLICT
-from sqlalchemy import select
+from numpy import load
+from scipy.spatial.transform import Rotation
+from sqlalchemy import exists, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_session
 from ..settings import get_settings
 from .reconstructions import fetch_reconstruction_status
-from .spatial import apply_spatial_filter, validate_spatial_params
 
 settings = get_settings()
+
+s3_client = create_s3_client(
+    minio_endpoint_url=settings.minio_endpoint_url,
+    minio_access_key=settings.minio_access_key,
+    minio_secret_key=settings.minio_secret_key,
+)
+
+_TRANSFORM_FIELDS = {"position_x", "position_y", "position_z", "rotation_x", "rotation_y", "rotation_z", "rotation_w"}
+
+
+async def _sync_camera_positions(session: AsyncSession, row: LocalizationMap) -> None:
+    """Compute world-space camera positions from the reconstruction's frame poses and store them in the DB."""
+    npz_bytes = s3_client.get_object(
+        Bucket=settings.reconstructions_bucket,
+        Key=f"{row.reconstruction_id}/sfm_model/frame_poses.npz",
+    )["Body"].read()
+
+    with load(BytesIO(npz_bytes)) as npz:
+        recon_positions = npz["positions"]  # (N, 3)
+
+    rotation_matrix = Rotation.from_quat([row.rotation_x, row.rotation_y, row.rotation_z, row.rotation_w]).as_matrix()
+    translation = [row.position_x, row.position_y, row.position_z]
+    world_positions = (rotation_matrix @ recon_positions.T).T + translation
+
+    await session.execute(
+        text("DELETE FROM localization_map_camera_positions WHERE localization_map_id = :map_id"),
+        {"map_id": row.id},
+    )
+
+    await session.execute(
+        text(
+            "INSERT INTO localization_map_camera_positions "
+            "(localization_map_id, tenant_id, position_x, position_y, position_z) "
+            "SELECT :map_id, :tenant_id, "
+            "unnest(:xs::double precision[]), unnest(:ys::double precision[]), unnest(:zs::double precision[])"
+        ),
+        {
+            "map_id": row.id,
+            "tenant_id": row.tenant_id,
+            "xs": [float(p[0]) for p in world_positions],
+            "ys": [float(p[1]) for p in world_positions],
+            "zs": [float(p[2]) for p in world_positions],
+        },
+    )
 
 
 @post("")
@@ -43,6 +90,7 @@ async def create_localization_map(session: AsyncSession, data: LocalizationMapCr
 
     await session.flush()
     await session.refresh(row)
+    await _sync_camera_positions(session, row)
     return localization_map_to_dto(row)
 
 
@@ -84,9 +132,14 @@ async def fetch_localization_maps(
     position_z: float | None = None,
     radius: float | None = None,
 ) -> list[LocalizationMapRead]:
-    spatial = validate_spatial_params(position_x, position_y, position_z, radius)
+    spatial_params = [position_x, position_y, position_z, radius]
+    has_spatial = any(p is not None for p in spatial_params)
+    if has_spatial and not all(p is not None for p in spatial_params):
+        raise ClientException(
+            "Cannot provide partial spatial parameters; position_x, position_y, position_z, and radius must all be provided together"
+        )
 
-    if spatial and (ids or reconstruction_ids):
+    if has_spatial and (ids or reconstruction_ids):
         raise ClientException("Cannot combine spatial filter with ids or reconstruction_ids")
 
     if ids and reconstruction_ids:
@@ -100,9 +153,20 @@ async def fetch_localization_maps(
     if reconstruction_ids:
         query = query.where(LocalizationMap.reconstruction_id.in_(reconstruction_ids))
 
-    if spatial:
-        query = apply_spatial_filter(
-            query, LocalizationMap.position_x, LocalizationMap.position_y, LocalizationMap.position_z, *spatial
+    if has_spatial:
+        query = query.where(
+            exists(
+                select(1)
+                .select_from(text("localization_map_camera_positions cp"))
+                .where(text("cp.localization_map_id = localization_maps.id"))
+                .where(
+                    func.ST_3DDWithin(
+                        func.ST_MakePoint(text("cp.position_x"), text("cp.position_y"), text("cp.position_z")),
+                        func.ST_MakePoint(position_x, position_y, position_z),
+                        radius,
+                    )
+                )
+            )
         )
 
     result = await session.execute(query)
@@ -146,10 +210,15 @@ async def update_localization_map(session: AsyncSession, id: UUID, data: Localiz
     if not row:
         raise NotFoundException(f"LocalizationMap with id {id} not found")
 
+    updated_fields = data.model_dump(exclude_unset=True).keys()
     localization_map_apply_dto(row, data)
 
     await session.flush()
     await session.refresh(row)
+
+    if any(f in _TRANSFORM_FIELDS for f in updated_fields):
+        await _sync_camera_positions(session, row)
+
     return localization_map_to_dto(row)
 
 
@@ -157,7 +226,7 @@ async def update_localization_map(session: AsyncSession, id: UUID, data: Localiz
 async def update_localization_maps(
     session: AsyncSession, data: list[LocalizationMapBatchUpdate], allow_missing: bool = False
 ) -> list[LocalizationMapRead]:
-    rows: list[LocalizationMap] = []
+    rows: list[tuple[LocalizationMap, LocalizationMapBatchUpdate]] = []
     for localization_map in data:
         row = await session.get(LocalizationMap, localization_map.id)
         if not row:
@@ -166,12 +235,15 @@ async def update_localization_maps(
             continue
 
         localization_map_apply_batch_update_dto(row, localization_map)
-        rows.append(row)
+        rows.append((row, localization_map))
 
     await session.flush()
-    for row in rows:
+    for row, update in rows:
         await session.refresh(row)
-    return [localization_map_to_dto(r) for r in rows]
+        if any(f in _TRANSFORM_FIELDS for f in update.model_dump(exclude_unset=True).keys()):
+            await _sync_camera_positions(session, row)
+
+    return [localization_map_to_dto(r) for r, _ in rows]
 
 
 router = Router(

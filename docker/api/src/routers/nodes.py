@@ -14,11 +14,10 @@ from litestar import Router, delete, get, patch, post
 from litestar.di import Provide
 from litestar.exceptions import ClientException, NotFoundException
 from litestar.params import Parameter
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_session
-from .spatial import apply_spatial_filter, validate_spatial_params
 
 
 @post("")
@@ -86,17 +85,28 @@ async def get_nodes(
     position_z: float | None = None,
     radius: float | None = None,
 ) -> list[NodeRead]:
-    spatial = validate_spatial_params(position_x, position_y, position_z, radius)
+    spatial_params = [position_x, position_y, position_z, radius]
+    has_spatial = any(p is not None for p in spatial_params)
+    if has_spatial and not all(p is not None for p in spatial_params):
+        raise ClientException(
+            "Cannot provide partial spatial parameters; position_x, position_y, position_z, and radius must all be provided together"
+        )
 
-    if spatial and ids:
+    if has_spatial and ids:
         raise ClientException("Cannot combine spatial filter with ids")
 
     query = select(Node)
     if ids:
         query = query.where(Node.id.in_(ids))
 
-    if spatial:
-        query = apply_spatial_filter(query, Node.position_x, Node.position_y, Node.position_z, *spatial)
+    if has_spatial:
+        query = query.where(
+            func.ST_3DDWithin(
+                func.ST_MakePoint(Node.position_x, Node.position_y, Node.position_z),
+                func.ST_MakePoint(position_x, position_y, position_z),
+                radius,
+            )
+        )
 
     result = await session.execute(query)
 

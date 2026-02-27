@@ -13,6 +13,7 @@ from .public_tables import (
     Layer,
     LinkType,
     LocalizationMap,
+    LocalizationMapCameraPosition,
     LocalizationSession,
     Node,
     OrchestrationStatus,
@@ -164,6 +165,45 @@ class LocalizationMapRead(BaseModel):
     name: str | None = Field(None, title="Name")
 
 
+class LocalizationMapCameraPositionCreate(BaseModel):
+    localization_map_id: UUID = Field(..., title="Localization Map Id")
+    id: UUID | None = Field(None, title="Id")
+    position_x: float = Field(..., title="Position X")
+    position_y: float = Field(..., title="Position Y")
+    position_z: float = Field(..., title="Position Z")
+
+
+class LocalizationMapCameraPositionBatchCreate(BaseModel):
+    localization_map_id: UUID = Field(..., title="Localization Map Id")
+    id: UUID = Field(..., title="Id")
+    position_x: float = Field(..., title="Position X")
+    position_y: float = Field(..., title="Position Y")
+    position_z: float = Field(..., title="Position Z")
+
+
+class LocalizationMapCameraPositionUpdate(BaseModel):
+    localization_map_id: UUID | None = Field(None, title="Localization Map Id")
+    position_x: float | None = Field(None, title="Position X")
+    position_y: float | None = Field(None, title="Position Y")
+    position_z: float | None = Field(None, title="Position Z")
+
+
+class LocalizationMapCameraPositionBatchUpdate(BaseModel):
+    localization_map_id: UUID | None = Field(None, title="Localization Map Id")
+    id: UUID = Field(..., title="Id")
+    position_x: float | None = Field(None, title="Position X")
+    position_y: float | None = Field(None, title="Position Y")
+    position_z: float | None = Field(None, title="Position Z")
+
+
+class LocalizationMapCameraPositionRead(BaseModel):
+    localization_map_id: UUID = Field(..., title="Localization Map Id")
+    id: UUID = Field(..., title="Id")
+    position_x: float = Field(..., title="Position X")
+    position_y: float = Field(..., title="Position Y")
+    position_z: float = Field(..., title="Position Z")
+
+
 class LocalizationSessionCreate(BaseModel):
     id: UUID | None = Field(None, title="Id")
 
@@ -287,14 +327,14 @@ class NodeCreate(BaseModel):
     rotation_y: float = Field(..., title="Rotation Y")
     rotation_w: float = Field(..., title="Rotation W")
     position_x: float = Field(..., title="Position X")
+    link_type: LinkType
+    label_type: LabelType
     active: bool | None = Field(None, title="Active")
     layer_id: UUID | None = Field(None, title="Layer Id")
     parent_id: UUID | None = Field(None, title="Parent Id")
     label_width: float | None = Field(None, title="Label Width")
     label_height: float | None = Field(None, title="Label Height")
     label_scale: float | None = Field(None, title="Label Scale")
-    link_type: LinkType | None = None
-    label_type: LabelType | None = None
     link: str | None = Field(None, title="Link")
     label: str | None = Field(None, title="Label")
     name: str | None = Field(None, title="Name")
@@ -309,14 +349,14 @@ class NodeBatchCreate(BaseModel):
     rotation_y: float = Field(..., title="Rotation Y")
     rotation_w: float = Field(..., title="Rotation W")
     position_x: float = Field(..., title="Position X")
+    link_type: LinkType
+    label_type: LabelType
     active: bool | None = Field(None, title="Active")
     layer_id: UUID | None = Field(None, title="Layer Id")
     parent_id: UUID | None = Field(None, title="Parent Id")
     label_width: float | None = Field(None, title="Label Width")
     label_height: float | None = Field(None, title="Label Height")
     label_scale: float | None = Field(None, title="Label Scale")
-    link_type: LinkType | None = None
-    label_type: LabelType | None = None
     link: str | None = Field(None, title="Link")
     label: str | None = Field(None, title="Label")
     name: str | None = Field(None, title="Name")
@@ -330,14 +370,14 @@ class NodeUpdate(BaseModel):
     rotation_y: float | None = Field(None, title="Rotation Y")
     rotation_w: float | None = Field(None, title="Rotation W")
     position_x: float | None = Field(None, title="Position X")
+    link_type: LinkType | None = None
+    label_type: LabelType | None = None
     active: bool | None = Field(None, title="Active")
     layer_id: UUID | None = Field(None, title="Layer Id")
     parent_id: UUID | None = Field(None, title="Parent Id")
     label_width: float | None = Field(None, title="Label Width")
     label_height: float | None = Field(None, title="Label Height")
     label_scale: float | None = Field(None, title="Label Scale")
-    link_type: LinkType | None = None
-    label_type: LabelType | None = None
     link: str | None = Field(None, title="Link")
     label: str | None = Field(None, title="Label")
     name: str | None = Field(None, title="Name")
@@ -352,14 +392,14 @@ class NodeBatchUpdate(BaseModel):
     rotation_y: float | None = Field(None, title="Rotation Y")
     rotation_w: float | None = Field(None, title="Rotation W")
     position_x: float | None = Field(None, title="Position X")
+    link_type: LinkType | None = None
+    label_type: LabelType | None = None
     active: bool | None = Field(None, title="Active")
     layer_id: UUID | None = Field(None, title="Layer Id")
     parent_id: UUID | None = Field(None, title="Parent Id")
     label_width: float | None = Field(None, title="Label Width")
     label_height: float | None = Field(None, title="Label Height")
     label_scale: float | None = Field(None, title="Label Scale")
-    link_type: LinkType | None = None
-    label_type: LabelType | None = None
     link: str | None = Field(None, title="Link")
     label: str | None = Field(None, title="Label")
     name: str | None = Field(None, title="Name")
@@ -376,14 +416,14 @@ class NodeRead(BaseModel):
     rotation_w: float = Field(..., title="Rotation W")
     updated_at: AwareDatetime = Field(..., title="Updated At")
     position_x: float = Field(..., title="Position X")
+    link_type: LinkType
+    label_type: LabelType
     active: bool = Field(..., title="Active")
     layer_id: UUID | None = Field(None, title="Layer Id")
     parent_id: UUID | None = Field(None, title="Parent Id")
     label_width: float | None = Field(None, title="Label Width")
     label_height: float | None = Field(None, title="Label Height")
     label_scale: float | None = Field(None, title="Label Scale")
-    link_type: LinkType | None = None
-    label_type: LabelType | None = None
     link: str | None = Field(None, title="Link")
     label: str | None = Field(None, title="Label")
     name: str | None = Field(None, title="Name")
@@ -555,6 +595,52 @@ def localization_map_apply_dto(instance: LocalizationMap, update: LocalizationMa
 def localization_map_apply_batch_update_dto(
     instance: LocalizationMap, update: LocalizationMapBatchUpdate
 ) -> LocalizationMap:
+    for field, value in update.model_dump(exclude_unset=True, mode="json").items():
+        setattr(instance, field, value)
+    return instance
+
+
+def localization_map_camera_position_from_dto(
+    create: LocalizationMapCameraPositionCreate,
+) -> LocalizationMapCameraPosition:
+    data = create.model_dump(exclude_unset=True, mode="json")
+    return LocalizationMapCameraPosition(**data)
+
+
+def localization_map_camera_position_from_batch_create_dto(
+    create: LocalizationMapCameraPositionBatchCreate,
+) -> LocalizationMapCameraPosition:
+    data = create.model_dump(exclude_unset=True, mode="json")
+    return LocalizationMapCameraPosition(**data)
+
+
+def localization_map_camera_position_from_dto_overwrite(
+    instance: LocalizationMapCameraPosition, create: LocalizationMapCameraPositionCreate
+) -> LocalizationMapCameraPosition:
+    for field, value in create.model_dump(exclude_unset=True, mode="json").items():
+        setattr(instance, field, value)
+    return instance
+
+
+def localization_map_camera_position_to_dto(
+    instance: LocalizationMapCameraPosition,
+) -> LocalizationMapCameraPositionRead:
+    column_keys = tuple(attr.key for attr in sa_inspect(LocalizationMapCameraPosition).mapper.column_attrs)
+    data = {k: getattr(instance, k) for k in column_keys}
+    return LocalizationMapCameraPositionRead.model_validate(data)
+
+
+def localization_map_camera_position_apply_dto(
+    instance: LocalizationMapCameraPosition, update: LocalizationMapCameraPositionUpdate
+) -> LocalizationMapCameraPosition:
+    for field, value in update.model_dump(exclude_unset=True, mode="json").items():
+        setattr(instance, field, value)
+    return instance
+
+
+def localization_map_camera_position_apply_batch_update_dto(
+    instance: LocalizationMapCameraPosition, update: LocalizationMapCameraPositionBatchUpdate
+) -> LocalizationMapCameraPosition:
     for field, value in update.model_dump(exclude_unset=True, mode="json").items():
         setattr(instance, field, value)
     return instance

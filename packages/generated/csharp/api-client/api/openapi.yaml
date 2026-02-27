@@ -2626,6 +2626,10 @@ components:
         position_x:
           title: Position X
           type: number
+        link_type:
+          $ref: "#/components/schemas/LinkType"
+        label_type:
+          $ref: "#/components/schemas/LabelType"
         active:
           nullable: true
           title: Active
@@ -2652,10 +2656,6 @@ components:
           nullable: true
           title: Label Scale
           type: number
-        link_type:
-          $ref: "#/components/schemas/LinkType"
-        label_type:
-          $ref: "#/components/schemas/LabelType"
         link:
           nullable: true
           title: Link
@@ -2670,6 +2670,8 @@ components:
           type: string
       required:
       - id
+      - label_type
+      - link_type
       - position_x
       - position_y
       - position_z
@@ -2733,6 +2735,10 @@ components:
           nullable: true
           title: Position X
           type: number
+        link_type:
+          $ref: "#/components/schemas/LinkType"
+        label_type:
+          $ref: "#/components/schemas/LabelType"
         active:
           nullable: true
           title: Active
@@ -2759,10 +2765,6 @@ components:
           nullable: true
           title: Label Scale
           type: number
-        link_type:
-          $ref: "#/components/schemas/LinkType"
-        label_type:
-          $ref: "#/components/schemas/LabelType"
         link:
           nullable: true
           title: Link
@@ -2827,6 +2829,10 @@ components:
         position_x:
           title: Position X
           type: number
+        link_type:
+          $ref: "#/components/schemas/LinkType"
+        label_type:
+          $ref: "#/components/schemas/LabelType"
         active:
           nullable: true
           title: Active
@@ -2853,10 +2859,6 @@ components:
           nullable: true
           title: Label Scale
           type: number
-        link_type:
-          $ref: "#/components/schemas/LinkType"
-        label_type:
-          $ref: "#/components/schemas/LabelType"
         link:
           nullable: true
           title: Link
@@ -2870,6 +2872,8 @@ components:
           title: Name
           type: string
       required:
+      - label_type
+      - link_type
       - position_x
       - position_y
       - position_z
@@ -2940,6 +2944,10 @@ components:
         position_x:
           title: Position X
           type: number
+        link_type:
+          $ref: "#/components/schemas/LinkType"
+        label_type:
+          $ref: "#/components/schemas/LabelType"
         active:
           title: Active
           type: boolean
@@ -2965,10 +2973,6 @@ components:
           nullable: true
           title: Label Scale
           type: number
-        link_type:
-          $ref: "#/components/schemas/LinkType"
-        label_type:
-          $ref: "#/components/schemas/LabelType"
         link:
           nullable: true
           title: Link
@@ -2985,6 +2989,8 @@ components:
       - active
       - created_at
       - id
+      - label_type
+      - link_type
       - position_x
       - position_y
       - position_z

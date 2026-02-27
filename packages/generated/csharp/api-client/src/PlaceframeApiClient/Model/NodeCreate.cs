@@ -36,8 +36,8 @@ namespace PlaceframeApiClient.Model
         /// Gets or Sets LinkType
         /// </summary>
 
-        [DataMember(Name = "link_type", EmitDefaultValue = false)]
-        public LinkType? LinkType
+        [DataMember(Name = "link_type", IsRequired = true, EmitDefaultValue = true)]
+        public LinkType LinkType
         {
             get{ return _LinkType;}
             set
@@ -46,7 +46,7 @@ namespace PlaceframeApiClient.Model
                 _flagLinkType = true;
             }
         }
-        private LinkType? _LinkType;
+        private LinkType _LinkType;
         private bool _flagLinkType;
 
         /// <summary>
@@ -62,8 +62,8 @@ namespace PlaceframeApiClient.Model
         /// Gets or Sets LabelType
         /// </summary>
 
-        [DataMember(Name = "label_type", EmitDefaultValue = false)]
-        public LabelType? LabelType
+        [DataMember(Name = "label_type", IsRequired = true, EmitDefaultValue = true)]
+        public LabelType LabelType
         {
             get{ return _LabelType;}
             set
@@ -72,7 +72,7 @@ namespace PlaceframeApiClient.Model
                 _flagLabelType = true;
             }
         }
-        private LabelType? _LabelType;
+        private LabelType _LabelType;
         private bool _flagLabelType;
 
         /// <summary>
@@ -99,18 +99,18 @@ namespace PlaceframeApiClient.Model
         /// <param name="rotationY">rotationY (required).</param>
         /// <param name="rotationW">rotationW (required).</param>
         /// <param name="positionX">positionX (required).</param>
+        /// <param name="linkType">linkType (required).</param>
+        /// <param name="labelType">labelType (required).</param>
         /// <param name="active">active.</param>
         /// <param name="layerId">layerId.</param>
         /// <param name="parentId">parentId.</param>
         /// <param name="labelWidth">labelWidth.</param>
         /// <param name="labelHeight">labelHeight.</param>
         /// <param name="labelScale">labelScale.</param>
-        /// <param name="linkType">linkType.</param>
-        /// <param name="labelType">labelType.</param>
         /// <param name="link">link.</param>
         /// <param name="label">label.</param>
         /// <param name="name">name.</param>
-        public NodeCreate(double rotationZ, double positionY, double positionZ, double rotationX, double rotationY, double rotationW, double positionX)
+        public NodeCreate(double rotationZ, double positionY, double positionZ, double rotationX, double rotationY, double rotationW, double positionX, LinkType linkType, LabelType labelType)
         {
             this.RotationZ = rotationZ;
             this.PositionY = positionY;
@@ -119,6 +119,8 @@ namespace PlaceframeApiClient.Model
             this.RotationY = rotationY;
             this.RotationW = rotationW;
             this.PositionX = positionX;
+            this.LinkType = linkType;
+            this.LabelType = labelType;
         }
 
         /// <summary>
@@ -544,6 +546,8 @@ namespace PlaceframeApiClient.Model
             sb.Append("  RotationY: ").Append(RotationY).Append("\n");
             sb.Append("  RotationW: ").Append(RotationW).Append("\n");
             sb.Append("  PositionX: ").Append(PositionX).Append("\n");
+            sb.Append("  LinkType: ").Append(LinkType).Append("\n");
+            sb.Append("  LabelType: ").Append(LabelType).Append("\n");
             sb.Append("  Id: ").Append(Id).Append("\n");
             sb.Append("  Active: ").Append(Active).Append("\n");
             sb.Append("  LayerId: ").Append(LayerId).Append("\n");
@@ -551,8 +555,6 @@ namespace PlaceframeApiClient.Model
             sb.Append("  LabelWidth: ").Append(LabelWidth).Append("\n");
             sb.Append("  LabelHeight: ").Append(LabelHeight).Append("\n");
             sb.Append("  LabelScale: ").Append(LabelScale).Append("\n");
-            sb.Append("  LinkType: ").Append(LinkType).Append("\n");
-            sb.Append("  LabelType: ").Append(LabelType).Append("\n");
             sb.Append("  Link: ").Append(Link).Append("\n");
             sb.Append("  Label: ").Append(Label).Append("\n");
             sb.Append("  Name: ").Append(Name).Append("\n");

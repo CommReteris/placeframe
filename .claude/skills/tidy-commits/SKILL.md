@@ -25,9 +25,9 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
 ## Commit message style guide
 
 - **Subject line**: Concise but specific (under 72 chars). Name the actual things that changed — don't hide details behind vague catch-alls like "update config" or "fix scripts".
-- **Body**: Use a bulleted list (`-`) covering the individual changes, especially when a commit touches multiple concerns. Each bullet should be one line, not a paragraph.
-- **Balance**: Not so terse that nuance is lost, not so verbose that it reads like documentation.
-- **Accuracy**: Don't bury important changes (especially bug fixes) under generic phrasing. If a commit fixes a bug, say so explicitly and say what was wrong.
+- **Body**: Use a bulleted list (`-`) of short phrases. State *what* changed, not *why*. No full sentences, no parenthetical justifications.
+- **Brevity**: Err heavily on the side of terse. "Fix label_type/link_type to NOT NULL" not "Fix label_type and link_type columns in nodes table to be NOT NULL (were incorrectly nullable)". "Remove openapi-generator-cli from docker/api dev deps" not "Remove openapi-generator-cli from docker/api dev dependencies — it was never used by the API service".
+- **Accuracy**: Name the specific things that changed. Don't hide bug fixes under vague phrasing.
 - **Structure**: Subject line summarizes the theme; bullets in the body cover specifics that wouldn't fit in the subject.
 
 4. **Create a backup branch:**

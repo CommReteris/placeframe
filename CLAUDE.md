@@ -65,11 +65,11 @@ Auto-generated packages in `packages/generated/` should not be edited directly �
 
 - **`uv run generate-datamodels`** — Introspects the **live PostgreSQL database** (via `sqlacodegen`) to produce `packages/generated/python/datamodels/` (SQLAlchemy table models + Pydantic DTOs). Must be run after any changes to `database/*.sql` schema files. **Requires Docker + postgres to be running** (`uv run up`, then `uv run migrate-database` to apply schema changes).
 - **`uv run generate-lock-files`** — Regenerates per-service `uv.lock` files. Must be run before `generate-clients` (which uses `uv run --no_workspace` per-service and needs the lock files). Also re-run after `uv sync --all-packages` since that overwrites per-service locks.
-- **`uv run generate-clients --config openapi-projects.json`** — Dumps the OpenAPI spec from each Litestar app and runs `openapi-generator-cli` to produce typed API clients in `packages/generated/python/` and `packages/generated/csharp/`. Must be run after any changes to API route signatures (new query params, new response fields, etc.). Requires Java and `openapi-generator-cli` (npm) on PATH. Use `--project docker/api` to generate only the API client (the localizer requires PyTorch/pycolmap to dump its spec).
+- **`uv run generate-clients --config openapi-projects.json`** — Dumps the OpenAPI spec from each Litestar app and runs `openapi-generator-cli` (via `uvx`) to produce typed API clients in `packages/generated/python/` and `packages/generated/csharp/`. Must be run after any changes to API route signatures (new query params, new response fields, etc.). Requires Java (JDK 11+) on PATH. Use `--project docker/api` to generate only the API client (the localizer requires PyTorch/pycolmap to dump its spec).
 
 **When changing both schema and API routes**, run in this order:
 1. `uv run generate-datamodels` (updates Pydantic models the API imports; needs live postgres)
-2. `uv run generate-lock-files` (needed before generate-clients)
+2. `uv sync --all-packages` then `uv run generate-lock-files` (sync first if any `pyproject.toml` changed; lock files must precede generate-clients)
 3. `uv run generate-clients --config openapi-projects.json` (dumps updated OpenAPI spec, generates clients)
 
 All three scripts live in `scripts/src/scripts/`.
@@ -103,14 +103,17 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. The default dev 
 
 When running in a containerized Claude Code environment (no GPU, no ngrok):
 
-1. **Create `.env` from sample**: `cp .env.sample .env` — set `PUBLIC_DOMAIN=localhost`, `NGROK_AUTHTOKEN=dummy`, and clear `COMPOSE_PROFILES=` (remove `ngrok`).
-2. **Use `--gpu none`**: This environment has no GPU. Use `uv run up --gpu none` and `uv run down --gpu none`.
-3. **Use long timeouts for Docker commands**: `uv run up`, `uv run down`, and any `docker compose` commands may need to pull images on first run. Always use `timeout: 600000` (10 minutes) on these Bash calls.
-4. **Migrations run automatically**: `uv run up` starts a `migrate-database` container that has `pg-schema-diff` installed and runs migrations inside Docker. You do NOT need to install `pg-schema-diff` locally or run `uv run migrate-database` separately — just `uv run up` and wait for the migrator container to finish.
-5. **Never run bare `docker compose` commands**: The compose setup requires multiple `--env-file` flags (`.env` + `.env.lock`) and GPU-specific compose files. Always use the `uv run` wrapper scripts (`uv run up`, `uv run down`, etc.) which assemble the correct command. Running `docker compose` directly will fail with missing variable errors.
-6. **Full generation pipeline order** (after schema or API route changes):
+1. **Install prerequisites**: `uv` may not be pre-installed. Install with `curl -LsSf https://astral.sh/uv/install.sh | sh` and ensure `~/.local/bin` is on PATH. Java (JDK 11+) is required for `generate-clients` — install with `sudo apt-get install -y default-jre-headless`.
+2. **Create `.env` from sample**: `cp .env.sample .env` — set `PUBLIC_DOMAIN=localhost`, `NGROK_AUTHTOKEN=dummy`, and clear `COMPOSE_PROFILES=` (remove `ngrok`).
+3. **Use `--gpu none`**: This environment has no GPU. Use `uv run up --gpu none` and `uv run down --gpu none`.
+4. **Use long timeouts for Docker commands**: `uv run up`, `uv run down`, and any `docker compose` commands may need to pull images on first run. Always use `timeout: 600000` (10 minutes) on these Bash calls.
+5. **Migrations run automatically**: `uv run up` starts a `migrate-database` container that has `pg-schema-diff` installed and runs migrations inside Docker. You do NOT need to install `pg-schema-diff` locally or run `uv run migrate-database` separately — just `uv run up` and wait for the migrator container to finish.
+6. **Never run bare `docker compose` commands**: The compose setup requires multiple `--env-file` flags (`.env` + `.env.lock`) and GPU-specific compose files. Always use the `uv run` wrapper scripts (`uv run up`, `uv run down`, etc.) which assemble the correct command. Running `docker compose` directly will fail with missing variable errors.
+7. **Full generation pipeline order** (after schema or API route changes):
    - `uv run up --gpu none` (starts postgres, runs migrations automatically)
    - `uv run generate-datamodels` (needs live postgres)
+   - `uv sync --all-packages` (required if any `pyproject.toml` changed; slow but necessary)
    - `uv run generate-lock-files` (must precede generate-clients)
    - `uv run generate-clients --config openapi-projects.json --project docker/api` (localizer can't dump spec without GPU/PyTorch)
-7. **Don't `uv sync` inside a service directory**: Running `uv sync` in e.g. `docker/api/` clobbers the workspace venv. Always sync from the repo root with `uv sync --all-packages`, then re-run `uv run generate-lock-files`.
+8. **Don't `uv sync` inside a service directory**: Running `uv sync` in e.g. `docker/api/` clobbers the workspace venv. Always sync from the repo root with `uv sync --all-packages`, then re-run `uv run generate-lock-files`.
+9. **Tests**: `uv run pytest` will show collection errors for `docker/localizer/tests/` and `dirtorch/test_dir.py` — these require PyTorch which is not available without a GPU. This is expected.
