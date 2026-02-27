@@ -250,17 +250,20 @@ def _post_process_generated_enums(file_path: Path) -> None:
     if "import enum" not in content:
         content = "import enum\n" + content
 
-    # 2. Regex to capture the inline Enum definition
-    pattern = re.compile(r"(\w+): Mapped\[str\] = mapped_column\(Enum\((.*?), name=['\"](\w+)['\"]\)(.*?)\)")
+    # 2. Regex to capture the inline Enum definition (handles both Mapped[str] and Mapped[Optional[str]])
+    pattern = re.compile(r"(\w+): Mapped\[(?:Optional\[)?str\]?\] = mapped_column\(Enum\((.*?), name=['\"](\w+)['\"]\)(.*?)\)")
 
     # Explicitly type the list accumulator
     enum_definitions: list[str] = []
 
     def replacer(match: re.Match[str]) -> str:
+        full_match: str = match.group(0)
         col_name: str = match.group(1)
         values_raw: str = match.group(2)
         enum_db_name: str = match.group(3)
         rest_of_args: str = match.group(4)
+
+        is_optional = "Optional[str]" in full_match
 
         # Clean up values
         enum_values: list[str] = [val.strip().strip("'\"") for val in values_raw.split(",")]
@@ -280,7 +283,8 @@ def _post_process_generated_enums(file_path: Path) -> None:
         enum_definitions.append("\n".join(class_lines) + "\n")
 
         # Return the new column definition with values_callable
-        return f"{col_name}: Mapped[{class_name}] = mapped_column(Enum({class_name}, name='{enum_db_name}', values_callable=enum_values){rest_of_args})"
+        mapped_type = f"Optional[{class_name}]" if is_optional else class_name
+        return f"{col_name}: Mapped[{mapped_type}] = mapped_column(Enum({class_name}, name='{enum_db_name}', values_callable=enum_values){rest_of_args})"
 
     # 3. Apply the replacement
     new_content = pattern.sub(replacer, content)

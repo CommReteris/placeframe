@@ -32,7 +32,7 @@ def cli(
     _generate_templates()
 
     for project_name, clients in config_json.items():
-        if project is not None and project.name != project_name:
+        if project is not None and str(project) != project_name:
             continue
 
         openapi_spec = _dump_openapi_spec(Path(project_name), no_cache)

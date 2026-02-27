@@ -4,8 +4,8 @@ from typing import Literal, get_args
 
 from .run_command import run_command
 
-Gpu = Literal["auto", "cuda", "rocm"]
-GPU_TYPES = tuple(g for g in get_args(Gpu) if g != "auto")
+Gpu = Literal["auto", "cuda", "rocm", "none"]
+GPU_TYPES = tuple(g for g in get_args(Gpu) if g not in ("auto", "none"))
 
 
 def detect_gpu() -> Gpu:
