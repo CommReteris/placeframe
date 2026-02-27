@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_session
+from .spatial import apply_spatial_filter, validate_spatial_params
 
 
 @post("")
@@ -80,10 +81,22 @@ async def delete_nodes(
 async def get_nodes(
     session: AsyncSession,
     ids: Annotated[list[UUID] | None, Parameter(description="Optional list of Ids to filter by")] = None,
+    position_x: float | None = None,
+    position_y: float | None = None,
+    position_z: float | None = None,
+    radius: float | None = None,
 ) -> list[NodeRead]:
+    spatial = validate_spatial_params(position_x, position_y, position_z, radius)
+
+    if spatial and ids:
+        raise ClientException("Cannot combine spatial filter with ids")
+
     query = select(Node)
     if ids:
         query = query.where(Node.id.in_(ids))
+
+    if spatial:
+        query = apply_spatial_filter(query, Node.position_x, Node.position_y, Node.position_z, *spatial)
 
     result = await session.execute(query)
 

@@ -4,6 +4,7 @@
 **/*.pyd
 **/.venv/
 **/*.egg-info
+**/build/
 **/*.sln
 **/*.slnx
 **/bin/
@@ -17,3 +18,5 @@
 .secrets
 .env.local.lock
 metadata.json
+storage/
+tidy-commits.sh

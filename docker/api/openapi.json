@@ -1781,6 +1781,54 @@
             "deprecated": false,
             "allowEmptyValue": false,
             "allowReserved": false
+          },
+          {
+            "name": "position_x",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "number"
+            },
+            "required": false,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "allowReserved": false
+          },
+          {
+            "name": "position_y",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "number"
+            },
+            "required": false,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "allowReserved": false
+          },
+          {
+            "name": "position_z",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "number"
+            },
+            "required": false,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "allowReserved": false
+          },
+          {
+            "name": "radius",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "number"
+            },
+            "required": false,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "allowReserved": false
           }
         ],
         "responses": {
@@ -3154,6 +3202,54 @@
             "deprecated": false,
             "allowEmptyValue": false,
             "allowReserved": false
+          },
+          {
+            "name": "position_x",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "number"
+            },
+            "required": false,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "allowReserved": false
+          },
+          {
+            "name": "position_y",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "number"
+            },
+            "required": false,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "allowReserved": false
+          },
+          {
+            "name": "position_z",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "number"
+            },
+            "required": false,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "allowReserved": false
+          },
+          {
+            "name": "radius",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "number"
+            },
+            "required": false,
+            "deprecated": false,
+            "allowEmptyValue": false,
+            "allowReserved": false
           }
         ],
         "responses": {
@@ -4367,11 +4463,27 @@
           },
           "reprojection_error_median": {
             "type": "number"
+          },
+          "num_inliers": {
+            "type": "integer"
+          },
+          "num_correspondences": {
+            "type": "integer"
+          },
+          "num_matches": {
+            "type": "integer"
+          },
+          "inlier_coverage": {
+            "type": "number"
           }
         },
         "type": "object",
         "required": [
+          "inlier_coverage",
           "inlier_ratio",
+          "num_correspondences",
+          "num_inliers",
+          "num_matches",
           "reprojection_error_median"
         ],
         "title": "LocalizationMetrics"
@@ -4449,10 +4561,6 @@
             "type": "number",
             "title": "Rotation Z"
           },
-          "label_width": {
-            "type": "number",
-            "title": "Label Width"
-          },
           "position_y": {
             "type": "number",
             "title": "Position Y"
@@ -4473,40 +4581,14 @@
             "type": "number",
             "title": "Rotation W"
           },
-          "label_height": {
-            "type": "number",
-            "title": "Label Height"
-          },
           "position_x": {
             "type": "number",
             "title": "Position X"
-          },
-          "label_scale": {
-            "type": "number",
-            "title": "Label Scale"
-          },
-          "link_type": {
-            "$ref": "#/components/schemas/LinkType"
-          },
-          "label_type": {
-            "$ref": "#/components/schemas/LabelType"
           },
           "active": {
             "title": "Active",
             "nullable": true,
             "type": "boolean"
-          },
-          "link": {
-            "type": "string",
-            "title": "Link"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
           },
           "layer_id": {
             "title": "Layer Id",
@@ -4519,19 +4601,49 @@
             "nullable": true,
             "type": "string",
             "format": "uuid"
+          },
+          "label_width": {
+            "title": "Label Width",
+            "nullable": true,
+            "type": "number"
+          },
+          "label_height": {
+            "title": "Label Height",
+            "nullable": true,
+            "type": "number"
+          },
+          "label_scale": {
+            "title": "Label Scale",
+            "nullable": true,
+            "type": "number"
+          },
+          "link_type": {
+            "nullable": true,
+            "$ref": "#/components/schemas/LinkType"
+          },
+          "label_type": {
+            "nullable": true,
+            "$ref": "#/components/schemas/LabelType"
+          },
+          "link": {
+            "title": "Link",
+            "nullable": true,
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "nullable": true,
+            "type": "string"
           }
         },
         "type": "object",
         "required": [
           "id",
-          "label",
-          "label_height",
-          "label_scale",
-          "label_type",
-          "label_width",
-          "link",
-          "link_type",
-          "name",
           "position_x",
           "position_y",
           "position_z",
@@ -4551,11 +4663,6 @@
           },
           "rotation_z": {
             "title": "Rotation Z",
-            "nullable": true,
-            "type": "number"
-          },
-          "label_width": {
-            "title": "Label Width",
             "nullable": true,
             "type": "number"
           },
@@ -4584,13 +4691,35 @@
             "nullable": true,
             "type": "number"
           },
-          "label_height": {
-            "title": "Label Height",
+          "position_x": {
+            "title": "Position X",
             "nullable": true,
             "type": "number"
           },
-          "position_x": {
-            "title": "Position X",
+          "active": {
+            "title": "Active",
+            "nullable": true,
+            "type": "boolean"
+          },
+          "layer_id": {
+            "title": "Layer Id",
+            "nullable": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          "parent_id": {
+            "title": "Parent Id",
+            "nullable": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          "label_width": {
+            "title": "Label Width",
+            "nullable": true,
+            "type": "number"
+          },
+          "label_height": {
+            "title": "Label Height",
             "nullable": true,
             "type": "number"
           },
@@ -4607,11 +4736,6 @@
             "nullable": true,
             "$ref": "#/components/schemas/LabelType"
           },
-          "active": {
-            "title": "Active",
-            "nullable": true,
-            "type": "boolean"
-          },
           "link": {
             "title": "Link",
             "nullable": true,
@@ -4626,18 +4750,6 @@
             "title": "Name",
             "nullable": true,
             "type": "string"
-          },
-          "layer_id": {
-            "title": "Layer Id",
-            "nullable": true,
-            "type": "string",
-            "format": "uuid"
-          },
-          "parent_id": {
-            "title": "Parent Id",
-            "nullable": true,
-            "type": "string",
-            "format": "uuid"
           }
         },
         "type": "object",
@@ -4657,10 +4769,6 @@
           "rotation_z": {
             "type": "number",
             "title": "Rotation Z"
-          },
-          "label_width": {
-            "type": "number",
-            "title": "Label Width"
           },
           "position_y": {
             "type": "number",
@@ -4682,40 +4790,14 @@
             "type": "number",
             "title": "Rotation W"
           },
-          "label_height": {
-            "type": "number",
-            "title": "Label Height"
-          },
           "position_x": {
             "type": "number",
             "title": "Position X"
-          },
-          "label_scale": {
-            "type": "number",
-            "title": "Label Scale"
-          },
-          "link_type": {
-            "$ref": "#/components/schemas/LinkType"
-          },
-          "label_type": {
-            "$ref": "#/components/schemas/LabelType"
           },
           "active": {
             "title": "Active",
             "nullable": true,
             "type": "boolean"
-          },
-          "link": {
-            "type": "string",
-            "title": "Link"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
           },
           "layer_id": {
             "title": "Layer Id",
@@ -4728,18 +4810,48 @@
             "nullable": true,
             "type": "string",
             "format": "uuid"
+          },
+          "label_width": {
+            "title": "Label Width",
+            "nullable": true,
+            "type": "number"
+          },
+          "label_height": {
+            "title": "Label Height",
+            "nullable": true,
+            "type": "number"
+          },
+          "label_scale": {
+            "title": "Label Scale",
+            "nullable": true,
+            "type": "number"
+          },
+          "link_type": {
+            "nullable": true,
+            "$ref": "#/components/schemas/LinkType"
+          },
+          "label_type": {
+            "nullable": true,
+            "$ref": "#/components/schemas/LabelType"
+          },
+          "link": {
+            "title": "Link",
+            "nullable": true,
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "nullable": true,
+            "type": "string"
           }
         },
         "type": "object",
         "required": [
-          "label",
-          "label_height",
-          "label_scale",
-          "label_type",
-          "label_width",
-          "link",
-          "link_type",
-          "name",
           "position_x",
           "position_y",
           "position_z",
@@ -4760,10 +4872,6 @@
           "rotation_z": {
             "type": "number",
             "title": "Rotation Z"
-          },
-          "label_width": {
-            "type": "number",
-            "title": "Label Width"
           },
           "position_y": {
             "type": "number",
@@ -4797,39 +4905,13 @@
             "title": "Created At",
             "description": "datetime with the constraint that the value must have timezone info"
           },
-          "label_height": {
-            "type": "number",
-            "title": "Label Height"
-          },
           "position_x": {
             "type": "number",
             "title": "Position X"
           },
-          "label_scale": {
-            "type": "number",
-            "title": "Label Scale"
-          },
-          "link_type": {
-            "$ref": "#/components/schemas/LinkType"
-          },
-          "label_type": {
-            "$ref": "#/components/schemas/LabelType"
-          },
           "active": {
             "type": "boolean",
             "title": "Active"
-          },
-          "link": {
-            "type": "string",
-            "title": "Link"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
           },
           "layer_id": {
             "title": "Layer Id",
@@ -4842,6 +4924,44 @@
             "nullable": true,
             "type": "string",
             "format": "uuid"
+          },
+          "label_width": {
+            "title": "Label Width",
+            "nullable": true,
+            "type": "number"
+          },
+          "label_height": {
+            "title": "Label Height",
+            "nullable": true,
+            "type": "number"
+          },
+          "label_scale": {
+            "title": "Label Scale",
+            "nullable": true,
+            "type": "number"
+          },
+          "link_type": {
+            "nullable": true,
+            "$ref": "#/components/schemas/LinkType"
+          },
+          "label_type": {
+            "nullable": true,
+            "$ref": "#/components/schemas/LabelType"
+          },
+          "link": {
+            "title": "Link",
+            "nullable": true,
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "nullable": true,
+            "type": "string"
           }
         },
         "type": "object",
@@ -4849,14 +4969,6 @@
           "active",
           "created_at",
           "id",
-          "label",
-          "label_height",
-          "label_scale",
-          "label_type",
-          "label_width",
-          "link",
-          "link_type",
-          "name",
           "position_x",
           "position_y",
           "position_z",

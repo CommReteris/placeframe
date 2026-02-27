@@ -475,6 +475,8 @@ version = "2.10.0"
 marker = "sys_platform == 'darwin'"
 index = "https://download.pytorch.org/whl/cpu"
 wheels = [
+    { url = "https://download.pytorch.org/whl/cpu/torch-2.10.0-1-cp313-none-macosx_11_0_arm64.whl", hashes = { sha256 = "b39cafff7229699f9d6e172cac74d85fd71b568268e439e08d9c540e54732a3e" } },
+    { url = "https://download.pytorch.org/whl/cpu/torch-2.10.0-2-cp313-none-macosx_11_0_arm64.whl", hashes = { sha256 = "470de4176007c2700735e003a830828a88d27129032a3add07291da07e2a94e8" } },
     { url = "https://download.pytorch.org/whl/cpu/torch-2.10.0-cp313-cp313t-macosx_14_0_arm64.whl", hashes = { sha256 = "339e05502b6c839db40e88720cb700f5a3b50cda332284873e851772d41b2c1e" } },
     { url = "https://download.pytorch.org/whl/cpu/torch-2.10.0-cp313-none-macosx_11_0_arm64.whl", hashes = { sha256 = "840351da59cedb7bcbc51981880050813c19ef6b898a7fecf73a3afc71aff3fe" } },
 ]

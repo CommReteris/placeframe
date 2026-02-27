@@ -45,7 +45,12 @@ namespace Outernet.Client.AuthoringTools
             var instance = AuthoringToolsMap.Create(
                 sceneObjectID: map.uuid,
                 bind: props => Bindings.Compose(
-                    Bindings.BindECEFTransform(transform.position, transform.rotation, props.position, props.rotation),
+                    Bindings.BindECEFTransform(
+                        transform.position,
+                        transform.rotation,
+                        props.position,
+                        props.rotation
+                    ),
                     props.name.From(map.name),
                     props.reconstructionID.From(map.reconstructionID),
                     Bindings.OnRelease(() => _maps.Remove(map.uuid))

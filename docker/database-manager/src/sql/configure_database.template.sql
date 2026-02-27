@@ -5,6 +5,7 @@
 -- {auth_user}         -- identifier
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS "postgis" WITH SCHEMA public;
 
 ----------------------------------------------------------------------
 -- Ensure schema owners

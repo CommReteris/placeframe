@@ -89,6 +89,9 @@ def localize_image_against_reconstruction(
 
     match_indices = lightglue_match_tensors(lightglue, pairs, keypoints, descriptors, sizes, len(pairs), DEVICE)
 
+    # Count raw LightGlue matches before 3D filtering
+    num_matches = sum(match_indices[key][0].shape[0] for key in match_indices)
+
     # Collect 2D-3D correspondences
     query_keypoint_indices: list[int] = []
     point3d_indices: list[int] = []
@@ -143,7 +146,7 @@ def localize_image_against_reconstruction(
     )
 
     # Build metrics
-    metrics = build_localization_metrics(pnp_result, points2D, points3D, pycolmap_camera)
+    metrics = build_localization_metrics(pnp_result, points2D, points3D, pycolmap_camera, num_matches, width, height)
 
     # Success
     print(transform.model_dump_json(indent=2))

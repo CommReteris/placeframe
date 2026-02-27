@@ -14,7 +14,7 @@ app = typer.Typer(add_completion=False)
 @app.command()
 def down(
     volumes: bool = typer.Option(False, "--volumes", "-v", help="Remove named volumes."),
-    gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm"),
+    gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm|none"),
 ) -> None:
     """Wrapper for docker compose down."""
     if not ENV_FILE.exists():
@@ -31,7 +31,7 @@ def down(
     command = (
         "docker compose "
         "-f compose.yml "
-        f"-f compose.{gpu}.yml "
+        f"{f'-f compose.{gpu}.yml ' if gpu != 'none' else ''}"
         "--env-file .env "
         f"--env-file {lock_file} "  # Needed so compose won't error on missing variables, even though they are irrelevant for 'down'
         "down --remove-orphans"

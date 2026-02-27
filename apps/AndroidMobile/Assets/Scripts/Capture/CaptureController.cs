@@ -52,8 +52,8 @@ namespace Placeframe.Client
                 new()
                 {
                     children = Props.List(
-                        App.state.loggedIn.AsObservable()
-                            .CreateDynamic(loggedIn =>
+                        App.state.loggedIn.ToObservable()
+                            .ObservableCreate(loggedIn =>
                             {
                                 IControl screen = default;
                                 if (loggedIn)
@@ -61,7 +61,7 @@ namespace Placeframe.Client
                                     screen = MainAppUI(
                                         new MainAppUIProps()
                                         {
-                                            mode = App.state.mode.AsObservable(),
+                                            mode = App.state.mode.ToObservable(),
                                             onModeChanged = x => App.state.mode.ExecuteSetOrDelay(x),
                                         }
                                     );
@@ -81,17 +81,17 @@ namespace Placeframe.Client
             App.RegisterObserver(HandleCapturesChanged, App.state.captures);
 
             captureStatusStream = App
-                .state.captures.AsObservable()
-                .SelectDynamic(x => x.Value)
+                .state.captures.ToObservable()
+                .ObservableSelect(x => x.Value)
                 .SubscribeEach(capture =>
                     capture
-                        .status.AsObservable()
+                        .status.ToObservable()
                         .Subscribe(x =>
                         {
                             if (
-                                x.currentValue != CaptureUploadStatus.Initializing
-                                && x.currentValue != CaptureUploadStatus.Uploading
-                                && x.currentValue != CaptureUploadStatus.Reconstructing
+                                x != CaptureUploadStatus.Initializing
+                                && x != CaptureUploadStatus.Uploading
+                                && x != CaptureUploadStatus.Reconstructing
                                 && awaitReconstructionTasks.TryGetValue(capture.id, out var taskHandle)
                             )
                             {
@@ -99,7 +99,7 @@ namespace Placeframe.Client
                                 awaitReconstructionTasks.Remove(capture.id);
                             }
 
-                            if (x.currentValue == CaptureUploadStatus.UploadRequested)
+                            if (x == CaptureUploadStatus.UploadRequested)
                             {
                                 ReconstructionOptionsDialog(
                                     new ReconstructionOptionsDialogProps()
@@ -125,7 +125,7 @@ namespace Placeframe.Client
 
                                 return;
                             }
-                            else if (x.currentValue == CaptureUploadStatus.ReconstructRequested)
+                            else if (x == CaptureUploadStatus.ReconstructRequested)
                             {
                                 ReconstructionOptionsDialog(
                                     new ReconstructionOptionsDialogProps()
@@ -146,7 +146,7 @@ namespace Placeframe.Client
 
                                 return;
                             }
-                            else if (x.currentValue == CaptureUploadStatus.CreateMapRequested)
+                            else if (x == CaptureUploadStatus.CreateMapRequested)
                             {
                                 VisualPositioningSystem.Api
                                     .CreateLocalizationMapAsync(
@@ -171,7 +171,7 @@ namespace Placeframe.Client
                                         capture.status.ScheduleSet(CaptureUploadStatus.MapCreated);
                                     });
                             }
-                            else if (x.currentValue == CaptureUploadStatus.Reconstructing)
+                            else if (x == CaptureUploadStatus.Reconstructing)
                             {
                                 if (!awaitReconstructionTasks.ContainsKey(capture.id))
                                 {

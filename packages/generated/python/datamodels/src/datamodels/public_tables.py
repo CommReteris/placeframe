@@ -6,12 +6,17 @@ from typing import Optional
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
+    Column,
     DateTime,
     Double,
     Enum,
     ForeignKeyConstraint,
+    Index,
     Integer,
     PrimaryKeyConstraint,
+    String,
+    Table,
     Text,
     UniqueConstraint,
     Uuid,
@@ -71,6 +76,49 @@ class Tenant(Base):
     nodes: Mapped[list["Node"]] = relationship("Node", back_populates="tenant")
     reconstructions: Mapped[list["Reconstruction"]] = relationship("Reconstruction", back_populates="tenant")
     localization_maps: Mapped[list["LocalizationMap"]] = relationship("LocalizationMap", back_populates="tenant")
+
+
+t_geography_columns = Table(
+    "geography_columns",
+    Base.metadata,
+    Column("f_table_catalog", String),
+    Column("f_table_schema", String),
+    Column("f_table_name", String),
+    Column("f_geography_column", String),
+    Column("coord_dimension", Integer),
+    Column("srid", Integer),
+    Column("type", Text),
+    schema="public",
+)
+
+
+t_geometry_columns = Table(
+    "geometry_columns",
+    Base.metadata,
+    Column("f_table_catalog", String(256)),
+    Column("f_table_schema", String),
+    Column("f_table_name", String),
+    Column("f_geometry_column", String),
+    Column("coord_dimension", Integer),
+    Column("srid", Integer),
+    Column("type", String(30)),
+    schema="public",
+)
+
+
+class SpatialRefSy(Base):
+    __tablename__ = "spatial_ref_sys"
+    __table_args__ = (
+        CheckConstraint("srid > 0 AND srid <= 998999", name="spatial_ref_sys_srid_check"),
+        PrimaryKeyConstraint("srid", name="spatial_ref_sys_pkey"),
+        {"schema": "public"},
+    )
+
+    srid: Mapped[int] = mapped_column(Integer, primary_key=True)
+    auth_name: Mapped[Optional[str]] = mapped_column(String(256))
+    auth_srid: Mapped[Optional[int]] = mapped_column(Integer)
+    srtext: Mapped[Optional[str]] = mapped_column(String(2048))
+    proj4text: Mapped[Optional[str]] = mapped_column(String(2048))
 
 
 class CaptureSession(Base):
@@ -162,13 +210,13 @@ class Node(Base):
         ForeignKeyConstraint(["parent_id"], ["public.groups.id"], ondelete="RESTRICT", name="nodes_parent_id_fkey"),
         ForeignKeyConstraint(["tenant_id"], ["auth.tenants.id"], ondelete="RESTRICT", name="nodes_tenant_id_fkey"),
         PrimaryKeyConstraint("id", name="nodes_pkey"),
+        Index("idx_nodes_position_gist"),
         {"schema": "public"},
     )
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, server_default=text("current_tenant()"))
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, server_default=text("gen_random_uuid()"))
     rotation_z: Mapped[float] = mapped_column(Double(53), nullable=False)
-    label_width: Mapped[float] = mapped_column(Double(53), nullable=False)
     position_y: Mapped[float] = mapped_column(Double(53), nullable=False)
     position_z: Mapped[float] = mapped_column(Double(53), nullable=False)
     rotation_x: Mapped[float] = mapped_column(Double(53), nullable=False)
@@ -176,21 +224,20 @@ class Node(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), nullable=False, server_default=text("now()"))
     rotation_w: Mapped[float] = mapped_column(Double(53), nullable=False)
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), nullable=False, server_default=text("now()"))
-    label_height: Mapped[float] = mapped_column(Double(53), nullable=False)
     position_x: Mapped[float] = mapped_column(Double(53), nullable=False)
-    label_scale: Mapped[float] = mapped_column(Double(53), nullable=False)
-    link_type: Mapped[LinkType] = mapped_column(
-        Enum(LinkType, name="link_type", values_callable=enum_values), nullable=False
-    )
-    label_type: Mapped[LabelType] = mapped_column(
-        Enum(LabelType, name="label_type", values_callable=enum_values), nullable=False
-    )
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))
-    link: Mapped[str] = mapped_column(Text, nullable=False)
-    label: Mapped[str] = mapped_column(Text, nullable=False)
-    name: Mapped[str] = mapped_column(Text, nullable=False)
     layer_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid)
     parent_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid)
+    label_width: Mapped[Optional[float]] = mapped_column(Double(53))
+    label_height: Mapped[Optional[float]] = mapped_column(Double(53))
+    label_scale: Mapped[Optional[float]] = mapped_column(Double(53))
+    link_type: Mapped[Optional[LinkType]] = mapped_column(Enum(LinkType, name="link_type", values_callable=enum_values))
+    label_type: Mapped[Optional[LabelType]] = mapped_column(
+        Enum(LabelType, name="label_type", values_callable=enum_values)
+    )
+    link: Mapped[Optional[str]] = mapped_column(Text)
+    label: Mapped[Optional[str]] = mapped_column(Text)
+    name: Mapped[Optional[str]] = mapped_column(Text)
 
     layer: Mapped[Optional["Layer"]] = relationship("Layer", back_populates="nodes")
     parent: Mapped[Optional["Group"]] = relationship("Group", back_populates="nodes")
@@ -245,6 +292,7 @@ class LocalizationMap(Base):
         ),
         PrimaryKeyConstraint("id", name="localization_maps_pkey"),
         UniqueConstraint("reconstruction_id", name="localization_maps_reconstruction_id_key"),
+        Index("idx_localization_maps_position_gist"),
         {"schema": "public"},
     )
 

@@ -55,7 +55,7 @@ PrefabInstance:
     - target: {fileID: 7774093108422875943, guid: b6138b2ca4cc248478f5438e4621a4dc, type: 3}
       propertyPath: localizationMapPrefab
       value: 
-      objectReference: {fileID: 253564545193343637, guid: 2ef2d4c20f98c0d44af5e3be436d94ae, type: 3}
+      objectReference: {fileID: 8410913971276956591, guid: 3932a004a5c46f6458021136bf4aa53a, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

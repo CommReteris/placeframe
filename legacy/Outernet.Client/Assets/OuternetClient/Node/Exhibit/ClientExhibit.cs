@@ -94,7 +94,11 @@ namespace Outernet.Client
             _scrollSmoother = Smooth.SmoothDampFloat(x => contentListScrollView.verticalNormalizedPosition = x);
         }
 
-        public override void Dispose() => citationListView.Terminate();
+        public override void Dispose()
+        {
+            citationListView.Terminate();
+            base.Dispose();
+        }
 
         private void Update()
         {

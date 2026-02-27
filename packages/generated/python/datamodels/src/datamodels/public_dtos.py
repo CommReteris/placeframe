@@ -17,6 +17,7 @@ from .public_tables import (
     Node,
     OrchestrationStatus,
     Reconstruction,
+    SpatialRefSy,
     Tenant,
 )
 
@@ -186,6 +187,45 @@ class LocalizationSessionRead(BaseModel):
     container_url: str = Field(..., title="Container Url")
 
 
+class SpatialRefSyCreate(BaseModel):
+    srid: int = Field(..., title="Srid")
+    auth_name: str | None = Field(None, title="Auth Name")
+    auth_srid: int | None = Field(None, title="Auth Srid")
+    srtext: str | None = Field(None, title="Srtext")
+    proj4text: str | None = Field(None, title="Proj4Text")
+
+
+class SpatialRefSyBatchCreate(BaseModel):
+    srid: int = Field(..., title="Srid")
+    auth_name: str | None = Field(None, title="Auth Name")
+    auth_srid: int | None = Field(None, title="Auth Srid")
+    srtext: str | None = Field(None, title="Srtext")
+    proj4text: str | None = Field(None, title="Proj4Text")
+
+
+class SpatialRefSyUpdate(BaseModel):
+    auth_name: str | None = Field(None, title="Auth Name")
+    auth_srid: int | None = Field(None, title="Auth Srid")
+    srtext: str | None = Field(None, title="Srtext")
+    proj4text: str | None = Field(None, title="Proj4Text")
+
+
+class SpatialRefSyBatchUpdate(BaseModel):
+    srid: int = Field(..., title="Srid")
+    auth_name: str | None = Field(None, title="Auth Name")
+    auth_srid: int | None = Field(None, title="Auth Srid")
+    srtext: str | None = Field(None, title="Srtext")
+    proj4text: str | None = Field(None, title="Proj4Text")
+
+
+class SpatialRefSyRead(BaseModel):
+    srid: int = Field(..., title="Srid")
+    auth_name: str | None = Field(None, title="Auth Name")
+    auth_srid: int | None = Field(None, title="Auth Srid")
+    srtext: str | None = Field(None, title="Srtext")
+    proj4text: str | None = Field(None, title="Proj4Text")
+
+
 class TenantCreate(BaseModel):
     id: UUID | None = Field(None, title="Id")
 
@@ -241,94 +281,93 @@ class CaptureSessionRead(BaseModel):
 class NodeCreate(BaseModel):
     id: UUID | None = Field(None, title="Id")
     rotation_z: float = Field(..., title="Rotation Z")
-    label_width: float = Field(..., title="Label Width")
     position_y: float = Field(..., title="Position Y")
     position_z: float = Field(..., title="Position Z")
     rotation_x: float = Field(..., title="Rotation X")
     rotation_y: float = Field(..., title="Rotation Y")
     rotation_w: float = Field(..., title="Rotation W")
-    label_height: float = Field(..., title="Label Height")
     position_x: float = Field(..., title="Position X")
-    label_scale: float = Field(..., title="Label Scale")
-    link_type: LinkType
-    label_type: LabelType
     active: bool | None = Field(None, title="Active")
-    link: str = Field(..., title="Link")
-    label: str = Field(..., title="Label")
-    name: str = Field(..., title="Name")
     layer_id: UUID | None = Field(None, title="Layer Id")
     parent_id: UUID | None = Field(None, title="Parent Id")
+    label_width: float | None = Field(None, title="Label Width")
+    label_height: float | None = Field(None, title="Label Height")
+    label_scale: float | None = Field(None, title="Label Scale")
+    link_type: LinkType | None = None
+    label_type: LabelType | None = None
+    link: str | None = Field(None, title="Link")
+    label: str | None = Field(None, title="Label")
+    name: str | None = Field(None, title="Name")
 
 
 class NodeBatchCreate(BaseModel):
     id: UUID = Field(..., title="Id")
     rotation_z: float = Field(..., title="Rotation Z")
-    label_width: float = Field(..., title="Label Width")
     position_y: float = Field(..., title="Position Y")
     position_z: float = Field(..., title="Position Z")
     rotation_x: float = Field(..., title="Rotation X")
     rotation_y: float = Field(..., title="Rotation Y")
     rotation_w: float = Field(..., title="Rotation W")
-    label_height: float = Field(..., title="Label Height")
     position_x: float = Field(..., title="Position X")
-    label_scale: float = Field(..., title="Label Scale")
-    link_type: LinkType
-    label_type: LabelType
     active: bool | None = Field(None, title="Active")
-    link: str = Field(..., title="Link")
-    label: str = Field(..., title="Label")
-    name: str = Field(..., title="Name")
     layer_id: UUID | None = Field(None, title="Layer Id")
     parent_id: UUID | None = Field(None, title="Parent Id")
+    label_width: float | None = Field(None, title="Label Width")
+    label_height: float | None = Field(None, title="Label Height")
+    label_scale: float | None = Field(None, title="Label Scale")
+    link_type: LinkType | None = None
+    label_type: LabelType | None = None
+    link: str | None = Field(None, title="Link")
+    label: str | None = Field(None, title="Label")
+    name: str | None = Field(None, title="Name")
 
 
 class NodeUpdate(BaseModel):
     rotation_z: float | None = Field(None, title="Rotation Z")
-    label_width: float | None = Field(None, title="Label Width")
     position_y: float | None = Field(None, title="Position Y")
     position_z: float | None = Field(None, title="Position Z")
     rotation_x: float | None = Field(None, title="Rotation X")
     rotation_y: float | None = Field(None, title="Rotation Y")
     rotation_w: float | None = Field(None, title="Rotation W")
-    label_height: float | None = Field(None, title="Label Height")
     position_x: float | None = Field(None, title="Position X")
+    active: bool | None = Field(None, title="Active")
+    layer_id: UUID | None = Field(None, title="Layer Id")
+    parent_id: UUID | None = Field(None, title="Parent Id")
+    label_width: float | None = Field(None, title="Label Width")
+    label_height: float | None = Field(None, title="Label Height")
     label_scale: float | None = Field(None, title="Label Scale")
     link_type: LinkType | None = None
     label_type: LabelType | None = None
-    active: bool | None = Field(None, title="Active")
     link: str | None = Field(None, title="Link")
     label: str | None = Field(None, title="Label")
     name: str | None = Field(None, title="Name")
-    layer_id: UUID | None = Field(None, title="Layer Id")
-    parent_id: UUID | None = Field(None, title="Parent Id")
 
 
 class NodeBatchUpdate(BaseModel):
     id: UUID = Field(..., title="Id")
     rotation_z: float | None = Field(None, title="Rotation Z")
-    label_width: float | None = Field(None, title="Label Width")
     position_y: float | None = Field(None, title="Position Y")
     position_z: float | None = Field(None, title="Position Z")
     rotation_x: float | None = Field(None, title="Rotation X")
     rotation_y: float | None = Field(None, title="Rotation Y")
     rotation_w: float | None = Field(None, title="Rotation W")
-    label_height: float | None = Field(None, title="Label Height")
     position_x: float | None = Field(None, title="Position X")
+    active: bool | None = Field(None, title="Active")
+    layer_id: UUID | None = Field(None, title="Layer Id")
+    parent_id: UUID | None = Field(None, title="Parent Id")
+    label_width: float | None = Field(None, title="Label Width")
+    label_height: float | None = Field(None, title="Label Height")
     label_scale: float | None = Field(None, title="Label Scale")
     link_type: LinkType | None = None
     label_type: LabelType | None = None
-    active: bool | None = Field(None, title="Active")
     link: str | None = Field(None, title="Link")
     label: str | None = Field(None, title="Label")
     name: str | None = Field(None, title="Name")
-    layer_id: UUID | None = Field(None, title="Layer Id")
-    parent_id: UUID | None = Field(None, title="Parent Id")
 
 
 class NodeRead(BaseModel):
     id: UUID = Field(..., title="Id")
     rotation_z: float = Field(..., title="Rotation Z")
-    label_width: float = Field(..., title="Label Width")
     position_y: float = Field(..., title="Position Y")
     position_z: float = Field(..., title="Position Z")
     rotation_x: float = Field(..., title="Rotation X")
@@ -336,17 +375,18 @@ class NodeRead(BaseModel):
     created_at: AwareDatetime = Field(..., title="Created At")
     rotation_w: float = Field(..., title="Rotation W")
     updated_at: AwareDatetime = Field(..., title="Updated At")
-    label_height: float = Field(..., title="Label Height")
     position_x: float = Field(..., title="Position X")
-    label_scale: float = Field(..., title="Label Scale")
-    link_type: LinkType
-    label_type: LabelType
     active: bool = Field(..., title="Active")
-    link: str = Field(..., title="Link")
-    label: str = Field(..., title="Label")
-    name: str = Field(..., title="Name")
     layer_id: UUID | None = Field(None, title="Layer Id")
     parent_id: UUID | None = Field(None, title="Parent Id")
+    label_width: float | None = Field(None, title="Label Width")
+    label_height: float | None = Field(None, title="Label Height")
+    label_scale: float | None = Field(None, title="Label Scale")
+    link_type: LinkType | None = None
+    label_type: LabelType | None = None
+    link: str | None = Field(None, title="Link")
+    label: str | None = Field(None, title="Label")
+    name: str | None = Field(None, title="Name")
 
 
 class ReconstructionCreate(BaseModel):
@@ -625,6 +665,40 @@ def reconstruction_apply_dto(instance: Reconstruction, update: ReconstructionUpd
 def reconstruction_apply_batch_update_dto(
     instance: Reconstruction, update: ReconstructionBatchUpdate
 ) -> Reconstruction:
+    for field, value in update.model_dump(exclude_unset=True, mode="json").items():
+        setattr(instance, field, value)
+    return instance
+
+
+def spatial_ref_sy_from_dto(create: SpatialRefSyCreate) -> SpatialRefSy:
+    data = create.model_dump(exclude_unset=True, mode="json")
+    return SpatialRefSy(**data)
+
+
+def spatial_ref_sy_from_batch_create_dto(create: SpatialRefSyBatchCreate) -> SpatialRefSy:
+    data = create.model_dump(exclude_unset=True, mode="json")
+    return SpatialRefSy(**data)
+
+
+def spatial_ref_sy_from_dto_overwrite(instance: SpatialRefSy, create: SpatialRefSyCreate) -> SpatialRefSy:
+    for field, value in create.model_dump(exclude_unset=True, mode="json").items():
+        setattr(instance, field, value)
+    return instance
+
+
+def spatial_ref_sy_to_dto(instance: SpatialRefSy) -> SpatialRefSyRead:
+    column_keys = tuple(attr.key for attr in sa_inspect(SpatialRefSy).mapper.column_attrs)
+    data = {k: getattr(instance, k) for k in column_keys}
+    return SpatialRefSyRead.model_validate(data)
+
+
+def spatial_ref_sy_apply_dto(instance: SpatialRefSy, update: SpatialRefSyUpdate) -> SpatialRefSy:
+    for field, value in update.model_dump(exclude_unset=True, mode="json").items():
+        setattr(instance, field, value)
+    return instance
+
+
+def spatial_ref_sy_apply_batch_update_dto(instance: SpatialRefSy, update: SpatialRefSyBatchUpdate) -> SpatialRefSy:
     for field, value in update.model_dump(exclude_unset=True, mode="json").items():
         setattr(instance, field, value)
     return instance

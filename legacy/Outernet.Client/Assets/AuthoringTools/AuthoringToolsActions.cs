@@ -7,9 +7,6 @@ using PlaceframeApiClient.Model;
 using SimpleJSON;
 using Unity.Mathematics;
 
-using SimpleJSON;
-using PlaceframeApiClient.Model;
-
 namespace Outernet.Client.AuthoringTools
 {
     public class SetSelectedObjectIDAction : ObservableNodeAction<ClientState>

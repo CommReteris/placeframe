@@ -28,8 +28,12 @@ class LocalizationMetrics(BaseModel):
     """ # noqa: E501
     inlier_ratio: Union[StrictFloat, StrictInt]
     reprojection_error_median: Union[StrictFloat, StrictInt]
+    num_inliers: StrictInt
+    num_correspondences: StrictInt
+    num_matches: StrictInt
+    inlier_coverage: Union[StrictFloat, StrictInt]
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["inlier_ratio", "reprojection_error_median"]
+    __properties: ClassVar[List[str]] = ["inlier_ratio", "reprojection_error_median", "num_inliers", "num_correspondences", "num_matches", "inlier_coverage"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -90,7 +94,11 @@ class LocalizationMetrics(BaseModel):
 
         _obj = cls.model_validate({
             "inlier_ratio": obj.get("inlier_ratio"),
-            "reprojection_error_median": obj.get("reprojection_error_median")
+            "reprojection_error_median": obj.get("reprojection_error_median"),
+            "num_inliers": obj.get("num_inliers"),
+            "num_correspondences": obj.get("num_correspondences"),
+            "num_matches": obj.get("num_matches"),
+            "inlier_coverage": obj.get("inlier_coverage")
         })
         # store additional fields in additional_properties
         for _key in obj.keys():

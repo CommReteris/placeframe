@@ -36,8 +36,8 @@ namespace PlaceframeApiClient.Model
         /// Gets or Sets LinkType
         /// </summary>
 
-        [DataMember(Name = "link_type", IsRequired = true, EmitDefaultValue = true)]
-        public LinkType LinkType
+        [DataMember(Name = "link_type", EmitDefaultValue = false)]
+        public LinkType? LinkType
         {
             get{ return _LinkType;}
             set
@@ -46,7 +46,7 @@ namespace PlaceframeApiClient.Model
                 _flagLinkType = true;
             }
         }
-        private LinkType _LinkType;
+        private LinkType? _LinkType;
         private bool _flagLinkType;
 
         /// <summary>
@@ -62,8 +62,8 @@ namespace PlaceframeApiClient.Model
         /// Gets or Sets LabelType
         /// </summary>
 
-        [DataMember(Name = "label_type", IsRequired = true, EmitDefaultValue = true)]
-        public LabelType LabelType
+        [DataMember(Name = "label_type", EmitDefaultValue = false)]
+        public LabelType? LabelType
         {
             get{ return _LabelType;}
             set
@@ -72,7 +72,7 @@ namespace PlaceframeApiClient.Model
                 _flagLabelType = true;
             }
         }
-        private LabelType _LabelType;
+        private LabelType? _LabelType;
         private bool _flagLabelType;
 
         /// <summary>
@@ -93,7 +93,6 @@ namespace PlaceframeApiClient.Model
         /// </summary>
         /// <param name="id">id (required).</param>
         /// <param name="rotationZ">rotationZ (required).</param>
-        /// <param name="labelWidth">labelWidth (required).</param>
         /// <param name="positionY">positionY (required).</param>
         /// <param name="positionZ">positionZ (required).</param>
         /// <param name="rotationX">rotationX (required).</param>
@@ -101,22 +100,22 @@ namespace PlaceframeApiClient.Model
         /// <param name="createdAt">datetime with the constraint that the value must have timezone info (required).</param>
         /// <param name="rotationW">rotationW (required).</param>
         /// <param name="updatedAt">datetime with the constraint that the value must have timezone info (required).</param>
-        /// <param name="labelHeight">labelHeight (required).</param>
         /// <param name="positionX">positionX (required).</param>
-        /// <param name="labelScale">labelScale (required).</param>
-        /// <param name="linkType">linkType (required).</param>
-        /// <param name="labelType">labelType (required).</param>
         /// <param name="active">active (required).</param>
-        /// <param name="link">link (required).</param>
-        /// <param name="label">label (required).</param>
-        /// <param name="name">name (required).</param>
         /// <param name="layerId">layerId.</param>
         /// <param name="parentId">parentId.</param>
-        public NodeRead(Guid id, double rotationZ, double labelWidth, double positionY, double positionZ, double rotationX, double rotationY, DateTime createdAt, double rotationW, DateTime updatedAt, double labelHeight, double positionX, double labelScale, LinkType linkType, LabelType labelType, bool active, string link, string label, string name)
+        /// <param name="labelWidth">labelWidth.</param>
+        /// <param name="labelHeight">labelHeight.</param>
+        /// <param name="labelScale">labelScale.</param>
+        /// <param name="linkType">linkType.</param>
+        /// <param name="labelType">labelType.</param>
+        /// <param name="link">link.</param>
+        /// <param name="label">label.</param>
+        /// <param name="name">name.</param>
+        public NodeRead(Guid id, double rotationZ, double positionY, double positionZ, double rotationX, double rotationY, DateTime createdAt, double rotationW, DateTime updatedAt, double positionX, bool active)
         {
             this.Id = id;
             this.RotationZ = rotationZ;
-            this.LabelWidth = labelWidth;
             this.PositionY = positionY;
             this.PositionZ = positionZ;
             this.RotationX = rotationX;
@@ -124,30 +123,8 @@ namespace PlaceframeApiClient.Model
             this.CreatedAt = createdAt;
             this.RotationW = rotationW;
             this.UpdatedAt = updatedAt;
-            this.LabelHeight = labelHeight;
             this.PositionX = positionX;
-            this.LabelScale = labelScale;
-            this.LinkType = linkType;
-            this.LabelType = labelType;
             this.Active = active;
-            // to ensure "link" is required (not null)
-            if (link == null)
-            {
-                throw new ArgumentNullException("link is a required property for NodeRead and cannot be null");
-            }
-            this.Link = link;
-            // to ensure "label" is required (not null)
-            if (label == null)
-            {
-                throw new ArgumentNullException("label is a required property for NodeRead and cannot be null");
-            }
-            this.Label = label;
-            // to ensure "name" is required (not null)
-            if (name == null)
-            {
-                throw new ArgumentNullException("name is a required property for NodeRead and cannot be null");
-            }
-            this.Name = name;
         }
 
         /// <summary>
@@ -197,30 +174,6 @@ namespace PlaceframeApiClient.Model
         public bool ShouldSerializeRotationZ()
         {
             return _flagRotationZ;
-        }
-        /// <summary>
-        /// Gets or Sets LabelWidth
-        /// </summary>
-        [DataMember(Name = "label_width", IsRequired = true, EmitDefaultValue = true)]
-        public double LabelWidth
-        {
-            get{ return _LabelWidth;}
-            set
-            {
-                _LabelWidth = value;
-                _flagLabelWidth = true;
-            }
-        }
-        private double _LabelWidth;
-        private bool _flagLabelWidth;
-
-        /// <summary>
-        /// Returns false as LabelWidth should not be serialized given that it's read-only.
-        /// </summary>
-        /// <returns>false (boolean)</returns>
-        public bool ShouldSerializeLabelWidth()
-        {
-            return _flagLabelWidth;
         }
         /// <summary>
         /// Gets or Sets PositionY
@@ -393,30 +346,6 @@ namespace PlaceframeApiClient.Model
             return _flagUpdatedAt;
         }
         /// <summary>
-        /// Gets or Sets LabelHeight
-        /// </summary>
-        [DataMember(Name = "label_height", IsRequired = true, EmitDefaultValue = true)]
-        public double LabelHeight
-        {
-            get{ return _LabelHeight;}
-            set
-            {
-                _LabelHeight = value;
-                _flagLabelHeight = true;
-            }
-        }
-        private double _LabelHeight;
-        private bool _flagLabelHeight;
-
-        /// <summary>
-        /// Returns false as LabelHeight should not be serialized given that it's read-only.
-        /// </summary>
-        /// <returns>false (boolean)</returns>
-        public bool ShouldSerializeLabelHeight()
-        {
-            return _flagLabelHeight;
-        }
-        /// <summary>
         /// Gets or Sets PositionX
         /// </summary>
         [DataMember(Name = "position_x", IsRequired = true, EmitDefaultValue = true)]
@@ -441,30 +370,6 @@ namespace PlaceframeApiClient.Model
             return _flagPositionX;
         }
         /// <summary>
-        /// Gets or Sets LabelScale
-        /// </summary>
-        [DataMember(Name = "label_scale", IsRequired = true, EmitDefaultValue = true)]
-        public double LabelScale
-        {
-            get{ return _LabelScale;}
-            set
-            {
-                _LabelScale = value;
-                _flagLabelScale = true;
-            }
-        }
-        private double _LabelScale;
-        private bool _flagLabelScale;
-
-        /// <summary>
-        /// Returns false as LabelScale should not be serialized given that it's read-only.
-        /// </summary>
-        /// <returns>false (boolean)</returns>
-        public bool ShouldSerializeLabelScale()
-        {
-            return _flagLabelScale;
-        }
-        /// <summary>
         /// Gets or Sets Active
         /// </summary>
         [DataMember(Name = "active", IsRequired = true, EmitDefaultValue = true)]
@@ -487,78 +392,6 @@ namespace PlaceframeApiClient.Model
         public bool ShouldSerializeActive()
         {
             return _flagActive;
-        }
-        /// <summary>
-        /// Gets or Sets Link
-        /// </summary>
-        [DataMember(Name = "link", IsRequired = true, EmitDefaultValue = true)]
-        public string Link
-        {
-            get{ return _Link;}
-            set
-            {
-                _Link = value;
-                _flagLink = true;
-            }
-        }
-        private string _Link;
-        private bool _flagLink;
-
-        /// <summary>
-        /// Returns false as Link should not be serialized given that it's read-only.
-        /// </summary>
-        /// <returns>false (boolean)</returns>
-        public bool ShouldSerializeLink()
-        {
-            return _flagLink;
-        }
-        /// <summary>
-        /// Gets or Sets Label
-        /// </summary>
-        [DataMember(Name = "label", IsRequired = true, EmitDefaultValue = true)]
-        public string Label
-        {
-            get{ return _Label;}
-            set
-            {
-                _Label = value;
-                _flagLabel = true;
-            }
-        }
-        private string _Label;
-        private bool _flagLabel;
-
-        /// <summary>
-        /// Returns false as Label should not be serialized given that it's read-only.
-        /// </summary>
-        /// <returns>false (boolean)</returns>
-        public bool ShouldSerializeLabel()
-        {
-            return _flagLabel;
-        }
-        /// <summary>
-        /// Gets or Sets Name
-        /// </summary>
-        [DataMember(Name = "name", IsRequired = true, EmitDefaultValue = true)]
-        public string Name
-        {
-            get{ return _Name;}
-            set
-            {
-                _Name = value;
-                _flagName = true;
-            }
-        }
-        private string _Name;
-        private bool _flagName;
-
-        /// <summary>
-        /// Returns false as Name should not be serialized given that it's read-only.
-        /// </summary>
-        /// <returns>false (boolean)</returns>
-        public bool ShouldSerializeName()
-        {
-            return _flagName;
         }
         /// <summary>
         /// Gets or Sets LayerId
@@ -609,6 +442,150 @@ namespace PlaceframeApiClient.Model
             return _flagParentId;
         }
         /// <summary>
+        /// Gets or Sets LabelWidth
+        /// </summary>
+        [DataMember(Name = "label_width", EmitDefaultValue = true)]
+        public double? LabelWidth
+        {
+            get{ return _LabelWidth;}
+            set
+            {
+                _LabelWidth = value;
+                _flagLabelWidth = true;
+            }
+        }
+        private double? _LabelWidth;
+        private bool _flagLabelWidth;
+
+        /// <summary>
+        /// Returns false as LabelWidth should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeLabelWidth()
+        {
+            return _flagLabelWidth;
+        }
+        /// <summary>
+        /// Gets or Sets LabelHeight
+        /// </summary>
+        [DataMember(Name = "label_height", EmitDefaultValue = true)]
+        public double? LabelHeight
+        {
+            get{ return _LabelHeight;}
+            set
+            {
+                _LabelHeight = value;
+                _flagLabelHeight = true;
+            }
+        }
+        private double? _LabelHeight;
+        private bool _flagLabelHeight;
+
+        /// <summary>
+        /// Returns false as LabelHeight should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeLabelHeight()
+        {
+            return _flagLabelHeight;
+        }
+        /// <summary>
+        /// Gets or Sets LabelScale
+        /// </summary>
+        [DataMember(Name = "label_scale", EmitDefaultValue = true)]
+        public double? LabelScale
+        {
+            get{ return _LabelScale;}
+            set
+            {
+                _LabelScale = value;
+                _flagLabelScale = true;
+            }
+        }
+        private double? _LabelScale;
+        private bool _flagLabelScale;
+
+        /// <summary>
+        /// Returns false as LabelScale should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeLabelScale()
+        {
+            return _flagLabelScale;
+        }
+        /// <summary>
+        /// Gets or Sets Link
+        /// </summary>
+        [DataMember(Name = "link", EmitDefaultValue = true)]
+        public string Link
+        {
+            get{ return _Link;}
+            set
+            {
+                _Link = value;
+                _flagLink = true;
+            }
+        }
+        private string _Link;
+        private bool _flagLink;
+
+        /// <summary>
+        /// Returns false as Link should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeLink()
+        {
+            return _flagLink;
+        }
+        /// <summary>
+        /// Gets or Sets Label
+        /// </summary>
+        [DataMember(Name = "label", EmitDefaultValue = true)]
+        public string Label
+        {
+            get{ return _Label;}
+            set
+            {
+                _Label = value;
+                _flagLabel = true;
+            }
+        }
+        private string _Label;
+        private bool _flagLabel;
+
+        /// <summary>
+        /// Returns false as Label should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeLabel()
+        {
+            return _flagLabel;
+        }
+        /// <summary>
+        /// Gets or Sets Name
+        /// </summary>
+        [DataMember(Name = "name", EmitDefaultValue = true)]
+        public string Name
+        {
+            get{ return _Name;}
+            set
+            {
+                _Name = value;
+                _flagName = true;
+            }
+        }
+        private string _Name;
+        private bool _flagName;
+
+        /// <summary>
+        /// Returns false as Name should not be serialized given that it's read-only.
+        /// </summary>
+        /// <returns>false (boolean)</returns>
+        public bool ShouldSerializeName()
+        {
+            return _flagName;
+        }
+        /// <summary>
         /// Returns the string presentation of the object
         /// </summary>
         /// <returns>String presentation of the object</returns>
@@ -618,7 +595,6 @@ namespace PlaceframeApiClient.Model
             sb.Append("class NodeRead {\n");
             sb.Append("  Id: ").Append(Id).Append("\n");
             sb.Append("  RotationZ: ").Append(RotationZ).Append("\n");
-            sb.Append("  LabelWidth: ").Append(LabelWidth).Append("\n");
             sb.Append("  PositionY: ").Append(PositionY).Append("\n");
             sb.Append("  PositionZ: ").Append(PositionZ).Append("\n");
             sb.Append("  RotationX: ").Append(RotationX).Append("\n");
@@ -626,17 +602,18 @@ namespace PlaceframeApiClient.Model
             sb.Append("  CreatedAt: ").Append(CreatedAt).Append("\n");
             sb.Append("  RotationW: ").Append(RotationW).Append("\n");
             sb.Append("  UpdatedAt: ").Append(UpdatedAt).Append("\n");
-            sb.Append("  LabelHeight: ").Append(LabelHeight).Append("\n");
             sb.Append("  PositionX: ").Append(PositionX).Append("\n");
+            sb.Append("  Active: ").Append(Active).Append("\n");
+            sb.Append("  LayerId: ").Append(LayerId).Append("\n");
+            sb.Append("  ParentId: ").Append(ParentId).Append("\n");
+            sb.Append("  LabelWidth: ").Append(LabelWidth).Append("\n");
+            sb.Append("  LabelHeight: ").Append(LabelHeight).Append("\n");
             sb.Append("  LabelScale: ").Append(LabelScale).Append("\n");
             sb.Append("  LinkType: ").Append(LinkType).Append("\n");
             sb.Append("  LabelType: ").Append(LabelType).Append("\n");
-            sb.Append("  Active: ").Append(Active).Append("\n");
             sb.Append("  Link: ").Append(Link).Append("\n");
             sb.Append("  Label: ").Append(Label).Append("\n");
             sb.Append("  Name: ").Append(Name).Append("\n");
-            sb.Append("  LayerId: ").Append(LayerId).Append("\n");
-            sb.Append("  ParentId: ").Append(ParentId).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }

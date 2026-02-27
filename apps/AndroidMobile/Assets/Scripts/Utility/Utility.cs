@@ -24,19 +24,13 @@ namespace Placeframe.Client
 
         public static IDisposable SubscribeEach<T>(this ICollectionObservable<T> collection, Func<T, IDisposable> subscribe)
         {
-            Dictionary<T, IDisposable> subscriptions = new Dictionary<T, IDisposable>();
-            return collection.Subscribe(
-                args =>
+            Dictionary<uint, IDisposable> subscriptions = new Dictionary<uint, IDisposable>();
+            return collection.SubscribeWithId(
+                onAdd: (id, element) => subscriptions.Add(id, subscribe(element)),
+                onRemove: (id, element) =>
                 {
-                    if (args.operationType == OpType.Add)
-                    {
-                        subscriptions.Add(args.element, subscribe(args.element));
-                    }
-                    else if (args.operationType == OpType.Remove)
-                    {
-                        subscriptions[args.element].Dispose();
-                        subscriptions.Remove(args.element);
-                    }
+                    subscriptions[id].Dispose();
+                    subscriptions.Remove(id);
                 },
                 onDispose: () =>
                 {
@@ -48,8 +42,8 @@ namespace Placeframe.Client
             );
         }
 
-        public static IValueObservable<int> FollowIndexDynamic<T>(this IListObservable<T> list, int index)
-            => new FollowIndexObservable<T>(list, index);
+        // public static IValueObservable<int> FollowIndexDynamic<T>(this IListObservable<T> list, int index)
+        //     => new FollowIndexObservable<T>(list, index);
 
         public static void AddRange<T>(this ListObservable<T> list, params T[] elements)
         {

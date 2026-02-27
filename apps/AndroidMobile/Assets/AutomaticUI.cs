@@ -30,7 +30,7 @@ namespace Placeframe.Client
             props.foldout.childrenLayout.childForceExpandWidth = props.foldout.childrenLayout.childForceExpandWidth ?? Props.Value(false);
             props.foldout.childrenLayout.spacing = props.foldout.childrenLayout.spacing ?? Props.Value(10f);
             props.foldout.childrenLayout.padding = props.foldout.childrenLayout.padding ?? Props.Value(new RectOffset(50, 0, 0, 0));
-            props.foldout.childrenLayout.children = Props.List(ObjectFieldInspectors(props.target, props.isReadonly.SelectDynamic(x => !x)));
+            props.foldout.childrenLayout.children = Props.List(ObjectFieldInspectors(props.target, props.isReadonly?.ObservableSelect(x => !x) ?? Props.Value(false)));
 
             return Foldout(props.foldout);
         }
@@ -217,22 +217,22 @@ namespace Placeframe.Client
                         bindings = Props.List(
                             value.Subscribe(x =>
                             {
-                                isNull.value = x.currentValue == null;
+                                isNull.value = x == null;
 
-                                if (x.currentValue != null)
-                                    selectedValue.value = x.currentValue;
+                                if (x != null)
+                                    selectedValue.value = x;
                             }),
                             Observables.Combine(
                                 selectedValue,
                                 isNull,
                                 (selected, isNull) => isNull ? null : selected
-                            ).Subscribe(x => onValueChanged?.Invoke(ConstructNullable(type, x.currentValue)))
+                            ).Subscribe(x => onValueChanged?.Invoke(ConstructNullable(type, x)))
                         )
                     },
                     children = Props.List(
                         Toggle(new()
                         {
-                            value = isNull.SelectDynamic(x => !x),
+                            value = isNull.ObservableSelect(x => !x),
                             onValueChanged = x => isNull.value = !x,
                             interactable = interactable
                         }),
@@ -319,7 +319,7 @@ namespace Placeframe.Client
                     element = props.element,
                     layout = props.layout,
                     options = Props.List(Enum.GetNames(props.type)),
-                    value = props.value.SelectDynamic(x => x == null ? default : Convert.ToInt32(x)),
+                    value = props.value.ObservableSelect(x => x == null ? default : Convert.ToInt32(x)),
                     onValueChanged = x => props.onValueChanged?.Invoke(Enum.ToObject(props.type, x)),
                     interactable = props.interactable
                 });
@@ -330,7 +330,7 @@ namespace Placeframe.Client
                 {
                     element = props.element,
                     layout = props.layout,
-                    value = props.value.SelectDynamic(x => x == null ? default : (bool)x),
+                    value = props.value.ObservableSelect(x => x == null ? default : (bool)x),
                     onValueChanged = x => props.onValueChanged?.Invoke(x),
                     interactable = props.interactable
                 });
@@ -341,7 +341,7 @@ namespace Placeframe.Client
                 {
                     element = props.element,
                     layout = props.layout,
-                    value = props.value.SelectDynamic(x => x == null ? default : (int)x),
+                    value = props.value.ObservableSelect(x => x == null ? default : (int)x),
                     onValueChanged = x => props.onValueChanged?.Invoke(x),
                     interactable = props.interactable
                 });
@@ -352,7 +352,7 @@ namespace Placeframe.Client
                 {
                     element = props.element,
                     layout = props.layout,
-                    value = props.value.SelectDynamic(x => x == null ? default : (float)x),
+                    value = props.value.ObservableSelect(x => x == null ? default : (float)x),
                     onValueChanged = x => props.onValueChanged?.Invoke(x),
                     interactable = props.interactable
                 });
@@ -363,7 +363,7 @@ namespace Placeframe.Client
                 {
                     element = props.element,
                     layout = props.layout,
-                    value = props.value.SelectDynamic(x => x == null ? default : (double)x),
+                    value = props.value.ObservableSelect(x => x == null ? default : (double)x),
                     onValueChanged = x => props.onValueChanged?.Invoke(x),
                     interactable = props.interactable
                 });
@@ -374,7 +374,7 @@ namespace Placeframe.Client
                 {
                     element = props.element,
                     layout = props.layout,
-                    value = props.value.SelectDynamic(x => x == null ? default : (string)x),
+                    value = props.value.ObservableSelect(x => x == null ? default : (string)x),
                     onValueChanged = x => props.onValueChanged?.Invoke(x),
                     interactable = props.interactable
                 });
@@ -386,7 +386,7 @@ namespace Placeframe.Client
                 {
                     element = props.element,
                     layout = props.layout,
-                    value = props.value.SelectDynamic(x => x == null ? "NULL" : x.ToString()),
+                    value = props.value.ObservableSelect(x => x == null ? "NULL" : x.ToString()),
                     style = new TextStyleProps()
                     {
                         color = Props.Value(Color.yellow),

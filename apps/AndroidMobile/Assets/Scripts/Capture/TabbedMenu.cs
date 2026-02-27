@@ -34,6 +34,7 @@ namespace Placeframe.Client
             props.selectedBackgroundStyle.fillCenter = props.selectedBackgroundStyle.fillCenter ?? Props.Value(true);
             props.selectedBackgroundStyle.raycastTarget = props.selectedBackgroundStyle.raycastTarget ?? Props.Value(true);
 
+            props.deselectedBackgroundStyle.color = props.deselectedBackgroundStyle.color ?? Props.Value(Color.clear);
             props.deselectedBackgroundStyle.raycastTarget = props.deselectedBackgroundStyle.raycastTarget ?? Props.Value(true);
 
             props.background = props.background ?? Props.Value(elements.roundedRect);
@@ -58,9 +59,9 @@ namespace Placeframe.Client
                             offsetMax = Props.Value(new Vector2(-10, -10))
                         }),
                         spacing = props.tabSpacing,
-                        columns = props.tabs.CreateDynamic(tabLabel =>
+                        columns = props.tabs.ObservableCreate(tabLabel =>
                         {
-                            var tabIndex = props.tabs.IndexOfDynamic(tabLabel);
+                            var tabIndex = props.tabs.ObservableIndexOf(tabLabel);
                             var currentTabIndex = -1;
                             var currentBackgroundStyle = Observables.Combine(
                                 tabIndex,
@@ -72,7 +73,7 @@ namespace Placeframe.Client
                             {
                                 element = new()
                                 {
-                                    bindings = Props.List(tabIndex.Subscribe(x => currentTabIndex = x.currentValue))
+                                    bindings = Props.List(tabIndex.Subscribe(x => currentTabIndex = x))
                                 },
                                 onClick = () => selectedTabIndex.value = currentTabIndex,
                                 background =
@@ -81,20 +82,20 @@ namespace Placeframe.Client
                                         tabIndex,
                                         selectedTabIndex,
                                         (index, selectedIndex) => index == selectedIndex ? props.selectedBackground : props.deselectedBackground
-                                    ).ShallowCopyDynamic(),
+                                    ).ObservableShallowCopy(),
                                     style =
                                     {
-                                        color = currentBackgroundStyle.SelectDynamic(x => x.color),
-                                        imageType = currentBackgroundStyle.SelectDynamic(x => x.imageType),
-                                        fillCenter = currentBackgroundStyle.SelectDynamic(x => x.fillCenter),
-                                        pixelsPerUnitMultiplier = currentBackgroundStyle.SelectDynamic(x => x.pixelsPerUnitMultiplier),
-                                        raycastTarget = currentBackgroundStyle.SelectDynamic(x => x.raycastTarget),
-                                        raycastPadding = currentBackgroundStyle.SelectDynamic(x => x.raycastPadding),
-                                        useSpriteMesh = currentBackgroundStyle.SelectDynamic(x => x.useSpriteMesh),
-                                        preserveAspect = currentBackgroundStyle.SelectDynamic(x => x.preserveAspect),
-                                        fillOrigin = currentBackgroundStyle.SelectDynamic(x => x.fillOrigin),
-                                        fillMethod = currentBackgroundStyle.SelectDynamic(x => x.fillMethod),
-                                        fillAmount = currentBackgroundStyle.SelectDynamic(x => x.fillAmount)
+                                        color = currentBackgroundStyle.ObservableSelect(x => x.color),
+                                        imageType = currentBackgroundStyle.ObservableSelect(x => x.imageType),
+                                        fillCenter = currentBackgroundStyle.ObservableSelect(x => x.fillCenter),
+                                        pixelsPerUnitMultiplier = currentBackgroundStyle.ObservableSelect(x => x.pixelsPerUnitMultiplier),
+                                        raycastTarget = currentBackgroundStyle.ObservableSelect(x => x.raycastTarget),
+                                        raycastPadding = currentBackgroundStyle.ObservableSelect(x => x.raycastPadding),
+                                        useSpriteMesh = currentBackgroundStyle.ObservableSelect(x => x.useSpriteMesh),
+                                        preserveAspect = currentBackgroundStyle.ObservableSelect(x => x.preserveAspect),
+                                        fillOrigin = currentBackgroundStyle.ObservableSelect(x => x.fillOrigin),
+                                        fillMethod = currentBackgroundStyle.ObservableSelect(x => x.fillMethod),
+                                        fillAmount = currentBackgroundStyle.ObservableSelect(x => x.fillAmount)
                                     }
                                 },
                                 content = Props.List(
@@ -117,8 +118,8 @@ namespace Placeframe.Client
 
             control.AddBinding(
                 props.tabs.Subscribe(_ => selectedTabIndex.value = 0),
-                props.value.Subscribe(x => selectedTabIndex.value = x.currentValue),
-                selectedTabIndex.Subscribe(x => props.onValueChanged?.Invoke(x.currentValue))
+                props.value.Subscribe(x => selectedTabIndex.value = x),
+                selectedTabIndex.Subscribe(x => props.onValueChanged?.Invoke(x))
             );
 
             return control;

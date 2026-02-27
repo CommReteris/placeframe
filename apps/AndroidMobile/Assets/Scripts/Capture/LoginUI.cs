@@ -41,7 +41,7 @@ namespace Placeframe.Client
                                 control = InputField(new InputFieldProps()
                                 {
                                     layout = new() { flexibleWidth = Props.Value(true) },
-                                    value = App.state.settings.domain.AsObservable(),
+                                    value = App.state.settings.domain.ToObservable(),
                                     onValueChanged = x => App.state.settings.domain.ExecuteSetOrDelay(x)
                                 })
                             }),
@@ -52,7 +52,7 @@ namespace Placeframe.Client
                                 control = InputField(new InputFieldProps()
                                 {
                                     layout = new() { flexibleWidth = Props.Value(true) },
-                                    value = App.state.settings.username.AsObservable(),
+                                    value = App.state.settings.username.ToObservable(),
                                     onValueChanged = x => App.state.settings.username.ExecuteSetOrDelay(x)
                                 })
                             }),
@@ -63,7 +63,7 @@ namespace Placeframe.Client
                                 control = InputField(new InputFieldProps()
                                 {
                                     layout = new() { flexibleWidth = Props.Value(true) },
-                                    value = App.state.settings.password.AsObservable(),
+                                    value = App.state.settings.password.ToObservable(),
                                     contentType = Props.Value(TMP_InputField.ContentType.Password),
                                     onValueChanged = x => App.state.settings.password.ExecuteSetOrDelay(x)
                                 })
@@ -83,8 +83,8 @@ namespace Placeframe.Client
                             }),
                             Text(new TextProps()
                             {
-                                value = App.state.authError.AsObservable(),
-                                element = new() { active = App.state.authError.AsObservable().SelectDynamic(x => !string.IsNullOrEmpty(x)) },
+                                value = App.state.authError.ToObservable(),
+                                element = new() { active = App.state.authError.ToObservable().ObservableSelect(x => !string.IsNullOrEmpty(x)) },
                                 style = new TextStyleProps()
                                 {
                                     color = Props.Value(Color.red),

@@ -12,10 +12,6 @@ namespace Outernet.Client.AuthoringTools
 
         private void Awake()
         {
-            App.RegisterObserver(HandleSettingsLoadedChanged, App.state.authoringTools.settings.loaded);
-            App.RegisterObserver(HandleSettingsChanged, App.state.authoringTools.settings, App.state.settings.visibleLayers);
-            App.RegisterObserver(HandleLocationChanged, App.state.authoringTools.location);
-
             if (File.Exists(USER_SETTINGS_PATH))
             {
                 var settingsJSON = JSONNode.Parse(File.ReadAllText(USER_SETTINGS_PATH));
@@ -29,6 +25,10 @@ namespace Outernet.Client.AuthoringTools
                     new SetupDefaultSettingsAction()
                 );
             }
+
+            App.RegisterObserver(HandleSettingsLoadedChanged, App.state.authoringTools.settings.loaded);
+            App.RegisterObserver(HandleSettingsChanged, App.state.authoringTools.settings, App.state.settings.visibleLayers);
+            App.RegisterObserver(HandleLocationChanged, App.state.authoringTools.location);
         }
 
         private void HandleLocationChanged(NodeChangeEventArgs args)
