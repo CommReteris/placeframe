@@ -92,3 +92,13 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. The default dev 
 1. Copy `.env.sample` to `.env` and fill in `PUBLIC_DOMAIN` (ngrok static domain) and `NGROK_AUTHTOKEN`.
 2. Run `uv run up` to start all services.
 3. Visit your ngrok domain to access the OpenAPI UI.
+
+## Claude Code Environment Notes
+
+When running in a containerized Claude Code environment (no GPU, no ngrok):
+
+1. **Create `.env` from sample**: `cp .env.sample .env` — set `PUBLIC_DOMAIN=localhost`, `NGROK_AUTHTOKEN=dummy`, and clear `COMPOSE_PROFILES=` (remove `ngrok`).
+2. **Use `--gpu none`**: This environment has no GPU. Use `uv run up --gpu none` and `uv run down --gpu none`.
+3. **Use long timeouts for Docker commands**: `uv run up`, `uv run down`, and any `docker compose` commands may need to pull images on first run. Always use `timeout: 600000` (10 minutes) on these Bash calls.
+4. **Migrations run automatically**: `uv run up` starts a `migrate-database` container that has `pg-schema-diff` installed and runs migrations inside Docker. You do NOT need to install `pg-schema-diff` locally or run `uv run migrate-database` separately — just `uv run up` and wait for the migrator container to finish.
+5. **Never run bare `docker compose` commands**: The compose setup requires multiple `--env-file` flags (`.env` + `.env.lock`) and GPU-specific compose files. Always use the `uv run` wrapper scripts (`uv run up`, `uv run down`, etc.) which assemble the correct command. Running `docker compose` directly will fail with missing variable errors.

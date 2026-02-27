@@ -11,7 +11,8 @@
       "Bash(tail:*)",
       "Bash(export PATH=\"$HOME/.local/bin:$PATH\" && uv sync 2>&1)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(docker info:*)"
     ]
   }
 }
