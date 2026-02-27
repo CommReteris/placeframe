@@ -187,29 +187,15 @@ namespace Outernet.Client.AuthoringTools
             List<GroupRead> nodeGroups = null;
 
             await UniTask.WhenAll(
-
                 App.API.GetLocalizationMapsAsync().AsUniTask().ContinueWith(x => maps = x),
-
-                // TODO EP: Re-enable this when we get this endpoint
-                // await App.API.GetMapsWithinRadiusAsync(latitude, longitude, height, radius, Settings.lightingCondition)
-                //     .ContinueWith(x => maps = x);
-
-                App.API.GetNodesAsync().AsUniTask()
+                App.API.GetLocalizationMapsAsync(positionX: ecefPosition.x, positionY: ecefPosition.y, positionZ: ecefPosition.z, radius: radius).AsUniTask(),
+                App.API.GetNodesAsync(positionX: ecefPosition.x, positionY: ecefPosition.y, positionZ: ecefPosition.z, radius: radius).AsUniTask()
                     .ContinueWith(x =>
                     {
                         nodes = x;
                         return GetNodeGroupsRecursive(x);
                     })
                     .ContinueWith(x => nodeGroups = x)
-
-            // TODO EP: Re-enable this when we get this endpoint
-            // PlaceframeAPI.GetNodesNearPositionsAsync(new double3[] { ecefCoordinates }, radius, 9999)
-            //     .ContinueWith(x =>
-            //     {
-            //         nodes = x;
-            //         return GetNodeGroupsRecursive(x, cancellationToken);
-            //     })
-            //     .ContinueWith(x => nodeGroups = x)
             );
 
             await UniTask.SwitchToMainThread(cancellationToken);

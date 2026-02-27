@@ -516,7 +516,7 @@ GameObject:
   m_Component:
   - component: {fileID: 336581328}
   - component: {fileID: 336581329}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Cesium World Terrain (For height sampling only)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

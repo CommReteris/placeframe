@@ -15,7 +15,7 @@ namespace Outernet.Client.AuthoringTools
                 mesh: mesh,
                 matrix: matrix * Matrix4x4.TRS(position, rotation, scale),
                 material: zTest ? AuthoringToolsPrefabs.GizmoMaterial : AuthoringToolsPrefabs.GizmoMaterialNoZTest,
-                layer: 0,
+                layer: LayerMask.NameToLayer("Handles"),
                 camera: null,
                 submeshIndex: 0,
                 properties: properties,

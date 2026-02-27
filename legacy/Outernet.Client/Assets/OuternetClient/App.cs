@@ -43,8 +43,6 @@ namespace Outernet.Client
         private static bool internetReachable = false;
         private bool initialized = false;
 
-        private Texture2D outputTexture;
-
         protected override void InitializeState(ClientState state)
             => state.Initialize("root", new ObservableNodeContext(new ChannelLogger() { logGroup = LogGroup.Stateful }));
 
@@ -61,38 +59,11 @@ namespace Outernet.Client
             );
 
             Application.wantsToQuit += WantsToQuit;
+
+#if !AUTHORING_TOOLS_ENABLED
             ConnectionManager.HubConnectionRequested.EnqueueSet(true);
             ConnectionManager.RoomConnectionRequested.EnqueueSet("test");
-        }
-
-        private IEnumerable<TextureFormat> SupportedFormats()
-        {
-            foreach (var formatRaw in Enum.GetValues(typeof(TextureFormat)))
-            {
-                if ((int)formatRaw < 0)
-                    continue;
-
-                var format = (TextureFormat)(int)formatRaw;
-                if (SystemInfo.SupportsTextureFormat(format))
-                    yield return format;
-            }
-        }
-
-        private Texture2D GetOrCreateOutputTexture()
-        {
-            return null;
-            // if (outputTexture != null)
-            //     return outputTexture;
-
-            // // Debug.Log("Supported Texture Formats: \n" + string.Join('\n', SupportedFormats()));
-
-            // outputTexture = new Texture2D(3840, 2160);
-            // var output = (GameObject)Instantiate(Resources.Load("Output"));
-            // output.transform.parent = Camera.main.transform;
-            // output.transform.localPosition = new Vector3(0, 0, 1);
-            // output.GetComponent<MeshRenderer>().material.mainTexture = outputTexture;
-
-            // return outputTexture;
+#endif
         }
 
         private void Start()
@@ -293,11 +264,13 @@ namespace Outernet.Client
         {
             base.Update();
 
+            UnityMainThreadDispatcher.Flush();
+
+#if !AUTHORING_TOOLS_ENABLED
             ConnectionManager.Update();
             PlaneDetector.Update();
             SceneViewManager.Update();
 
-            UnityMainThreadDispatcher.Flush();
 
             var newInternetReachable = Application.internetReachability != NetworkReachability.NotReachable;
 
@@ -314,6 +287,7 @@ namespace Outernet.Client
                     Toast.ShowToast("Internet connection lost");
                 }
             }
+#endif
         }
 
         private void OnApplicationPause(bool pause)
@@ -335,13 +309,13 @@ namespace Outernet.Client
 
         private bool WantsToQuit()
         {
+#if !AUTHORING_TOOLS_ENABLED
             ConnectionManager.Terminate(); // BUG, this is async
+            VisualPositioningSystem.StopLocalizing();
+#endif
             SceneViewManager.Terminate();
             Logger.Terminate();
 
-#if !AUTHORING_TOOLS_ENABLED
-            VisualPositioningSystem.StopLocalizing();
-#endif
 
             return true;
         }

@@ -234,26 +234,26 @@ namespace Outernet.Client.AuthoringTools
 
             return new NodeBatchCreate(
                 id: node.id,
-                name: node.name.value,
                 positionX: transform.position.value.x,
                 positionY: transform.position.value.y,
                 positionZ: transform.position.value.z,
                 rotationX: transform.rotation.value.x,
                 rotationY: transform.rotation.value.y,
                 rotationZ: transform.rotation.value.z,
-                rotationW: transform.rotation.value.w,
-                labelWidth: node.labelWidth.value,
-                labelHeight: node.labelHeight.value,
-                labelScale: node.labelScale.value,
-                labelType: Conversions.LabelType(node.labelType.value),
-                label: node.label.value,
-                linkType: Conversions.LinkType(node.linkType.value),
-                link: node.link.value
+                rotationW: transform.rotation.value.w
             )
             {
                 Active = true,
+                Name = node.name.value,
                 LayerId = node.layer.value,
-                ParentId = node.parentID.value
+                ParentId = node.parentID.value,
+                LabelWidth = node.labelWidth.value,
+                LabelHeight = node.labelHeight.value,
+                LabelScale = node.labelScale.value,
+                LabelType = Conversions.LabelType(node.labelType.value),
+                Label = node.label.value,
+                LinkType = Conversions.LinkType(node.linkType.value),
+                Link = node.link.value
             };
         }
 
