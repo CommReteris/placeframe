@@ -21,6 +21,11 @@ namespace Placeframe.Core
 {
     public static class VisualPositioningSystem
     {
+        private const int MinInliers = 20;
+        private const float MinInlierRatio = 0.3f;
+        private const float MinInlierCoverage = 0.05f;
+        private const float MaxReprojectionErrorMedian = 8.0f;
+
         private static Action<string> _logCallback;
         private static Action<string> _warnCallback;
         private static Action<string> _errorCallback;
@@ -214,8 +219,11 @@ namespace Placeframe.Core
             // TODO: Handle multiple results
             var localizationResult = localizationResults.FirstOrDefault();
 
-            if (localizationResult.Metrics.InlierRatio < .3f || localizationResult.Metrics.ReprojectionErrorMedian < 0.5f)
-                throw new Exception($"Localization rejected based on metrics.\nInlier Ratio: {localizationResult.Metrics.InlierRatio}\nReprojection Error Median: {localizationResult.Metrics.ReprojectionErrorMedian}");
+            if (localizationResult.Metrics.NumInliers < MinInliers
+                || localizationResult.Metrics.InlierRatio < MinInlierRatio
+                || localizationResult.Metrics.InlierCoverage < MinInlierCoverage
+                || localizationResult.Metrics.ReprojectionErrorMedian > MaxReprojectionErrorMedian)
+                throw new Exception($"Localization rejected based on metrics.\nNum Inliers: {localizationResult.Metrics.NumInliers}\nInlier Ratio: {localizationResult.Metrics.InlierRatio}\nInlier Coverage: {localizationResult.Metrics.InlierCoverage}\nReprojection Error Median: {localizationResult.Metrics.ReprojectionErrorMedian}");
 
             // Get the transform from the map to the camera (The inverse of the camera's pose in the map)
             var translationCameraFromMap = localizationResult.CameraFromMapTransform.Translation.ToDouble3();
