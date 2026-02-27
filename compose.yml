@@ -1,5 +1,15 @@
 name: placeframe
 
+volumes:
+  uv_cache:
+  minio_data:
+  postgres_data:
+  cloudbeaver_data:
+  auth_data:
+  keycloak_import:
+  keycloak_data:
+
+
 services:
   minio:
     x-image-ref: docker.io/minio/minio:latest
@@ -51,7 +61,7 @@ services:
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY:?err}"
 
   postgres:
-    x-image-ref: docker.io/library/postgres:16-alpine
+    x-image-ref: docker.io/postgis/postgis:16-3.4-alpine
     image: "${POSTGRES_IMAGE:?err}"
     ports:
       - "55432:5432"
@@ -59,6 +69,8 @@ services:
       - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/entrypoint-wrapper.sh:/usr/local/bin/entrypoint-wrapper.sh:ro
+    entrypoint: /usr/local/bin/entrypoint-wrapper.sh
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -q -h localhost -p 5432 -U $${POSTGRES_USER} -d postgres" ]
       interval: 1s
@@ -273,13 +285,3 @@ services:
       AUTH_TOKEN_URL: "https://${PUBLIC_DOMAIN:?err}/auth/realms/placeframe-dev/protocol/openid-connect/token"
       AUTH_CLIENT_ID: "${AUTH_WORKER_CLIENT_ID:?err}"
       PRIVATE_KEY_PATH: /run/secrets/worker-private-key.pem
-
-volumes:
-  uv_cache:
-  minio_data:
-  postgres_data:
-  cloudbeaver_data:
-  auth_data:
-  keycloak_import:
-  keycloak_data:
-

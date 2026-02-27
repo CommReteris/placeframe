@@ -24,7 +24,7 @@ CREATE TABLE nodes (
         NOT NULL 
         DEFAULT now(),
     name text
-        NOT NULL,
+        NULL,
     active boolean
         NOT NULL
         DEFAULT true,
@@ -43,19 +43,19 @@ CREATE TABLE nodes (
     rotation_w double precision
         NOT NULL,
     label_type label_type
-        NOT NULL,
+        NULL,
     label text
-        NOT NULL,
+        NULL,
     link_type link_type
-        NOT NULL,
+        NULL,
     link text
-        NOT NULL,
+        NULL,
     label_scale double precision
-        NOT NULL,
+        NULL,
     label_width double precision
-        NOT NULL,
+        NULL,
     label_height double precision
-        NOT NULL,
+        NULL,
     parent_id uuid
         NULL
         REFERENCES groups(id)
@@ -84,6 +84,9 @@ CREATE POLICY nodes_orchestrator_rls_policy ON nodes
     TO placeframe_orchestration_user
     USING (true)
     WITH CHECK (true);
+
+CREATE INDEX idx_nodes_position_gist ON nodes
+  USING GIST (ST_MakePoint(position_x, position_y, position_z));
 
 CREATE TRIGGER nodes_touch_updated_at_trigger
   BEFORE UPDATE ON nodes

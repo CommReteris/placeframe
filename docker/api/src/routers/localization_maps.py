@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_session
 from ..settings import get_settings
 from .reconstructions import fetch_reconstruction_status
+from .spatial import apply_spatial_filter, validate_spatial_params
 
 settings = get_settings()
 
@@ -75,8 +76,19 @@ async def delete_localization_maps(
 
 
 async def fetch_localization_maps(
-    session: AsyncSession, ids: list[UUID] | None = None, reconstruction_ids: list[UUID] | None = None
+    session: AsyncSession,
+    ids: list[UUID] | None = None,
+    reconstruction_ids: list[UUID] | None = None,
+    position_x: float | None = None,
+    position_y: float | None = None,
+    position_z: float | None = None,
+    radius: float | None = None,
 ) -> list[LocalizationMapRead]:
+    spatial = validate_spatial_params(position_x, position_y, position_z, radius)
+
+    if spatial and (ids or reconstruction_ids):
+        raise ClientException("Cannot combine spatial filter with ids or reconstruction_ids")
+
     if ids and reconstruction_ids:
         raise ClientException("Cannot filter by both ids and reconstruction_ids")
 
@@ -87,6 +99,11 @@ async def fetch_localization_maps(
 
     if reconstruction_ids:
         query = query.where(LocalizationMap.reconstruction_id.in_(reconstruction_ids))
+
+    if spatial:
+        query = apply_spatial_filter(
+            query, LocalizationMap.position_x, LocalizationMap.position_y, LocalizationMap.position_z, *spatial
+        )
 
     result = await session.execute(query)
     rows = result.scalars().all()
@@ -104,8 +121,12 @@ async def get_localization_maps(
     reconstruction_ids: Annotated[
         list[UUID] | None, Parameter(description="Optional list of Reconstruction Ids to filter by")
     ] = None,
+    position_x: float | None = None,
+    position_y: float | None = None,
+    position_z: float | None = None,
+    radius: float | None = None,
 ) -> list[LocalizationMapRead]:
-    return await fetch_localization_maps(session, ids, reconstruction_ids)
+    return await fetch_localization_maps(session, ids, reconstruction_ids, position_x, position_y, position_z, radius)
 
 
 @get("/{id:uuid}")
