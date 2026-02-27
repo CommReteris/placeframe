@@ -4585,6 +4585,12 @@
             "type": "number",
             "title": "Position X"
           },
+          "link_type": {
+            "$ref": "#/components/schemas/LinkType"
+          },
+          "label_type": {
+            "$ref": "#/components/schemas/LabelType"
+          },
           "active": {
             "title": "Active",
             "nullable": true,
@@ -4617,14 +4623,6 @@
             "nullable": true,
             "type": "number"
           },
-          "link_type": {
-            "nullable": true,
-            "$ref": "#/components/schemas/LinkType"
-          },
-          "label_type": {
-            "nullable": true,
-            "$ref": "#/components/schemas/LabelType"
-          },
           "link": {
             "title": "Link",
             "nullable": true,
@@ -4644,6 +4642,8 @@
         "type": "object",
         "required": [
           "id",
+          "label_type",
+          "link_type",
           "position_x",
           "position_y",
           "position_z",
@@ -4696,6 +4696,14 @@
             "nullable": true,
             "type": "number"
           },
+          "link_type": {
+            "nullable": true,
+            "$ref": "#/components/schemas/LinkType"
+          },
+          "label_type": {
+            "nullable": true,
+            "$ref": "#/components/schemas/LabelType"
+          },
           "active": {
             "title": "Active",
             "nullable": true,
@@ -4727,14 +4735,6 @@
             "title": "Label Scale",
             "nullable": true,
             "type": "number"
-          },
-          "link_type": {
-            "nullable": true,
-            "$ref": "#/components/schemas/LinkType"
-          },
-          "label_type": {
-            "nullable": true,
-            "$ref": "#/components/schemas/LabelType"
           },
           "link": {
             "title": "Link",
@@ -4794,6 +4794,12 @@
             "type": "number",
             "title": "Position X"
           },
+          "link_type": {
+            "$ref": "#/components/schemas/LinkType"
+          },
+          "label_type": {
+            "$ref": "#/components/schemas/LabelType"
+          },
           "active": {
             "title": "Active",
             "nullable": true,
@@ -4826,14 +4832,6 @@
             "nullable": true,
             "type": "number"
           },
-          "link_type": {
-            "nullable": true,
-            "$ref": "#/components/schemas/LinkType"
-          },
-          "label_type": {
-            "nullable": true,
-            "$ref": "#/components/schemas/LabelType"
-          },
           "link": {
             "title": "Link",
             "nullable": true,
@@ -4852,6 +4850,8 @@
         },
         "type": "object",
         "required": [
+          "label_type",
+          "link_type",
           "position_x",
           "position_y",
           "position_z",
@@ -4909,6 +4909,12 @@
             "type": "number",
             "title": "Position X"
           },
+          "link_type": {
+            "$ref": "#/components/schemas/LinkType"
+          },
+          "label_type": {
+            "$ref": "#/components/schemas/LabelType"
+          },
           "active": {
             "type": "boolean",
             "title": "Active"
@@ -4940,14 +4946,6 @@
             "nullable": true,
             "type": "number"
           },
-          "link_type": {
-            "nullable": true,
-            "$ref": "#/components/schemas/LinkType"
-          },
-          "label_type": {
-            "nullable": true,
-            "$ref": "#/components/schemas/LabelType"
-          },
           "link": {
             "title": "Link",
             "nullable": true,
@@ -4969,6 +4967,8 @@
           "active",
           "created_at",
           "id",
+          "label_type",
+          "link_type",
           "position_x",
           "position_y",
           "position_z",

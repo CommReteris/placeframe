@@ -76,6 +76,9 @@ class Tenant(Base):
     nodes: Mapped[list["Node"]] = relationship("Node", back_populates="tenant")
     reconstructions: Mapped[list["Reconstruction"]] = relationship("Reconstruction", back_populates="tenant")
     localization_maps: Mapped[list["LocalizationMap"]] = relationship("LocalizationMap", back_populates="tenant")
+    localization_map_camera_positions: Mapped[list["LocalizationMapCameraPosition"]] = relationship(
+        "LocalizationMapCameraPosition", back_populates="tenant"
+    )
 
 
 t_geography_columns = Table(
@@ -225,16 +228,18 @@ class Node(Base):
     rotation_w: Mapped[float] = mapped_column(Double(53), nullable=False)
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), nullable=False, server_default=text("now()"))
     position_x: Mapped[float] = mapped_column(Double(53), nullable=False)
+    link_type: Mapped[LinkType] = mapped_column(
+        Enum(LinkType, name="link_type", values_callable=enum_values), nullable=False
+    )
+    label_type: Mapped[LabelType] = mapped_column(
+        Enum(LabelType, name="label_type", values_callable=enum_values), nullable=False
+    )
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))
     layer_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid)
     parent_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid)
     label_width: Mapped[Optional[float]] = mapped_column(Double(53))
     label_height: Mapped[Optional[float]] = mapped_column(Double(53))
     label_scale: Mapped[Optional[float]] = mapped_column(Double(53))
-    link_type: Mapped[Optional[LinkType]] = mapped_column(Enum(LinkType, name="link_type", values_callable=enum_values))
-    label_type: Mapped[Optional[LabelType]] = mapped_column(
-        Enum(LabelType, name="label_type", values_callable=enum_values)
-    )
     link: Mapped[Optional[str]] = mapped_column(Text)
     label: Mapped[Optional[str]] = mapped_column(Text)
     name: Mapped[Optional[str]] = mapped_column(Text)
@@ -315,3 +320,40 @@ class LocalizationMap(Base):
 
     reconstruction: Mapped["Reconstruction"] = relationship("Reconstruction", back_populates="localization_map")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="localization_maps")
+    localization_map_camera_positions: Mapped[list["LocalizationMapCameraPosition"]] = relationship(
+        "LocalizationMapCameraPosition", back_populates="localization_map"
+    )
+
+
+class LocalizationMapCameraPosition(Base):
+    __tablename__ = "localization_map_camera_positions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["localization_map_id"],
+            ["public.localization_maps.id"],
+            ondelete="CASCADE",
+            name="localization_map_camera_positions_localization_map_id_fkey",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id"],
+            ["auth.tenants.id"],
+            ondelete="RESTRICT",
+            name="localization_map_camera_positions_tenant_id_fkey",
+        ),
+        PrimaryKeyConstraint("id", name="localization_map_camera_positions_pkey"),
+        Index("idx_lm_camera_positions_gist"),
+        Index("idx_lm_camera_positions_map_id", "localization_map_id"),
+        {"schema": "public"},
+    )
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False, server_default=text("current_tenant()"))
+    localization_map_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, server_default=text("gen_random_uuid()"))
+    position_x: Mapped[float] = mapped_column(Double(53), nullable=False)
+    position_y: Mapped[float] = mapped_column(Double(53), nullable=False)
+    position_z: Mapped[float] = mapped_column(Double(53), nullable=False)
+
+    localization_map: Mapped["LocalizationMap"] = relationship(
+        "LocalizationMap", back_populates="localization_map_camera_positions"
+    )
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="localization_map_camera_positions")

@@ -99,14 +99,14 @@ namespace PlaceframeApiClient.Model
         /// <param name="rotationY">rotationY.</param>
         /// <param name="rotationW">rotationW.</param>
         /// <param name="positionX">positionX.</param>
+        /// <param name="linkType">linkType.</param>
+        /// <param name="labelType">labelType.</param>
         /// <param name="active">active.</param>
         /// <param name="layerId">layerId.</param>
         /// <param name="parentId">parentId.</param>
         /// <param name="labelWidth">labelWidth.</param>
         /// <param name="labelHeight">labelHeight.</param>
         /// <param name="labelScale">labelScale.</param>
-        /// <param name="linkType">linkType.</param>
-        /// <param name="labelType">labelType.</param>
         /// <param name="link">link.</param>
         /// <param name="label">label.</param>
         /// <param name="name">name.</param>
@@ -539,14 +539,14 @@ namespace PlaceframeApiClient.Model
             sb.Append("  RotationY: ").Append(RotationY).Append("\n");
             sb.Append("  RotationW: ").Append(RotationW).Append("\n");
             sb.Append("  PositionX: ").Append(PositionX).Append("\n");
+            sb.Append("  LinkType: ").Append(LinkType).Append("\n");
+            sb.Append("  LabelType: ").Append(LabelType).Append("\n");
             sb.Append("  Active: ").Append(Active).Append("\n");
             sb.Append("  LayerId: ").Append(LayerId).Append("\n");
             sb.Append("  ParentId: ").Append(ParentId).Append("\n");
             sb.Append("  LabelWidth: ").Append(LabelWidth).Append("\n");
             sb.Append("  LabelHeight: ").Append(LabelHeight).Append("\n");
             sb.Append("  LabelScale: ").Append(LabelScale).Append("\n");
-            sb.Append("  LinkType: ").Append(LinkType).Append("\n");
-            sb.Append("  LabelType: ").Append(LabelType).Append("\n");
             sb.Append("  Link: ").Append(Link).Append("\n");
             sb.Append("  Label: ").Append(Label).Append("\n");
             sb.Append("  Name: ").Append(Name).Append("\n");
