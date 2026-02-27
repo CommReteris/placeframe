@@ -42,9 +42,9 @@ namespace Outernet.Server
                                 ),
                             },
                             link = node.Link ?? "",
-                            linkType = Conversions.LinkType(node.LinkType ?? PlaceframeApiClient.Model.LinkType.None),
+                            linkType = Conversions.LinkType(node.LinkType),
                             label = node.Label ?? "",
-                            labelType = Conversions.LabelType(node.LabelType ?? PlaceframeApiClient.Model.LabelType.Automatic),
+                            labelType = Conversions.LabelType(node.LabelType),
                             labelScale = (float)(node.LabelScale ?? 1.0),
                             labelWidth = (float)(node.LabelWidth ?? 0.0),
                             labelHeight = (float)(node.LabelHeight ?? 0.0),
@@ -77,9 +77,9 @@ namespace Outernet.Server
                             )
                         );
                     roomState.nodes.Get(node.Id).link.EnqueueSet(node.Link ?? "");
-                    roomState.nodes.Get(node.Id).linkType.EnqueueSet(Conversions.LinkType(node.LinkType ?? PlaceframeApiClient.Model.LinkType.None));
+                    roomState.nodes.Get(node.Id).linkType.EnqueueSet(Conversions.LinkType(node.LinkType));
                     roomState.nodes.Get(node.Id).label.EnqueueSet(node.Label ?? "");
-                    roomState.nodes.Get(node.Id).labelType.EnqueueSet(Conversions.LabelType(node.LabelType ?? PlaceframeApiClient.Model.LabelType.Automatic));
+                    roomState.nodes.Get(node.Id).labelType.EnqueueSet(Conversions.LabelType(node.LabelType));
                     roomState.nodes.Get(node.Id).labelScale.EnqueueSet((float)(node.LabelScale ?? 1.0));
                     roomState.nodes.Get(node.Id).labelWidth.EnqueueSet((float)(node.LabelWidth ?? 0.0));
                     roomState.nodes.Get(node.Id).labelHeight.EnqueueSet((float)(node.LabelHeight ?? 0.0));
@@ -99,7 +99,8 @@ namespace Outernet.Server
                         roomState.settingsNodeFetchRadius.Value,
                         roomState.settingsNodeFetchLimit.Value
                     )
-                    .ContinueWith(task => {
+                    .ContinueWith(task =>
+                    {
                         fetchNodesTaskCompletionSource.SetResult(task.Result);
                     });
             }
