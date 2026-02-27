@@ -633,7 +633,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6754332449875116412, guid: 2ddf0349b9000fc47a9203552e5169cf, type: 3}
       propertyPath: m_CullingMask.m_Bits
-      value: 0
+      value: 64
       objectReference: {fileID: 0}
     - target: {fileID: 7994191498558946423, guid: 2ddf0349b9000fc47a9203552e5169cf, type: 3}
       propertyPath: m_CullingMask.m_Bits

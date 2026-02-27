@@ -200,22 +200,18 @@ namespace Placeframe.MapRegistrationTool
 
             List<LocalizationMapRead> maps = default;
 
-            maps = await App.API.GetLocalizationMapsAsync();
+            maps = await App.API.GetLocalizationMapsAsync(
+                positionX: ecefPosition.x,
+                positionY: ecefPosition.y,
+                positionZ: ecefPosition.z,
+                radius: radius
+            );
 
             await UniTask.SwitchToMainThread(cancellationToken);
 
             float maxDistance = App.state.settings.nodeFetchRadius.value * App.state.settings.nodeFetchRadius.value;
 
-            App.ExecuteActionOrDelay(new SetMapsAction(maps.Where(x =>
-            {
-                var local = VisualPositioningSystem.EcefToUnityWorld(
-                    new double3(x.PositionX, x.PositionY, x.PositionZ),
-                    new quaternion((float)x.RotationX, (float)x.RotationY, (float)x.RotationZ, (float)x.RotationW)
-                );
-
-                return local.position.sqrMagnitude < maxDistance;
-
-            }).ToArray()));
+            App.ExecuteActionOrDelay(new SetMapsAction(maps.ToArray()));
 
             Destroy(dialog.gameObject);
 
