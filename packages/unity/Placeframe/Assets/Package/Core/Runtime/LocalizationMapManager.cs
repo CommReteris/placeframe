@@ -21,7 +21,7 @@ namespace Placeframe.Core
 
             _visualizers[mapID] = Instantiate(localizationMapPrefab, Vector3.zero, Quaternion.identity);
             _visualizers[mapID].SetVisible(visible);
-            _visualizers[mapID].Initialize(mapID);
+            _visualizers[mapID].Load(mapID);
         }
 
         public void RemoveMap(Guid mapID)

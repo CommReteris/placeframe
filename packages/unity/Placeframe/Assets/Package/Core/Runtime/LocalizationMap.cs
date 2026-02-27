@@ -87,18 +87,23 @@ namespace Placeframe.Core
             _particleSystemRenderer.enabled = visible;
         }
 
-        public void Initialize(Guid mapId)
+        public void Load(Guid mapId)
         {
-            if (_loadCancellationTokenSource != null)
-            {
-                throw new InvalidOperationException("ReconstructionVisualizer is already initialized.");
-            }
-
+            _loadCancellationTokenSource?.Cancel();
+            _loadCancellationTokenSource?.Dispose();
             _loadCancellationTokenSource = new CancellationTokenSource();
-            Load(mapId, _loadCancellationTokenSource.Token).Forget();
+            DownloadMapAndLoad(mapId, _loadCancellationTokenSource.Token).Forget();
         }
 
-        private async UniTask Load(Guid mapID, CancellationToken cancellationToken)
+        public void Load(VisualPositioningSystem.ReconstructionPoint[] points, Vector3[] framePositions)
+        {
+            _loadCancellationTokenSource?.Cancel();
+            _loadCancellationTokenSource?.Dispose();
+            _loadCancellationTokenSource = new CancellationTokenSource();
+            LoadPoints(points, framePositions);
+        }
+
+        private async UniTask DownloadMapAndLoad(Guid mapID, CancellationToken cancellationToken)
         {
             var mapData = await VisualPositioningSystem.GetMapData(mapID);
             var local = VisualPositioningSystem.EcefToUnityWorld(
@@ -120,10 +125,10 @@ namespace Placeframe.Core
             );
 
             await UniTask.SwitchToMainThread(cancellationToken);
-            Load(pointPayload, framePayload);
+            LoadPoints(pointPayload, framePayload);
         }
 
-        public void Load(VisualPositioningSystem.ReconstructionPoint[] points, Vector3[] framePositions)
+        private void LoadPoints(VisualPositioningSystem.ReconstructionPoint[] points, Vector3[] framePositions)
         {
             var particles = ArrayPool<ParticleSystem.Particle>.Shared.Rent(points.Length);
             try

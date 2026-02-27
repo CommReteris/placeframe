@@ -45,7 +45,6 @@ namespace Placeframe.MapRegistrationTool
             var transform = App.state.transforms[map.uuid];
             var instance = SceneMap.Create(
                 sceneObjectID: map.uuid,
-                mapId: map.uuid,
                 bind: props =>
                     Bindings.Compose(
                         Bindings.BindECEFTransform(
@@ -54,6 +53,7 @@ namespace Placeframe.MapRegistrationTool
                             props.position,
                             props.rotation
                         ),
+                        props.reconstructionId.From(map.reconstructionID),
                         props.name.From(map.name),
                         Bindings.OnRelease(() => _maps.Remove(map.uuid))
                     )

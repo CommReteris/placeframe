@@ -18,6 +18,7 @@ namespace Placeframe.MapRegistrationTool
             public ObservablePrimitive<string> name { get; private set; }
             public ObservablePrimitive<Vector3> position { get; private set; }
             public ObservablePrimitive<Quaternion> rotation { get; private set; }
+            public ObservablePrimitive<Guid> reconstructionId { get; private set; }
 
             public Props()
                 : base() { }
@@ -26,17 +27,20 @@ namespace Placeframe.MapRegistrationTool
                 Guid sceneObjectID = default,
                 string name = default,
                 Vector3 position = default,
-                Quaternion? rotation = default
+                Quaternion? rotation = default,
+                Guid reconstructionId = default
             )
             {
                 this.sceneObjectID = new ObservablePrimitive<Guid>(sceneObjectID);
                 this.name = new ObservablePrimitive<string>(name);
                 this.position = new ObservablePrimitive<Vector3>(position);
                 this.rotation = new ObservablePrimitive<Quaternion>(rotation ?? Quaternion.identity);
+                this.reconstructionId = new ObservablePrimitive<Guid>(reconstructionId);
             }
         }
 
         private LocalizationMap _localizationMapVisualizer;
+        private CancellationTokenSource _loadReconstructionTokenSource;
 
         private void Awake()
         {
@@ -65,8 +69,31 @@ namespace Placeframe.MapRegistrationTool
         {
             AddBinding(
                 props.position.OnChange(x => transform.position = x),
-                props.rotation.OnChange(x => transform.rotation = x)
+                props.rotation.OnChange(x => transform.rotation = x),
+                props.reconstructionId.OnChange(x => LoadReconstruction(x))
             );
+        }
+
+        private void LoadReconstruction(Guid reconstructionID)
+        {
+            _loadReconstructionTokenSource?.Cancel();
+            _loadReconstructionTokenSource?.Dispose();
+            _loadReconstructionTokenSource = new CancellationTokenSource();
+
+            if (reconstructionID != Guid.Empty)
+                LoadReconstructionAndPopulate(reconstructionID, _loadReconstructionTokenSource.Token).Forget();
+        }
+
+        private async UniTask LoadReconstructionAndPopulate(Guid reconstructionID, CancellationToken cancellationToken = default)
+        {
+            (var pointPayload, var framePayload) = await UniTask.WhenAll(
+                VisualPositioningSystem.GetReconstructionPoints(reconstructionID),
+                VisualPositioningSystem.GetReconstructionFramePoses(reconstructionID)
+            );
+
+            await UniTask.SwitchToMainThread(cancellationToken: cancellationToken);
+
+            _localizationMapVisualizer.Load(pointPayload, framePayload);
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -79,14 +106,13 @@ namespace Placeframe.MapRegistrationTool
             string name = default,
             Vector3 position = default,
             Quaternion? rotation = default,
-            Guid mapId = default,
+            Guid reconstructionId = default,
             Transform parent = default,
             Func<Props, IDisposable> bind = default
         )
         {
             SceneMap instance = Instantiate(Prefabs.Map, parent);
-            instance._localizationMapVisualizer.Initialize(mapId);
-            instance.InitializeAndBind(new Props(sceneObjectID, name, position, rotation));
+            instance.InitializeAndBind(new Props(sceneObjectID, name, position, rotation, reconstructionId));
 
             instance.AddBinding(Bindings.OnRelease(() => Destroy(instance.gameObject)));
 
