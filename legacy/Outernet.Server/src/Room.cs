@@ -41,13 +41,13 @@ namespace Outernet.Server
                                     (float)node.RotationW
                                 ),
                             },
-                            link = node.Link,
-                            linkType = Conversions.LinkType(node.LinkType),
-                            label = node.Label,
-                            labelType = Conversions.LabelType(node.LabelType),
-                            labelScale = (float)node.LabelScale,
-                            labelWidth = (float)node.LabelWidth,
-                            labelHeight = (float)node.LabelHeight,
+                            link = node.Link ?? "",
+                            linkType = Conversions.LinkType(node.LinkType ?? PlaceframeApiClient.Model.LinkType.None),
+                            label = node.Label ?? "",
+                            labelType = Conversions.LabelType(node.LabelType ?? PlaceframeApiClient.Model.LabelType.Automatic),
+                            labelScale = (float)(node.LabelScale ?? 1.0),
+                            labelWidth = (float)(node.LabelWidth ?? 0.0),
+                            labelHeight = (float)(node.LabelHeight ?? 0.0),
                             layer = node.LayerId ?? Guid.Empty,
                         }
                     );
@@ -76,13 +76,13 @@ namespace Outernet.Server
                                 (float)node.RotationW
                             )
                         );
-                    roomState.nodes.Get(node.Id).link.EnqueueSet(node.Link);
-                    roomState.nodes.Get(node.Id).linkType.EnqueueSet(Conversions.LinkType(node.LinkType));
-                    roomState.nodes.Get(node.Id).label.EnqueueSet(node.Label);
-                    roomState.nodes.Get(node.Id).labelType.EnqueueSet(Conversions.LabelType(node.LabelType));
-                    roomState.nodes.Get(node.Id).labelScale.EnqueueSet((float)node.LabelScale);
-                    roomState.nodes.Get(node.Id).labelWidth.EnqueueSet((float)node.LabelWidth);
-                    roomState.nodes.Get(node.Id).labelHeight.EnqueueSet((float)node.LabelHeight);
+                    roomState.nodes.Get(node.Id).link.EnqueueSet(node.Link ?? "");
+                    roomState.nodes.Get(node.Id).linkType.EnqueueSet(Conversions.LinkType(node.LinkType ?? PlaceframeApiClient.Model.LinkType.None));
+                    roomState.nodes.Get(node.Id).label.EnqueueSet(node.Label ?? "");
+                    roomState.nodes.Get(node.Id).labelType.EnqueueSet(Conversions.LabelType(node.LabelType ?? PlaceframeApiClient.Model.LabelType.Automatic));
+                    roomState.nodes.Get(node.Id).labelScale.EnqueueSet((float)(node.LabelScale ?? 1.0));
+                    roomState.nodes.Get(node.Id).labelWidth.EnqueueSet((float)(node.LabelWidth ?? 0.0));
+                    roomState.nodes.Get(node.Id).labelHeight.EnqueueSet((float)(node.LabelHeight ?? 0.0));
                     roomState.nodes.Get(node.Id).layer.EnqueueSet(node.LayerId ?? Guid.Empty);
                 }
             }
