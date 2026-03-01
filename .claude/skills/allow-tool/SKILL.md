@@ -1,0 +1,51 @@
+---
+name: allow-tool
+description: Add a permission rule to .claude/settings.json so a previously-prompted tool is auto-allowed in future sessions.
+---
+
+Add a permission allow rule to `.claude/settings.json`. The user just encountered a tool permission prompt they don't want to see again.
+
+## Permission strategy
+
+**Threat model**: Zero trust of Claude's output. Assume Claude can produce literally any string. The only concern is unapproved changes to the repo — this is FOSS, there are no secrets.
+
+**Pre-approval chain**: Every file change reaches disk through an Edit or Write tool call the user already approved. By the time a skill like `/commit` runs, all dirty files are pre-approved content. The only unapproved artifact is the one the skill creates (a commit message, a script).
+
+**One gate per skill**: Each skill should have exactly one prompted tool call — the one where the user reviews the skill's output. Everything else (reads, staging, cleanup) should be auto-allowed. Examples:
+- `/commit`: gate = `git commit` (user reviews the message)
+- `/tidy-commits`: gate = `Write(tidy-commits.sh)` (user reviews the script)
+
+**Consequence**: `git add` is safe to auto-allow — it only stages pre-approved content. The commit is the gate. Write commands that are mechanical steps *after* an approval gate (like `uv run tidy-commits-wrapper` running an already-approved script) are also safe.
+
+## Steps
+
+1. **Infer the rule**: Look at the conversation context — the most recent tool call that was prompted or rejected tells you what to allow. Generalize it to a useful pattern (e.g. if `git log --oneline -10` was prompted, propose `Bash(git log *)` not the exact command). If you can't confidently infer it, ask.
+
+2. **Classify the command**: Determine which category it falls into.
+
+   **Read-only** — safe to auto-allow:
+   - File inspection: `cat`, `head`, `tail`, `less`, `wc`, `file`, `stat`, `ls`, `find`, `tree`
+   - Git reads: `git log`, `git diff`, `git show`, `git status`, `git merge-base`, `git branch --list`, `git rev-parse`, `git shortlog`
+   - Search: `grep`, `rg`, `ag`, `fd`
+   - System info: `uname`, `whoami`, `which`, `env`, `printenv`, `docker info`, `docker ps`
+   - Build/test: `uv run pytest`, `uv run ruff check`, `uv run basedpyright`
+
+   **Pre-approved writes** — safe to auto-allow (see strategy above):
+   - `git add` — only stages content already approved through Edit/Write prompts
+   - Specific cleanup commands tied to a skill (e.g. `rm -f tidy-commits.sh`)
+   - Execution of an already-approved artifact (e.g. `uv run tidy-commits-wrapper`)
+
+   **Unapproved writes** — must stay prompted, refuse to auto-allow:
+   - File mutation: `rm`, `mv`, `cp`, `chmod`, `chown`, `mkdir`, `touch`, `tee`, redirects
+   - Git write commands: `git commit`, `git push`, `git checkout`, `git reset`, `git rebase`, `git branch -d/-D/-f`, `git merge`, `git stash`, `git tag`, `git cherry-pick`
+   - Package changes: `uv add`, `npm install`, `pip install`, `apt install`
+   - Docker mutation: `docker run`, `docker build`, `docker compose up`, `docker compose down`
+   - Process control: `kill`, `pkill`
+
+   If the command is an unapproved write or ambiguous, **refuse** — tell the user why. Do not proceed to steps 3–5.
+
+3. **Read the current settings**: Read `.claude/settings.json` to see existing permissions.
+
+4. **Propose the rule**: Tell the user what pattern you want to add and what it will permit. Wait for their confirmation via the file edit approval — do not ask separately.
+
+5. **Add the rule**: Add the new pattern to the `permissions.allow` array using the Edit tool. Do not remove or reorder existing entries.
