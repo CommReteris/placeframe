@@ -1,7 +1,7 @@
 ---
 id: T8
 title: GitHub Actions vendor risk mitigation
-status: blocked
+status: design-needed
 depends_on: []
 ---
 
