@@ -22,6 +22,7 @@
       "Bash(git log *)",
       "Bash(git merge-base *)",
       "Bash(git show *)",
+      "Bash(git ls-tree *)",
       "Bash(git add *)",
       "Bash(rm -f tidy-commits.sh)",
       "Bash(uv run tidy-commits-wrapper)",
