@@ -69,6 +69,17 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. Default dev cred
 - **Subprocess calls**: Use `run_command` or `exec_command` from `common.run_command` instead of raw `subprocess.run`. A single command string is easier to read than an args list.
 - **Inline aggressively**: If a variable or function is used in only one place, inline it. Don't create names for things that don't need names. Exceptions: when inlining would create unreasonably long lines that the autoformatter mangles, or when a name genuinely clarifies something non-obvious.
 
+## Web Conventions (SvelteKit / TypeScript)
+
+- **TypeScript**: Maximum strictness (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, etc.). No `any` — use `unknown` and narrow. Prefer `satisfies` over `as` for type assertions. Use `@total-typescript/ts-reset` for safer standard library types.
+- **Svelte 5**: Runes only (`$state`, `$derived`, `$props`, `$effect`). No Svelte 4 syntax (`export let`, `$:`, `on:event`). Use `onclick` not `on:click`.
+- **Components**: One component per file. Props via `$props()` with explicit type annotations. Events via callback props (`onselect`, `onclose`), not `createEventDispatcher`.
+- **Naming**: Components in PascalCase (`Board.svelte`). Files in kebab-case except components. Types/interfaces in PascalCase. Props and variables in camelCase.
+- **Styling**: Tailwind CSS v4 utility classes. Dark theme via CSS custom properties in `@theme`. No inline `style` attributes unless dynamic values require it.
+- **Testing**: Vitest + `@testing-library/svelte`. Run from `apps/sveltekit/board/` with `pnpm test`. Test files alongside source: `*.test.ts`.
+- **Linting**: ESLint flat config with `eslint-plugin-svelte` v3 and `typescript-eslint`. Run `pnpm lint`. Type checking via `pnpm check` (svelte-check).
+- **Package manager**: pnpm (not npm/yarn). Run `pnpm install` from `apps/sveltekit/board/`.
+
 ## Initial Setup
 
 1. Copy `.env.sample` to `.env` and fill in `PUBLIC_DOMAIN` (ngrok static domain) and `NGROK_AUTHTOKEN`.

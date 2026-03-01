@@ -140,7 +140,7 @@ Use `/roadmap` to create, import, query, or reorganize tickets.
 
 ### T16: Kanban board web UI
 
-- **Status:** Ready
+- **Status:** Done
 - **Detail:** `t16-kanban-board.md`
 - **Depends on:** T17
 
