@@ -5,7 +5,7 @@ description: Pick up and work on a roadmap ticket.
 
 Pick up a ticket from the Placeframe roadmap and work through its lifecycle. Enforces test-driven development during implementation.
 
-Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, statuses), `.claude/skills/shared/testing.md` (test conventions).
+Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, statuses), `.claude/skills/shared/testing.md` (test conventions), `.claude/skills/shared/spec-format.md` (SPEC.md convention), `.claude/skills/shared/spec-backfill.md` (spec backfill process).
 
 ## 1. Select ticket
 
@@ -21,7 +21,7 @@ Read the ticket's full markdown body. Understand the Goal, Context, Approach, an
 - **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the frontmatter status to `plan-needed`. Proceed to step 4.
 - **`plan-needed`** — Enter plan mode. Explore the codebase, write an implementation plan in the ticket's Approach section, get user approval. Update frontmatter status to `ready`. Proceed to step 4.
 - **`ready`** — Proceed to step 4 (TDD implementation).
-- **`done`** — Inform the user. Ask if they want to reopen.
+- **`done`** — Check if the ticket's feature directory has a colocated SPEC.md. To find the directory: read the ticket's "Key files" section and identify the primary directory (the one most files are in). If that directory has no SPEC.md, inform the user the ticket is done but has no specification, and ask if they want to backfill one now. If yes, follow the process in `.claude/skills/shared/spec-backfill.md`. If the directory already has a SPEC.md, or the user declines backfill, inform the user the ticket is done and ask if they want to reopen.
 
 ## 4. TDD implementation cycle
 
@@ -30,10 +30,11 @@ When status is `ready`, implement using Red-Green-Refactor.
 ### RED phase — write failing tests
 
 1. Read the ticket's "Done when" criteria. Each criterion is the starting point for one or more test cases.
-2. Write tests that encode the criteria. Add additional tests for edge cases, error handling, and implementation details the criteria don't explicitly mention.
-3. Follow the conventions in `.claude/skills/shared/testing.md`: AAA pattern, descriptive names (`test_should_<expected>_when_<condition>`), mock only at system boundaries.
-4. Run the tests. Verify they **fail for the right reason** — missing functionality, not syntax errors or import failures. Fix any mechanical issues until all failures are "expected" failures.
-5. **STOP. Present the test file(s) to the user and ask them to review the test design.** Do NOT proceed to the GREEN phase until the user approves. Explain what each test covers and why.
+2. **Check for existing SPEC.md.** Identify the primary directory from the ticket's "Key files" section. If a SPEC.md exists there, read it. The Behaviors section contains testable statements about existing functionality. For each behavior that the current ticket modifies or extends: write regression tests that verify the existing behavior still holds (unless the ticket explicitly changes it), and derive new test cases for behaviors the ticket adds or modifies. If the ticket's changes conflict with a spec behavior, flag this as spec drift (see step 6a).
+3. Write tests that encode the criteria and any relevant spec behaviors. Add additional tests for edge cases, error handling, and implementation details the criteria don't explicitly mention.
+4. Follow the conventions in `.claude/skills/shared/testing.md`: AAA pattern, descriptive names (`test_should_<expected>_when_<condition>`), mock only at system boundaries.
+5. Run the tests. Verify they **fail for the right reason** — missing functionality, not syntax errors or import failures. Fix any mechanical issues until all failures are "expected" failures.
+6. **STOP. Present the test file(s) to the user and ask them to review the test design.** Do NOT proceed to the GREEN phase until the user approves. Explain what each test covers and why. If any tests derive from SPEC.md behaviors, note which spec behavior they verify.
 
 ### GREEN phase — implement minimally
 
@@ -58,10 +59,28 @@ Run the full verification suite from the ticket's "Done when" section:
 
 Report which passed and which failed. List any "Requires manual verification" items.
 
-## 6. Complete
+## 6. Spec maintenance
+
+Check if the primary directory (from the ticket's "Key files") has a SPEC.md.
+
+### 6a. Spec drift detection
+
+If a SPEC.md exists, re-read it and compare its Behaviors section against the current code (including changes just implemented). If any spec behaviors no longer match the code:
+
+- **Present each discrepancy** to the user. Format: "SPEC says: {behavior}. Code does: {actual}."
+- **Ask the user how to proceed** for each discrepancy: update the spec to match the code (behavior intentionally changed), update the code to match the spec (the code has a bug), or defer (the discrepancy is known and acceptable for now).
+- **Never auto-correct** either direction. The user decides.
+
+### 6b. Spec update proposal
+
+If the ticket added new behaviors, modified existing behaviors, or introduced new design decisions, draft proposed updates to the SPEC.md (or a new SPEC.md if none exists and the user wants one). Present the complete proposed SPEC.md — show the full document, not a diff. The user must explicitly approve before any changes are written to disk.
+
+If no SPEC.md exists and the feature is not yet mature enough for a spec, do not pressure the user — simply note that no spec exists and move on.
+
+## 7. Complete
 
 Update the ticket's frontmatter status to `done`. Regenerate `roadmap.md` by running `generate_roadmap(load_tickets())` from `tickets.py` (or updating the roadmap entry manually to match).
 
-## 7. Commit
+## 8. Commit
 
 Offer to `/commit` or `/tidy-commits` as appropriate. Remember: separate prose and code commits.

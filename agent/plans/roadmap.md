@@ -156,7 +156,7 @@ Use `/roadmap` to create, import, query, or reorganize tickets.
 
 ### T18: Add SPEC.md convention and integrate into workon workflow
 
-- **Status:** Plan needed
+- **Status:** Done
 - **Detail:** `t18-spec-convention.md`
 - **Depends on:** Nothing.
 

@@ -1,7 +1,7 @@
 ---
 id: T18
 title: Add SPEC.md convention and integrate into workon workflow
-status: plan-needed
+status: done
 depends_on: []
 ---
 
@@ -32,7 +32,27 @@ The workon skill can branch to shared reference files mid-execution (established
 
 ## Approach
 
-To be written during plan mode.
+Pure prose ticket — all deliverables are markdown files. No code, no tests.
+
+### Step 1: Create `spec-format.md`
+
+Create `.claude/skills/shared/spec-format.md` defining the SPEC.md format convention (parallel to `ticket-format.md`). Sections: Purpose, File placement (colocated at feature directory root), File structure (`What it does`, `Behaviors` with "When X, Y" format, `Design decisions` with rationale, `Key files`, optional `Constraints`), Writing guidelines (testable, present tense, 50–150 lines), Ownership rule.
+
+### Step 2: Create `spec-backfill.md`
+
+Create `.claude/skills/shared/spec-backfill.md` defining the interactive backfill process. Five steps: read code → draft spec (mark unknown rationale with `[?]`) → identify 3–7 open questions about design intent → present draft + questions to user → refine and write on approval.
+
+### Step 3: Update workon `SKILL.md`
+
+Four targeted modifications:
+- **A.** Add `spec-format.md` and `spec-backfill.md` to reference docs line
+- **B.** Expand `done` status handling to detect missing SPEC.md and offer backfill
+- **C.** Add spec-derived test cases to RED phase (read Behaviors section, write regression tests)
+- **D.** Insert new step 6 "Spec maintenance" between Verify and Complete: drift detection (present discrepancies, never auto-correct) and update proposal (present full SPEC.md for approval)
+
+### Step 4: Update `CLAUDE.md`
+
+Add "SPEC.md files are user-owned" bullet to Project Principles.
 
 ## Done when
 
