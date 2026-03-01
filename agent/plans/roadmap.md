@@ -152,9 +152,18 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 ---
 
-### T16: Kanban board and frontmatter system
+### T16: Kanban board web UI
 
 - **Status:** Ready
 - **Detail:** `t16-kanban-board.md`
-- **Goal:** YAML frontmatter on all tickets, `uv run board` kanban web UI, `/workon` and `/roadmap` skills replacing `/ticket` and planned `/intake`.
+- **Goal:** SvelteKit kanban board at `apps/sveltekit/board/` for visual ticket management, plus `/roadmap` skill.
+- **Depends on:** T17.
+
+---
+
+### T17: /workon skill with TDD workflow and frontmatter system
+
+- **Status:** Ready
+- **Detail:** `t17-workon-tdd.md`
+- **Goal:** YAML frontmatter on all tickets, `/workon` skill with RED/GREEN/REFACTOR TDD phases, shared ticket-format and testing convention docs.
 - **Depends on:** Nothing.
