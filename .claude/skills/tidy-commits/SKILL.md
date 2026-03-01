@@ -6,8 +6,8 @@ description: Reorganize commits on the current branch into clean, logical commit
 Reorganize the commits on the current branch into clean, logical commits suitable for PR review. Follow these steps:
 
 1. **Determine the base:**
-   - Run `git merge-base origin/main HEAD` to find the true fork point. Use this as `<base>` throughout.
-   - If `origin/main` doesn't exist, fall back to `git merge-base main HEAD`.
+   - Check if `origin/<current-branch>` exists (`git rev-parse --verify origin/<branch>`). If so, use it directly as `<base>` — this limits tidying to unpushed commits only, preventing history rewrites that would require a force push.
+   - If the branch hasn't been pushed yet, fall back to `git merge-base origin/main HEAD` (or `git merge-base main HEAD` if `origin/main` doesn't exist).
 
 2. **Analyze the current state:**
    - Run `git log --oneline <base>..HEAD` to see all commits on this branch.
