@@ -60,7 +60,7 @@ Use `/roadmap` to create, import, query, or reorganize tickets.
 
 ### T6: Integration tests for reconstruction and localization pipelines
 
-- **Status:** Design needed
+- **Status:** Blocked
 - **Detail:** `t6-ml-pipeline-tests.md`
 - **Depends on:** T5
 
@@ -76,7 +76,7 @@ Use `/roadmap` to create, import, query, or reorganize tickets.
 
 ### T8: GitHub Actions vendor risk mitigation
 
-- **Status:** Blocked
+- **Status:** Design needed
 - **Detail:** `t8-vendor-risk.md`
 - **Depends on:** Nothing.
 
@@ -151,5 +151,37 @@ Use `/roadmap` to create, import, query, or reorganize tickets.
 - **Status:** Ready
 - **Detail:** `t17-workon-tdd.md`
 - **Depends on:** Nothing.
+
+---
+
+### T18: Add SPEC.md convention and integrate into workon workflow
+
+- **Status:** Plan needed
+- **Detail:** `t18-spec-convention.md`
+- **Depends on:** Nothing.
+
+---
+
+### T19: Backfill board app specification
+
+- **Status:** Plan needed
+- **Detail:** `t19-backfill-board-spec.md`
+- **Depends on:** T18
+
+---
+
+### T20: Playwright E2E testing for board app
+
+- **Status:** Plan needed
+- **Detail:** `t20-playwright-e2e.md`
+- **Depends on:** T18, T19
+
+---
+
+### T21: Backfill specifications for all subsystems
+
+- **Status:** Design needed
+- **Detail:** `t21-backfill-all-specs.md`
+- **Depends on:** T18, T19
 
 ---
