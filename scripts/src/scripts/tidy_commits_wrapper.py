@@ -17,11 +17,10 @@ app = typer.Typer(add_completion=False)
 
 def find_available_backup_name(branch: str) -> str:
     base_backup = f"{branch}-backup"
-    if not check_command(f"git show-ref --verify --quiet refs/heads/{base_backup}"):
+    existing = run_command(f"git branch --list {base_backup} {base_backup}-*").strip().splitlines()
+    if not existing:
         return base_backup
-    suffix = 2
-    while check_command(f"git show-ref --verify --quiet refs/heads/{base_backup}-{suffix}"):
-        suffix += 1
+    suffix = len(existing) + 1
     return f"{base_backup}-{suffix}"
 
 
