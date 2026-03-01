@@ -40,7 +40,10 @@ def tidy_commits_wrapper() -> None:
 
     branch = run_command("git rev-parse --abbrev-ref HEAD").strip()
 
-    if check_command("git rev-parse --verify origin/main"):
+    remote_branch = f"origin/{branch}"
+    if check_command(f"git rev-parse --verify {remote_branch}"):
+        base = run_command(f"git rev-parse {remote_branch}").strip()
+    elif check_command("git rev-parse --verify origin/main"):
         base = run_command("git merge-base origin/main HEAD").strip()
     else:
         base = run_command("git merge-base main HEAD").strip()
