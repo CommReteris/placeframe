@@ -1,0 +1,20 @@
+<script lang="ts">
+	import type { Ticket } from "$lib/tickets.js";
+
+	let { ticket, onselect }: { ticket: Ticket; onselect: (ticket: Ticket) => void } = $props();
+</script>
+
+<button
+	class="w-full rounded-lg border border-border-subtle bg-surface-800 p-3 text-left transition-colors hover:border-border-default hover:bg-surface-700"
+	onclick={() => onselect(ticket)}
+>
+	<div class="mb-1 flex items-center gap-2">
+		<span class="text-xs font-medium text-text-muted">{ticket.id}</span>
+		{#if ticket.dependsOn.length > 0}
+			<span class="text-xs text-text-muted" title="Dependencies: {ticket.dependsOn.join(', ')}">
+				{ticket.dependsOn.length} dep{ticket.dependsOn.length > 1 ? "s" : ""}
+			</span>
+		{/if}
+	</div>
+	<div class="text-sm text-text-primary">{ticket.title}</div>
+</button>
