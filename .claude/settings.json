@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(tail *)",
+      "Bash(cat *)",
+      "Bash(git diff *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git merge-base *)",
+      "Bash(git show *)",
+      "Bash(git add *)",
+      "Bash(rm -f tidy-commits.sh)",
+      "Bash(uv run tidy-commits-wrapper)",
+      "Bash(docker info *)",
+      "Bash(source *)"
+    ]
+  }
+}
