@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from "$app/navigation";
 	import type { PageData } from "./$types.js";
 	import type { Ticket, Status } from "$lib/tickets.js";
 	import Board from "$lib/components/Board.svelte";
@@ -32,6 +33,7 @@
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ status: newStatus }),
 		});
+		await invalidateAll();
 	}
 
 	function handleSelect(ticket: Ticket) {

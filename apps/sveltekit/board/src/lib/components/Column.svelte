@@ -27,7 +27,7 @@
 	};
 </script>
 
-<div class="flex min-w-56 flex-1 flex-col">
+<div class="flex min-w-72 flex-1 flex-col">
 	<div class="mb-3 flex items-center gap-2">
 		<div class="h-2.5 w-2.5 rounded-full {statusColors[status]}"></div>
 		<h2 class="text-sm font-semibold text-text-secondary">{STATUS_LABELS[status]}</h2>

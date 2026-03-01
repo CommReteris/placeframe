@@ -5,7 +5,7 @@
 </script>
 
 <button
-	class="w-full rounded-lg border border-border-subtle bg-surface-800 p-3 text-left transition-colors hover:border-border-default hover:bg-surface-700"
+	class="w-full rounded-lg border border-border-subtle bg-surface-800 px-4 py-3.5 text-left transition-colors hover:border-border-default hover:bg-surface-700"
 	onclick={() => onselect(ticket)}
 >
 	<div class="mb-1 flex items-center gap-2">
@@ -16,5 +16,5 @@
 			</span>
 		{/if}
 	</div>
-	<div class="text-sm text-text-primary">{ticket.title}</div>
+	<div class="text-base text-text-primary">{ticket.title}</div>
 </button>

@@ -8,7 +8,7 @@
 	const renderedBody = $derived(marked.parse(ticket.body) as string);
 </script>
 
-<aside class="flex h-full w-96 flex-col border-l border-border-default bg-surface-800">
+<aside class="flex h-full w-[480px] flex-col border-l border-border-default bg-surface-800">
 	<div class="flex items-center justify-between border-b border-border-subtle p-4">
 		<div>
 			<span class="text-xs text-text-muted">{ticket.id}</span>
