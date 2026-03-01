@@ -1,3 +1,10 @@
+---
+id: T11
+title: SVO video capture refactor
+status: ready
+depends_on: [T10]
+---
+
 # T11: SVO video capture refactor
 
 ## Goal

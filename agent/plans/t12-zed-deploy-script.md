@@ -1,3 +1,10 @@
+---
+id: T12
+title: Zero-internet ZED deployment script
+status: ready
+depends_on: [T10]
+---
+
 # T12: Zero-internet ZED deployment script
 
 ## Goal

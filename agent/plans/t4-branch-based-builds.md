@@ -1,3 +1,10 @@
+---
+id: T4
+title: Branch-based builds and .env.lock strategy
+status: ready
+depends_on: []
+---
+
 # T4: Branch-Based Builds and .env.lock Strategy
 
 ## Context

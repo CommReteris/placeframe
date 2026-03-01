@@ -1,3 +1,10 @@
+---
+id: T14
+title: Codebase sweep — harvest TODOs into tickets
+status: plan-needed
+depends_on: []
+---
+
 # T14: Codebase sweep — harvest TODOs into tickets
 
 ## Goal

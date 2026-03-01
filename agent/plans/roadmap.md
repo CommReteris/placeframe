@@ -4,7 +4,8 @@ Single entry point for all planned work. Each ticket is self-contained with enou
 
 CI-related tickets (T1-T8) share background context in `ci-background.md`.
 
-Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a specific one.
+Use `/workon` to pick up and work on a ticket. Use `/workon T4` to start a specific one.
+Use `/roadmap` to create, import, query, or reorganize tickets.
 
 **Status definitions:**
 - **Blocked** — cannot start; reason stated
@@ -21,7 +22,6 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Plan needed
 - **Detail:** `t1-linting-ci.md`
-- **Goal:** Run ruff, basedpyright, and deptry-check on every push and PR.
 - **Depends on:** Nothing.
 
 ---
@@ -30,7 +30,6 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Plan needed
 - **Detail:** `t2-local-registry.md`
-- **Goal:** `--registry` option for build.py to mirror CI caching behavior locally.
 - **Depends on:** Nothing.
 
 ---
@@ -39,8 +38,7 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Plan needed
 - **Detail:** `t3-snapshot-tests.md`
-- **Goal:** Test that build.py produces correct bake arguments without running builds.
-- **Depends on:** T2 (code dependency — uses `--registry` paths).
+- **Depends on:** T2
 
 ---
 
@@ -48,7 +46,6 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Ready
 - **Detail:** `t4-branch-based-builds.md`
-- **Goal:** Support multiple long-running branches where every tip commit has a correct `.env.lock`.
 - **Depends on:** Nothing.
 
 ---
@@ -57,7 +54,6 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Design needed
 - **Detail:** `t5-api-tests.md`
-- **Goal:** Automated tests for API endpoints against real database and storage backends.
 - **Depends on:** Nothing.
 
 ---
@@ -66,25 +62,22 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Design needed
 - **Detail:** `t6-ml-pipeline-tests.md`
-- **Goal:** End-to-end tests for the reconstruction and localization ML pipelines.
-- **Depends on:** T5 (test patterns), GPU infrastructure (not a ticket).
+- **Depends on:** T5
 
 ---
 
 ### T7: Unity client builds with GameCI
 
-- **Status:** Blocked: Unity client not ready
+- **Status:** Blocked
 - **Detail:** `t7-unity-ci.md`
-- **Goal:** Automated Unity builds in CI.
-- **Depends on:** Nothing. T4 informs trigger strategy but doesn't block.
+- **Depends on:** Nothing.
 
 ---
 
 ### T8: GitHub Actions vendor risk mitigation
 
-- **Status:** Blocked: low priority, no urgency
+- **Status:** Blocked
 - **Detail:** `t8-vendor-risk.md`
-- **Goal:** Ensure CI logic is portable and not locked into GitHub Actions.
 - **Depends on:** Nothing.
 
 ---
@@ -93,7 +86,6 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Ready
 - **Detail:** `t9-unity-2022-lts.md`
-- **Goal:** Downgrade Unity packages and AndroidMobile from Unity 6 to 2022.3 LTS.
 - **Depends on:** Nothing.
 
 ---
@@ -102,7 +94,6 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Ready
 - **Detail:** `t10-zed-docker-images.md`
-- **Goal:** Dockerfile and bake targets for ZED capture, Renovate for auto-bumping base images.
 - **Depends on:** Nothing.
 
 ---
@@ -111,8 +102,7 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Ready
 - **Detail:** `t11-svo-video.md`
-- **Goal:** Replace per-frame JPEG writes with SVO hardware-encoded video via NVENC.
-- **Depends on:** T10 (Docker image needed for integration testing).
+- **Depends on:** T10
 
 ---
 
@@ -120,8 +110,7 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Ready
 - **Detail:** `t12-zed-deploy-script.md`
-- **Goal:** `uv run deploy-rig` to transfer Docker images to air-gapped ZED Box over USB.
-- **Depends on:** T10 (Docker image needed for integration testing).
+- **Depends on:** T10
 
 ---
 
@@ -129,8 +118,7 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Ready
 - **Detail:** `t13-zed-hardware-docs.md`
-- **Goal:** Hardware BOM, cable connections, and one-command deployment in `zed/README.md`.
-- **Depends on:** T12.
+- **Depends on:** T12
 
 ---
 
@@ -138,16 +126,14 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Plan needed
 - **Detail:** `t14-codebase-sweep.md`
-- **Goal:** One-time sweep to triage all TODO/FIXME/HACK comments and inline bug references into roadmap tickets. Enable Ruff `FIX002` to prevent bare TODOs going forward.
 - **Depends on:** Nothing.
 
 ---
 
 ### T15: Create /intake skill
 
-- **Status:** Done (superseded by T16)
+- **Status:** Done
 - **Detail:** `t15-intake-skill.md`
-- **Goal:** Reusable skill for importing work items from any external source (email, Linear, notes) into the roadmap.
 - **Depends on:** Nothing.
 
 ---
@@ -156,8 +142,7 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Ready
 - **Detail:** `t16-kanban-board.md`
-- **Goal:** SvelteKit kanban board at `apps/sveltekit/board/` for visual ticket management, plus `/roadmap` skill.
-- **Depends on:** T17.
+- **Depends on:** T17
 
 ---
 
@@ -165,5 +150,6 @@ Use `/ticket` to pick up and work on a ticket. Use `/ticket T4` to start a speci
 
 - **Status:** Ready
 - **Detail:** `t17-workon-tdd.md`
-- **Goal:** YAML frontmatter on all tickets, `/workon` skill with RED/GREEN/REFACTOR TDD phases, shared ticket-format and testing convention docs.
 - **Depends on:** Nothing.
+
+---

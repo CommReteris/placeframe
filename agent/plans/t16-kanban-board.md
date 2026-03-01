@@ -1,3 +1,10 @@
+---
+id: T16
+title: Kanban board web UI
+status: ready
+depends_on: [T17]
+---
+
 # T16: Kanban board web UI
 
 ## Goal

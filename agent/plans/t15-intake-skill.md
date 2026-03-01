@@ -1,3 +1,10 @@
+---
+id: T15
+title: Create /intake skill
+status: done
+depends_on: []
+---
+
 # T15: Create /intake skill
 
 ## Goal

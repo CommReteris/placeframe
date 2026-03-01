@@ -1,3 +1,10 @@
+---
+id: T8
+title: GitHub Actions vendor risk mitigation
+status: blocked
+depends_on: []
+---
+
 # T8: GitHub Actions vendor risk mitigation
 
 See `ci-background.md` for shared CI context.

@@ -1,3 +1,10 @@
+---
+id: T1
+title: Add linting, formatting, and typechecking to CI
+status: plan-needed
+depends_on: []
+---
+
 # T1: Add linting, formatting, and typechecking to CI
 
 See `ci-background.md` for shared CI context.

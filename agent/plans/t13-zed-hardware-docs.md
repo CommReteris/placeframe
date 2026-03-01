@@ -1,3 +1,10 @@
+---
+id: T13
+title: ZED hardware documentation
+status: ready
+depends_on: [T12]
+---
+
 # T13: ZED hardware documentation
 
 ## Goal

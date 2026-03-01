@@ -1,3 +1,10 @@
+---
+id: T7
+title: Unity client builds with GameCI
+status: blocked
+depends_on: []
+---
+
 # T7: Unity client builds with GameCI
 
 See `ci-background.md` for shared CI context.

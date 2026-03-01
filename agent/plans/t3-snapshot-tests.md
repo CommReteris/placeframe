@@ -1,3 +1,10 @@
+---
+id: T3
+title: Snapshot tests for build.py argument assembly
+status: plan-needed
+depends_on: [T2]
+---
+
 # T3: Snapshot tests for build.py argument assembly
 
 See `ci-background.md` for shared CI context.

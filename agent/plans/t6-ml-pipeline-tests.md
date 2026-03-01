@@ -1,3 +1,10 @@
+---
+id: T6
+title: Integration tests for reconstruction and localization pipelines
+status: design-needed
+depends_on: [T5]
+---
+
 # T6: Integration tests for reconstruction and localization pipelines
 
 See `ci-background.md` for shared CI context.

@@ -1,3 +1,10 @@
+---
+id: T5
+title: Integration tests for API service
+status: design-needed
+depends_on: []
+---
+
 # T5: Integration tests for API service
 
 See `ci-background.md` for shared CI context.

@@ -1,3 +1,10 @@
+---
+id: T2
+title: Local registry mode for build.py
+status: plan-needed
+depends_on: []
+---
+
 # T2: Local registry mode for build.py
 
 See `ci-background.md` for shared CI context.

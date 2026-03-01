@@ -1,3 +1,10 @@
+---
+id: T10
+title: ZED capture Docker images + Renovate
+status: ready
+depends_on: []
+---
+
 # T10: ZED capture Docker images + Renovate
 
 ## Goal

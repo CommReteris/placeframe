@@ -1,3 +1,10 @@
+---
+id: T17
+title: /workon skill with TDD workflow and frontmatter system
+status: ready
+depends_on: []
+---
+
 # T17: /workon skill with TDD workflow and frontmatter system
 
 ## Goal
