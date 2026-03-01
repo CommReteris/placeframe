@@ -8,7 +8,7 @@ Add YAML frontmatter to all ticket files as the machine-readable source of truth
 
 The roadmap currently uses plain markdown with status tracked manually in `roadmap.md`. This doesn't scale to 50-500 tickets. YAML frontmatter on each ticket file gives programmatic access to status and dependencies. A web-based kanban board (Litestar + htmx + Sortable.js) provides drag-and-drop status management. All dependencies are independently-maintained FOSS — no VC-backed projects.
 
-Jinja2 and litestar-htmx are already installed in the workspace. The only new Python dependencies are `python-frontmatter`, `mistune`, and `uvicorn`.
+Jinja2 and Litestar are already installed in the workspace. New Python dependencies: `mistune` and `uvicorn`. We do NOT use `python-frontmatter` (abandoned — last release March 2024, no Python 3.13 support declared) or `litestar-htmx` (unnecessary for our use case). Instead: a ~15-line YAML frontmatter parser using PyYAML (already a transitive dep), and manual `HX-Request` header checking (one line of code).
 
 ### Skill surface redesign
 
@@ -50,7 +50,11 @@ Schema: `id` (string), `title` (string), `status` (one of: blocked, design-neede
 
 ### 2. Add dependencies to scripts package
 
-In `scripts/pyproject.toml`, add: `python-frontmatter>=1.1.0`, `mistune>=3.1.0`, `uvicorn>=0.35.0`, `litestar>=2.19.0`, `jinja2>=3.1.0`. Add `"uvicorn"` to DEP002 deptry exceptions. Add entry point `board = "scripts.board:main"`. Then `uv sync --all-packages` and `uv run generate-lock-files`.
+In `scripts/pyproject.toml`, add: `mistune>=3.1.0`, `uvicorn>=0.35.0`, `litestar>=2.19.0`, `jinja2>=3.1.0`, `pyyaml>=6.0.0`. Add `"uvicorn"` to DEP002 deptry exceptions. Add entry point `board = "scripts.board:main"`. Then `uv sync --all-packages` and `uv run generate-lock-files`.
+
+We explicitly do NOT add `python-frontmatter` — it is abandoned (last release March 2024, no Python 3.13 trove classifier, no GitHub activity). Instead, `tickets.py` implements frontmatter parsing directly using PyYAML (~15 lines). This avoids depending on an unmaintained package and follows the FOSS principle.
+
+We also do NOT add `litestar-htmx` — detecting htmx requests is a single `request.headers.get("HX-Request")` check. The plugin adds unnecessary indirection for our use case.
 
 ### 3. Create tickets module
 
@@ -59,9 +63,11 @@ New file `scripts/src/scripts/tickets.py`. Shared module independent of Litestar
 - `PLANS_DIRECTORY` — resolved path to `agent/plans/`
 - `STATUSES` — ordered list: blocked, design-needed, plan-needed, ready, done
 - `Ticket` dataclass — id, title, status, depends_on, body (raw markdown), file_path
-- `load_tickets(directory)` — glob `t*.md`, parse frontmatter via `frontmatter.load()`
+- `parse_frontmatter(text)` — split `---`-delimited YAML header from markdown body, parse YAML with `yaml.safe_load()`. Returns `(metadata_dict, body_string)`.
+- `dump_frontmatter(metadata, body)` — serialize metadata dict back to `---`-delimited YAML header + body string.
+- `load_tickets(directory)` — glob `t*.md`, parse frontmatter, return list of Ticket objects
 - `tickets_by_status(tickets)` — group by status in column display order
-- `update_ticket_status(ticket_id, new_status, directory)` — read file, update `status` field in frontmatter, write back with `frontmatter.dumps()`
+- `update_ticket_status(ticket_id, new_status, directory)` — read file, parse frontmatter, update `status` field, write back with `dump_frontmatter()`
 - `generate_roadmap(tickets, output_path)` — write `roadmap.md` from ticket data, keeping a static header (intro, status definitions) and generating the ticket list section
 
 ### 4. Create board templates
@@ -77,7 +83,7 @@ New directory `scripts/src/scripts/board_templates/` with four files:
 
 New directory `scripts/src/scripts/board_static/` with:
 
-- `htmx.min.js` — vendored from htmx.org (0-clause BSD)
+- `htmx.min.js` — vendored from htmx.org (0-clause BSD), current version 2.0.8
 - `Sortable.min.js` — vendored from SortableJS GitHub releases (MIT)
 - `board.js` — ~30 lines: initialize Sortable.js on `.column-cards`, fire `htmx.ajax('PATCH', ...)` on drop, re-initialize after htmx swaps, client-side search filtering
 
@@ -91,7 +97,7 @@ Litestar app created directly (not using `create_litestar_app()` from common —
 - `GET /tickets/{ticket_id}` — render ticket detail partial (htmx)
 - `PATCH /tickets/{ticket_id}` — update status from drag-and-drop, return all columns
 
-Plus static file router for `/static/`. Uses `HTMXPlugin` from `litestar_htmx`. Calls `generate_roadmap()` on startup. No caching — reading 500 frontmatter files takes ~100ms, fine for single-user dev tool.
+Plus `create_static_files_router()` for `/static/` (the modern Litestar API — `StaticFilesConfig` is deprecated). Check `request.headers.get("HX-Request")` directly instead of using `litestar-htmx` plugin. Calls `generate_roadmap()` on startup. No caching — reading 500 frontmatter files takes ~100ms, fine for single-user dev tool.
 
 ### 7. Create shared ticket format reference
 
@@ -121,7 +127,7 @@ After any modification, regenerate `roadmap.md` from frontmatter.
 
 ### 10. Mark T15 superseded
 
-Update T15 status to `done` (superseded by T16's `/roadmap` skill). Note in the file that it was absorbed into T16.
+Update T15 frontmatter status to `done`. Note in the file body that it was absorbed into T16.
 
 ## Done when
 
