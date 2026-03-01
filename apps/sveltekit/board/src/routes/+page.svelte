@@ -11,6 +11,7 @@
 
 	let searchTerm = $state("");
 	let selectedTicket: Ticket | null = $state(null);
+	let drawerWidth = $state(672);
 
 	const filteredColumns = $derived(() => {
 		const term = searchTerm.toLowerCase();
@@ -55,17 +56,15 @@
 		<SearchBar bind:value={searchTerm} />
 	</header>
 
-	<div class="flex flex-1 overflow-hidden">
-		<main class="flex-1 overflow-auto">
-			<Board
-				columns={filteredColumns()}
-				onselect={handleSelect}
-				onstatuschange={handleStatusChange}
-			/>
-		</main>
+	<main class="flex-1 overflow-auto">
+		<Board
+			columns={filteredColumns()}
+			onselect={handleSelect}
+			onstatuschange={handleStatusChange}
+		/>
+	</main>
 
-		{#if selectedTicket}
-			<DetailPanel ticket={selectedTicket} onclose={handleCloseDetail} />
-		{/if}
-	</div>
+	{#if selectedTicket}
+		<DetailPanel ticket={selectedTicket} onclose={handleCloseDetail} width={drawerWidth} onwidthchange={(w) => { drawerWidth = w; }} />
+	{/if}
 </div>

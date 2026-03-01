@@ -14,17 +14,11 @@
 		onstatuschange: (ticketId: string, newStatus: Status) => void;
 	} = $props();
 
-	let columnItems: Record<Status, (Ticket & { id: string })[]> = $state(
+	let columnItems: Record<Status, (Ticket & { id: string })[]> = $derived.by(() =>
 		Object.fromEntries(
 			STATUSES.map((s) => [s, [...(columns[s] ?? [])]])
 		) as Record<Status, (Ticket & { id: string })[]>
 	);
-
-	$effect(() => {
-		columnItems = Object.fromEntries(
-			STATUSES.map((s) => [s, [...(columns[s] ?? [])]])
-		) as Record<Status, (Ticket & { id: string })[]>;
-	});
 
 	function handleConsider(
 		status: Status,
