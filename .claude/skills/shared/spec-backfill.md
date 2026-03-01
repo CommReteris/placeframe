@@ -4,13 +4,15 @@ Interactive process for reverse-engineering a SPEC.md from existing code. Trigge
 
 Backfill is collaborative — it requires user participation to capture design intent that code alone cannot reveal. Follow the format defined in `spec-format.md`.
 
+**Ownership model during backfill:** The general SPEC.md rule ("present complete content, get explicit approval before writing") does not apply during backfill. In backfill, behaviors are derived from code (factual, not intentional) and design decisions are captured through Q&A. The Q&A process is the approval gate for intent; the on-disk review is the approval gate for the final document. This avoids presenting a wall of unrenderable markdown in chat for the user to "approve."
+
 ## Step 1: Read the code
 
 Read the key files in the feature directory. Understand the structure, public interface, and data flow. Read any existing tests. Read the originating ticket for historical context — but the code is the source of truth for behavior, and the user is the source of truth for intent.
 
-## Step 2: Draft the spec
+## Step 2: Draft the spec (internal)
 
-Write a complete SPEC.md following the format in `spec-format.md`. Fill in all sections based on what the code reveals:
+Draft a complete SPEC.md internally following the format in `spec-format.md`. Do not show the draft to the user — it is working state. Fill in all sections based on what the code reveals:
 
 - **What it does** — derive from the feature's public interface and user-facing behavior
 - **Behaviors** — derive from code paths, event handlers, API endpoints, UI interactions. Each bullet should be a testable "When {trigger}, {outcome}" statement.
@@ -37,14 +39,16 @@ List specific questions about design intent that the code alone cannot answer. T
 - Limit to 3–7 questions. More than that and the user disengages.
 - Each question should directly affect spec content. If the answer wouldn't change the spec, don't ask.
 
-## Step 4: Present to user
+## Step 4: Ask the questions
 
-Show the complete draft spec and the open questions together in a single message. The user reviews the spec content and answers the questions.
+Present only the open questions to the user. Do not include the draft spec — the user doesn't need to review it yet. Frame as: "I've drafted the spec internally. Before I write it, I have N questions about design intent."
 
-This is the approval gate — nothing is written to disk until the user approves. Make this explicit: "Here's the draft SPEC.md and some questions. Once you're happy with the content, I'll write it."
+If the user's answers are ambiguous or incomplete, ask follow-up questions until the design decisions section can be written without `[?]` markers.
 
-## Step 5: Refine and write
+## Step 5: Write to disk
 
-Incorporate the user's feedback into the draft. If the user requests changes, update the draft and present the full updated spec again — do not show a diff, show the complete document.
+Incorporate the user's answers into the draft. Resolve all `[?]` markers. Write the SPEC.md file to the feature directory and offer to `/commit`.
 
-Once the user approves, write the SPEC.md file to the feature directory. Offer to `/commit`.
+## Step 6: Revise on disk
+
+The user reviews the spec on disk (markdown preview, editor, etc.). If they request changes, make them and offer to commit again. This is where the "user-owned" property is exercised — the user has the final say on content, but reviews it in a proper rendering context rather than in chat.
