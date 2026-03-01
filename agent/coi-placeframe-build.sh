@@ -20,4 +20,4 @@ ln -sf /home/code/.local/bin/claude /root/.local/bin/claude
 
 # The workspace is mounted as code:code but the container runs as root.
 # Git refuses to operate on repos owned by a different user without this.
-git config --global --add safe.directory /workspace
+git config --system --add safe.directory /workspace
