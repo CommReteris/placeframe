@@ -192,6 +192,10 @@ if [ -n "$HOST_GIT_NAME" ] && [ -n "$HOST_GIT_EMAIL" ]; then
   incus profile set default environment.GIT_COMMITTER_NAME="$HOST_GIT_NAME"
   incus profile set default environment.GIT_COMMITTER_EMAIL="$HOST_GIT_EMAIL"
   echo "Git identity set in Incus default profile: $HOST_GIT_NAME <$HOST_GIT_EMAIL>"
+
+# Keep the container's venv outside the mounted workspace so it doesn't
+# overwrite the host's .venv (venvs contain absolute paths and aren't portable).
+incus profile set default environment.UV_PROJECT_ENVIRONMENT="/home/code/.venvs/placeframe"
 else
   echo "WARNING: Could not read git user.name/user.email from host. Set them and re-run, or set manually:"
   echo "  incus profile set default environment.GIT_AUTHOR_NAME='Your Name'"
