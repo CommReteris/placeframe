@@ -19,6 +19,7 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
    - Read through all the changes and group them into logical, self-contained commits.
    - Each commit should represent one coherent change (a feature, a fix, a refactor, a config change, etc.).
    - Order commits so that earlier commits don't depend on later ones.
+   - **Never put prose files and code files in the same commit.** Prose files are markdown, text, skill files, and research notes. Code files are Python, configs, .gitignore, pyproject.toml. If a logical change spans both (e.g. a new feature + its SKILL.md), split into two commits.
    - Read `.claude/skills/shared/commit-style.md` for commit message conventions.
    - Write a clear commit message for each planned commit following the style guide.
    - Do NOT present the plan for conversational approval — the Write tool permission prompt is the gate.
