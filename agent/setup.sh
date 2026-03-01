@@ -1,6 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
+REBUILD=false
+for arg in "$@"; do
+  case "$arg" in
+    --rebuild) REBUILD=true ;;
+  esac
+done
+
 echo "Provisioning COI (code-on-incus) on Ubuntu: Incus + firewalld restricted networking + nested Docker + GPU (no patches, no wrappers)"
 
 # ----------------------------
@@ -104,11 +111,9 @@ if incus network show incusbr0 >/dev/null 2>&1; then
 fi
 
 # ----------------------------
-# 6) Nested Docker + GPU passthrough
-# NOTE: simplest reliable approach is to apply these to the Incus "default" profile.
-# This affects all containers that use the default profile.
+# 6) GPU passthrough via Incus default profile
+# NOTE: COI sets security.nesting per-container at launch, so we don't need it here.
 # ----------------------------
-incus profile set default security.nesting true >/dev/null 2>&1 || true
 if ! incus profile device show default | grep -qE '^\s*gpu:\s*$'; then
   incus profile device add default gpu gpu >/dev/null 2>&1 || true
 fi
@@ -122,7 +127,7 @@ chmod +x "$TMP_COI"
 sudo mv "$TMP_COI" /usr/local/bin/coi
 
 # ----------------------------
-# 8) Clone COI repo (workaround for build script issues) + build base image if needed
+# 8) Clone COI repo (coi build requires scripts from the repo tree) + build base image
 # ----------------------------
 COI_DIR="/opt/code-on-incus"
 if [ ! -d "$COI_DIR" ]; then
@@ -137,37 +142,23 @@ if ! incus image info coi >/dev/null 2>&1; then
 fi
 
 # ----------------------------
-# 9) Build project-specific COI image with uv + Java pre-installed
+# 9) Build project-specific COI image with uv pre-installed
+#
+# Why a custom image instead of a post-launch init script?
+# COI containers get created and destroyed frequently during iteration.
+# Baking deps into the image means every `coi shell` starts instantly with
+# everything ready, rather than waiting for apt/npm/curl on every launch.
+# Re-run with --rebuild to pick up changes to this step.
 # ----------------------------
 PLACEFRAME_IMAGE="coi-placeframe"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ "$REBUILD" = true ]; then
+  echo "Removing existing $PLACEFRAME_IMAGE image (--rebuild)..."
+  incus image delete "$PLACEFRAME_IMAGE" 2>/dev/null || true
+fi
 if ! incus image info "$PLACEFRAME_IMAGE" >/dev/null 2>&1; then
-  echo "Building $PLACEFRAME_IMAGE image (base coi + uv + Java)..."
-  TEMP_CONTAINER="coi-placeframe-build-$$"
-
-  incus launch coi "$TEMP_CONTAINER"
-  # Wait for container to be ready
-  sleep 5
-
-  incus exec "$TEMP_CONTAINER" -- bash -c '
-    set -euo pipefail
-    export DEBIAN_FRONTEND=noninteractive
-
-    apt-get update -qq
-    apt-get install -y -qq --no-install-recommends default-jre-headless
-
-    # Install uv system-wide (default installs to ~/.local/bin which is root-only)
-    curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
-
-    # Install openapi-generator-cli
-    npm install -g @openapitools/openapi-generator-cli
-
-    apt-get clean
-    rm -rf /var/lib/apt/lists/*
-  '
-
-  incus stop "$TEMP_CONTAINER"
-  incus publish "$TEMP_CONTAINER" --alias "$PLACEFRAME_IMAGE"
-  incus delete "$TEMP_CONTAINER"
+  echo "Building $PLACEFRAME_IMAGE image (base coi + uv)..."
+  (cd "$COI_DIR" && coi build custom "$PLACEFRAME_IMAGE" --script "$SCRIPT_DIR/coi-placeframe-build.sh")
   echo "$PLACEFRAME_IMAGE image published."
 fi
 
@@ -199,6 +190,10 @@ else
   echo "  incus profile set default environment.GIT_COMMITTER_NAME='Your Name'"
   echo "  incus profile set default environment.GIT_COMMITTER_EMAIL='you@example.com'"
 fi
+
+# Keep the container's venv outside the mounted workspace so it doesn't
+# overwrite the host's .venv (venvs contain absolute paths and aren't portable).
+incus profile set default environment.UV_PROJECT_ENVIRONMENT="/home/code/.venvs/placeframe"
 
 echo "Done."
 echo "Run: coi shell"
