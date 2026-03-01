@@ -1,10 +1,16 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+<!-- Audited 2026-03-01. Architecture section intentionally excluded (discover from compose.yml
+     and directory listings). Environment notes kept (always runs in COI). Generation pipeline
+     kept (needed for autonomous iteration — Claude can't self-invoke skills). -->
 
-## What This Project Is
+**Placeframe** — self-hosted XR spatial localization system ("relocalization as a service").
 
-**Placeframe** is a self-hosted XR spatial localization system ("relocalization as a service"). It determines an XR device's position and rotation relative to a canonical reference frame for a physical space — an open-source alternative to Apple Shared World Anchors, Google ARCore Cloud Anchors, etc.
+## Project Principles
+
+- **FOSS only, no vendor lock-in.** Every dependency and tool must be genuinely free/open-source with an independent community. Avoid projects from VC-backed companies at risk of rug-pull via acquisition (e.g. Streamlit/Snowflake). Prefer projects with community governance, independent maintainers, or foundation backing. When evaluating tools, consider not just the current license but the governance structure and funding model.
+- **Commit early and often.** After every file create, edit, or delete that leaves the repo in a coherent state, offer to commit by saying "Want me to `/commit` this?" Do not wait for the user to ask. Examples of commit points: adding/changing a config file, finishing a bug fix, completing a refactor, adding a new function. When in doubt, offer the commit — the user can decline.
+- **Repo is the only persistent state.** Claude Code plan files (`~/.claude/plans/`) are ephemeral session artifacts. Never reference them from ticket detail files, skills, or other repo content. All plans, decisions, and context must be self-contained in repo files (ticket detail files in `agent/plans/`, research in `agent/research/`, skills in `.claude/skills/`).
 
 ## Commands
 
@@ -30,42 +36,13 @@ uv run basedpyright          # Type check (strict mode)
 
 **Tests**: `uv run pytest` from repo root. Tests live alongside each service (e.g. `docker/localizer/tests/`).
 
-## Architecture
+## Generation Pipeline
 
-The system runs as a set of Docker microservices defined in `compose.yml`, with GPU overrides in `compose.cuda.yml` and `compose.rocm.yml`.
-
-### Core Services
-
-| Service | Path | Technology | Role |
-|---|---|---|---|
-| `api` | `docker/api/` | Litestar (ASGI) | Main REST API: manages users, places, captures, maps |
-| `localizer` | `docker/localizer/` | Litestar (ASGI) | Runs image-to-map localization (LightGlue feature matching + RANSAC) |
-| `reconstructor` | `docker/reconstructor/` | Python + pycolmap | Builds 3D maps from capture sessions |
-| `state-sync` | `docker/orchestrator/` | Python worker | Polls the database and orchestrates async jobs between services |
-| `database-manager` | `docker/database-manager/` | Python | Runs SQL migrations at startup |
-| `auth-initializer` | `docker/auth-initializer/` | Python | Configures Keycloak realm on startup |
-| `gateway` | `docker/gateway/` | ngrok | Public HTTPS tunnel |
-| `keycloak` | `docker/keycloak/` | Keycloak 26 | OpenID Connect / OAuth2 identity provider |
-
-**Backing services**: PostgreSQL 16, MinIO (S3-compatible object storage), CloudBeaver (database UI).
-
-### Python Workspace
-
-The repo is a `uv` monorepo. Shared Python code lives in `packages/python/`:
-
-- **`common`** — utilities for boto/MinIO, Docker SDK, Litestar, JWT
-- **`core`** — domain logic: camera configs, coordinate transforms, metrics
-- **`neural-networks`** — PyTorch models with conditional extras (`cpu`, `cuda`, `rocm`)
-- **`datamodels`** — auto-generated Pydantic models from the OpenAPI schema
-- **`api-client` / `localizer-client`** — auto-generated async API clients
-
-Auto-generated packages in `packages/generated/` should not be edited directly — regenerate them with the commands above.
-
-**Generation pipeline**: Code in `packages/generated/` is produced by two scripts that must be run after certain changes:
+Auto-generated packages in `packages/generated/` MUST NOT be edited directly. Code there is produced by scripts that must be run after certain changes:
 
 - **`uv run generate-datamodels`** — Introspects the **live PostgreSQL database** (via `sqlacodegen`) to produce `packages/generated/python/datamodels/` (SQLAlchemy table models + Pydantic DTOs). Must be run after any changes to `database/*.sql` schema files. **Requires Docker + postgres to be running** (`uv run up`, then `uv run migrate-database` to apply schema changes).
 - **`uv run generate-lock-files`** — Regenerates per-service `uv.lock` files. Must be run before `generate-clients` (which uses `uv run --no_workspace` per-service and needs the lock files). Also re-run after `uv sync --all-packages` since that overwrites per-service locks.
-- **`uv run generate-clients --config openapi-projects.json`** — Dumps the OpenAPI spec from each Litestar app and runs `openapi-generator-cli` (via `uvx`) to produce typed API clients in `packages/generated/python/` and `packages/generated/csharp/`. Must be run after any changes to API route signatures (new query params, new response fields, etc.). Requires Java (JDK 11+) on PATH. Use `--project docker/api` to generate only the API client (the localizer requires PyTorch/pycolmap to dump its spec).
+- **`uv run generate-clients --config openapi-projects.json`** — Dumps the OpenAPI spec from each Litestar app and runs `openapi-generator-cli` (via `uvx`) to produce typed API clients in `packages/generated/python/` and `packages/generated/csharp/`. Must be run after any changes to API route signatures (new query params, new response fields, etc.). Uses `jdk4py` for a bundled JVM (no system Java needed). Use `--project docker/api` to generate only the API client (the localizer requires PyTorch/pycolmap to dump its spec).
 
 **When changing both schema and API routes**, run in this order:
 1. `uv run generate-datamodels` (updates Pydantic models the API imports; needs live postgres)
@@ -74,16 +51,9 @@ Auto-generated packages in `packages/generated/` should not be edited directly �
 
 All three scripts live in `scripts/src/scripts/`.
 
-### Data Flow
+## Authentication
 
-1. **Capture**: Unity mobile app (ARFoundation, C#) records images + sensor data and POSTs to the API.
-2. **Reconstruction**: The `state-sync` worker triggers the `reconstructor`, which uses pycolmap to build a sparse 3D map (point cloud + camera poses). The result is stored in MinIO.
-3. **Localization**: A Unity client sends a query image to the `localizer`, which matches it against a stored map using LightGlue feature matching, then estimates 6-DOF pose via RANSAC/PnP.
-4. **Georeferencing**: The Map Registration Tool (Unity standalone) can visually align point clouds against Cesium tilesets (OSM / Google Photorealistic Tiles).
-
-### Authentication
-
-All API endpoints require an OAuth2 Bearer token from Keycloak. The default dev credentials are `user` / `password` (configured in `docker/keycloak/realm-export/placeframe.json`). The `state-sync` worker uses client credentials to authenticate service-to-service calls.
+All API endpoints require an OAuth2 Bearer token from Keycloak. Default dev credentials: `user` / `password` (configured in `docker/keycloak/realm-export/placeframe.json`).
 
 ## Code Conventions
 
@@ -92,6 +62,10 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. The default dev 
 - All Python packages use `src/<package>/` layout with `py.typed` marker.
 - Pydantic v2 for data validation everywhere; async/await throughout all services.
 - The `deptry-check` command enforces that all imports match declared dependencies. Per-rule exceptions for platform-specific packages (CUDA/ROCm) are documented in each `pyproject.toml`.
+- **Comments**: Plain `#` only. No section dividers (`# ---`), no decorative formatting. Comments should be rare — prefer self-explanatory code. When a comment is needed, keep it short and factual. No docstrings.
+- **Variable names**: Always use full words, never abbreviations. `result` not `res`, `command` not `cmd`, `environment` not `env` (as a variable name — `env` as a keyword argument is fine). Exception: universally understood short names like `i`, `k`, `v`, `e` in tight scopes.
+- **Subprocess calls**: Use `run_command` or `exec_command` from `common.run_command` instead of raw `subprocess.run`. A single command string is easier to read than an args list.
+- **Inline aggressively**: If a variable or function is used in only one place, inline it. Don't create names for things that don't need names. Exceptions: when inlining would create unreasonably long lines that the autoformatter mangles, or when a name genuinely clarifies something non-obvious.
 
 ## Initial Setup
 
