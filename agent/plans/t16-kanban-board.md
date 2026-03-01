@@ -29,8 +29,13 @@ Depends on T17.
 - `apps/sveltekit/board/src/lib/` — shared components and ticket parsing logic
 - `scripts/src/scripts/tickets.py` — existing ticket module (T17, read by board's server routes)
 - `.claude/skills/roadmap/SKILL.md` — new (replaces planned `/intake`)
+- `agent/coi-placeframe-build.sh` — updated to install Node.js 20 + pnpm in COI image
 
 ## Approach
+
+### 0. Update COI image to include Node.js + pnpm
+
+Add Node.js 20 LTS and pnpm to `agent/coi-placeframe-build.sh` so new COI containers have them pre-installed. Existing containers need `npm install -g pnpm` manually (or rebuild with `agent/setup.sh --rebuild`).
 
 ### 1. Install pnpm and scaffold SvelteKit app
 
