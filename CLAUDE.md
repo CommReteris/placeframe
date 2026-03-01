@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **FOSS only, no vendor lock-in.** Every dependency and tool must be genuinely free/open-source with an independent community. Avoid projects from VC-backed companies at risk of rug-pull via acquisition (e.g. Streamlit/Snowflake). Prefer projects with community governance, independent maintainers, or foundation backing. When evaluating tools, consider not just the current license but the governance structure and funding model.
 - **Commit early and often.** After completing a logical chunk of work, proactively offer to commit using `/commit`. Don't wait for the user to ask — treat each completed chunk as a natural commit point.
+- **Repo is the only persistent state.** Claude Code plan files (`~/.claude/plans/`) are ephemeral session artifacts. Never reference them from ticket detail files, skills, or other repo content. All plans, decisions, and context must be self-contained in repo files (ticket detail files in `agent/plans/`, research in `agent/research/`, skills in `.claude/skills/`).
 
 ## Commands
 
