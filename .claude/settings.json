@@ -24,7 +24,7 @@
       "Bash(git show *)",
       "Bash(git ls-tree *)",
       "Bash(git add *)",
-      "Bash(rm -f tidy-commits.sh)",
+      "Bash(rm -f tidy-commits.json)",
       "Bash(uv run tidy-commits-wrapper)",
       "Bash(docker info *)",
       "Bash(source *)"
