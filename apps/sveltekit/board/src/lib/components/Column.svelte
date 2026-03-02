@@ -58,7 +58,7 @@
 		role="listbox"
 		tabindex="0"
 		aria-label="{STATUS_LABELS[status]} tickets"
-		class="flex min-h-16 flex-1 flex-col gap-2 rounded-xl border bg-surface-900 p-2 transition-colors {isDragOver ? 'border-border-default bg-surface-800' : 'border-border-subtle'}"
+		class="flex min-h-16 flex-1 flex-col gap-2.5 rounded-xl border bg-surface-900 p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-900 {isDragOver ? 'border-border-default bg-surface-800' : 'border-border-subtle'}"
 		ondragover={(event: DragEvent) => {
 			event.preventDefault();
 			if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
@@ -82,7 +82,7 @@
 		{#each epicGroups as group (group.epic)}
 			{#if group.epic !== null}
 				<button
-					class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-text-muted hover:bg-surface-700"
+					class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-surface-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-900"
 					onclick={() => toggleEpic(group.epic)}
 					data-testid="epic-section-{group.epic}"
 				>
@@ -93,7 +93,7 @@
 				</button>
 			{:else if hasMultipleGroups}
 				<button
-					class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-text-muted hover:bg-surface-700"
+					class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:bg-surface-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-900"
 					onclick={() => toggleEpic(null)}
 					data-testid="epic-section-ungrouped"
 				>

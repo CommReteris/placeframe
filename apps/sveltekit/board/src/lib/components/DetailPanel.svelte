@@ -46,7 +46,7 @@
 	<!-- Backdrop -->
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div
-		class="absolute inset-0 bg-black/50"
+		class="absolute inset-0 bg-black/40 backdrop-blur-sm"
 		transition:fade={{ duration: 200 }}
 		onclick={onclose}
 	></div>
@@ -60,7 +60,7 @@
 		<!-- Resize handle -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="absolute inset-y-0 left-0 w-1.5 cursor-col-resize hover:bg-accent-500/50 {dragging ? 'bg-accent-500/50' : ''}"
+			class="absolute inset-y-0 left-0 w-1.5 cursor-col-resize transition-colors hover:bg-accent/50 {dragging ? 'bg-accent/50' : ''}"
 			onpointerdown={handlePointerDown}
 			onpointermove={handlePointerMove}
 			onpointerup={handlePointerUp}
@@ -71,7 +71,7 @@
 				<h2 class="text-lg font-semibold text-text-primary">{ticket.title}</h2>
 			</div>
 			<button
-				class="rounded p-1 text-text-muted hover:bg-surface-700 hover:text-text-primary"
+				class="rounded p-1 text-text-muted transition-colors hover:bg-surface-700 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-800"
 				onclick={onclose}
 				aria-label="Close detail panel"
 			>

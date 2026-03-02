@@ -7,7 +7,7 @@
 
 <button
 	data-testid="card-{ticket.id}"
-	class="w-full rounded-lg border border-border-subtle bg-surface-800 px-4 py-3.5 text-left transition-colors hover:border-border-default hover:bg-surface-700"
+	class="w-full rounded-lg border border-border-subtle bg-surface-800 px-4 py-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-border-default hover:bg-surface-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-900 active:scale-[0.98] active:duration-75"
 	draggable="true"
 	ondragstart={(event: DragEvent) => {
 		event.dataTransfer?.setData("text/plain", ticket.id);

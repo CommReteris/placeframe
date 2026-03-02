@@ -5,8 +5,6 @@
 	--color-surface-900: oklch(0.2 0.02 260);
 	--color-surface-800: oklch(0.25 0.02 260);
 	--color-surface-700: oklch(0.3 0.02 260);
-	--color-surface-600: oklch(0.35 0.02 260);
-
 	--color-text-primary: oklch(0.95 0.01 260);
 	--color-text-secondary: oklch(0.7 0.01 260);
 	--color-text-muted: oklch(0.55 0.01 260);
@@ -21,11 +19,7 @@
 	--color-status-in-review: oklch(0.7 0.15 190);
 	--color-status-done: oklch(0.6 0.1 260);
 
-	--color-epic-board: oklch(0.7 0.12 200);
-	--color-epic-ci: oklch(0.7 0.12 140);
-	--color-epic-zed: oklch(0.7 0.12 320);
-	--color-epic-specs: oklch(0.7 0.12 60);
-	--color-epic-skills-audit: oklch(0.7 0.12 270);
+	--color-accent: oklch(0.6 0.15 260);
 }
 
 body {

@@ -62,10 +62,10 @@
 
 <div class="flex h-screen flex-col">
 	<header class="flex items-center gap-4 border-b border-border-default bg-surface-800 px-4 py-3">
-		<h1 class="text-lg font-bold text-text-primary">Placeframe Board</h1>
+		<h1 class="text-lg font-bold tracking-tight text-text-primary">Placeframe Board</h1>
 		<SearchBar bind:value={searchTerm} />
 		<select
-			class="rounded-lg border border-border-subtle bg-surface-800 px-3 py-2 text-sm text-text-primary focus:border-border-default focus:outline-none"
+			class="rounded-lg border border-border-subtle bg-surface-800 px-3 py-2 text-sm text-text-primary transition-colors hover:border-border-default focus:border-border-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-800"
 			onchange={handleEpicChange}
 			value={epicFilter ?? ""}
 			data-testid="epic-filter"

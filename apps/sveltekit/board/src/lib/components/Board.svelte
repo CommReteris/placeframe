@@ -14,7 +14,7 @@
 	} = $props();
 </script>
 
-<div class="flex gap-4 overflow-x-auto p-4">
+<div class="flex gap-6 overflow-x-auto p-4">
 	{#each STATUSES as status (status)}
 		<Column {status} tickets={columns[status] ?? []} {onselect} onticketdrop={onstatuschange} />
 	{/each}
