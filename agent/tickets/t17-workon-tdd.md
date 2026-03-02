@@ -1,7 +1,7 @@
 ---
 id: T17
 title: /workon skill with TDD workflow and frontmatter system
-status: ready
+status: done
 depends_on: []
 ---
 

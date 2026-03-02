@@ -1,7 +1,7 @@
 ---
 id: T53
 title: Add "capture learnings" step to workon skill
-status: in-review
+status: done
 depends_on: []
 ---
 
