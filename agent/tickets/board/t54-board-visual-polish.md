@@ -1,8 +1,9 @@
 ---
 id: T54
 title: Kanban board visual polish (Linear-style)
-status: design-needed
+status: ready
 depends_on: []
+plan: t54-plan.md
 ---
 
 # T54: Kanban board visual polish (Linear-style)
@@ -28,7 +29,7 @@ The board is functionally complete and already looks good. The research identifi
 
 ## Approach
 
-Work through the priority list from the research report. Each item is a small, independent change. Group related items (e.g., "add transition-colors everywhere") into single commits.
+All 13 items from the research report, grouped into 7 logical commits: CSS cleanup, transition consistency, focus-visible rings, card micro-interactions, input polish, spacing/typography, detail panel. Pure CSS class changes — no structural changes, no new files. Full plan in `agent/plans/t54-plan.md`.
 
 ## Done when
 
