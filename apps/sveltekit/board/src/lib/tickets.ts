@@ -7,6 +7,7 @@ export const STATUSES = [
 	"design-needed",
 	"plan-needed",
 	"ready",
+	"in-review",
 	"done",
 ] as const;
 
@@ -17,6 +18,7 @@ export const STATUS_LABELS: Record<Status, string> = {
 	"design-needed": "Design needed",
 	"plan-needed": "Plan needed",
 	ready: "Ready",
+	"in-review": "In review",
 	done: "Done",
 };
 
@@ -113,6 +115,7 @@ export function ticketsByStatus(
 		"design-needed": [],
 		"plan-needed": [],
 		ready: [],
+		"in-review": [],
 		done: [],
 	};
 	for (const ticket of tickets) {

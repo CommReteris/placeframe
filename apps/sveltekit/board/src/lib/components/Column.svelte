@@ -23,6 +23,7 @@
 		"design-needed": "bg-status-design-needed",
 		"plan-needed": "bg-status-plan-needed",
 		ready: "bg-status-ready",
+		"in-review": "bg-status-in-review",
 		done: "bg-status-done",
 	};
 </script>

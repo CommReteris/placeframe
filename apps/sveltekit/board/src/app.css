@@ -18,6 +18,7 @@
 	--color-status-design-needed: oklch(0.7 0.15 60);
 	--color-status-plan-needed: oklch(0.7 0.15 280);
 	--color-status-ready: oklch(0.7 0.15 160);
+	--color-status-in-review: oklch(0.7 0.15 190);
 	--color-status-done: oklch(0.6 0.1 260);
 }
 

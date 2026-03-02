@@ -48,12 +48,13 @@ Test goal for ${id}.
 }
 
 describe("STATUSES", () => {
-	it("should contain all five lifecycle statuses in order", () => {
+	it("should contain all six lifecycle statuses in order", () => {
 		expect(STATUSES).toEqual([
 			"blocked",
 			"design-needed",
 			"plan-needed",
 			"ready",
+			"in-review",
 			"done",
 		]);
 	});
@@ -65,6 +66,7 @@ describe("STATUS_LABELS", () => {
 		expect(STATUS_LABELS["design-needed"]).toBe("Design needed");
 		expect(STATUS_LABELS["plan-needed"]).toBe("Plan needed");
 		expect(STATUS_LABELS["ready"]).toBe("Ready");
+		expect(STATUS_LABELS["in-review"]).toBe("In review");
 		expect(STATUS_LABELS["done"]).toBe("Done");
 	});
 });
@@ -427,8 +429,9 @@ describe("Status type", () => {
 			"design-needed",
 			"plan-needed",
 			"ready",
+			"in-review",
 			"done",
 		];
-		expect(statuses).toHaveLength(5);
+		expect(statuses).toHaveLength(6);
 	});
 });
