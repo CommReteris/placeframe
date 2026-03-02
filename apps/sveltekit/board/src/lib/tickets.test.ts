@@ -229,6 +229,80 @@ describe("loadTickets", () => {
 		const tickets = loadTickets(tempDir);
 		expect(tickets).toHaveLength(1);
 	});
+
+	it("should load tickets from subdirectories", () => {
+		fs.writeFileSync(
+			path.join(tempDir, "t1-root.md"),
+			makeTicketFile("T1", "Root ticket", "ready"),
+		);
+		fs.mkdirSync(path.join(tempDir, "ci"));
+		fs.writeFileSync(
+			path.join(tempDir, "ci", "t2-ci-ticket.md"),
+			makeTicketFile("T2", "CI ticket", "done"),
+		);
+		fs.mkdirSync(path.join(tempDir, "board"));
+		fs.writeFileSync(
+			path.join(tempDir, "board", "t3-board-ticket.md"),
+			makeTicketFile("T3", "Board ticket", "plan-needed"),
+		);
+
+		const tickets = loadTickets(tempDir);
+		expect(tickets).toHaveLength(3);
+		expect(tickets[0]?.id).toBe("T1");
+		expect(tickets[1]?.id).toBe("T2");
+		expect(tickets[2]?.id).toBe("T3");
+	});
+
+	it("should sort tickets from subdirectories by number globally", () => {
+		fs.mkdirSync(path.join(tempDir, "ci"));
+		fs.writeFileSync(
+			path.join(tempDir, "ci", "t10-ci.md"),
+			makeTicketFile("T10", "CI", "ready"),
+		);
+		fs.writeFileSync(
+			path.join(tempDir, "t1-root.md"),
+			makeTicketFile("T1", "Root", "ready"),
+		);
+		fs.mkdirSync(path.join(tempDir, "board"));
+		fs.writeFileSync(
+			path.join(tempDir, "board", "t5-board.md"),
+			makeTicketFile("T5", "Board", "ready"),
+		);
+
+		const tickets = loadTickets(tempDir);
+		expect(tickets).toHaveLength(3);
+		expect(tickets[0]?.id).toBe("T1");
+		expect(tickets[1]?.id).toBe("T5");
+		expect(tickets[2]?.id).toBe("T10");
+	});
+
+	it("should ignore non-ticket files in subdirectories", () => {
+		fs.mkdirSync(path.join(tempDir, "ci"));
+		fs.writeFileSync(
+			path.join(tempDir, "ci", "t1-ticket.md"),
+			makeTicketFile("T1", "Ticket", "ready"),
+		);
+		fs.writeFileSync(
+			path.join(tempDir, "ci", "EPIC.md"),
+			"# CI\nBuild and CI pipeline tickets.",
+		);
+		fs.writeFileSync(
+			path.join(tempDir, "ci", "ci-background.md"),
+			"# CI Background",
+		);
+
+		const tickets = loadTickets(tempDir);
+		expect(tickets).toHaveLength(1);
+	});
+
+	it("should preserve full file paths for tickets in subdirectories", () => {
+		fs.mkdirSync(path.join(tempDir, "ci"));
+		const filePath = path.join(tempDir, "ci", "t1-ci.md");
+		fs.writeFileSync(filePath, makeTicketFile("T1", "CI", "ready"));
+
+		const tickets = loadTickets(tempDir);
+		expect(tickets[0]?.filePath).toBe(filePath);
+	});
 });
 
 describe("ticketsByStatus", () => {
@@ -317,6 +391,32 @@ describe("updateTicketStatus", () => {
 		expect(() => updateTicketStatus("T99", "done", tempDir)).toThrow(
 			"Ticket T99 not found",
 		);
+	});
+
+	it("should update status of a ticket in a subdirectory", () => {
+		fs.mkdirSync(path.join(tempDir, "ci"));
+		const filePath = path.join(tempDir, "ci", "t1-ci.md");
+		fs.writeFileSync(filePath, makeTicketFile("T1", "CI ticket", "ready"));
+
+		updateTicketStatus("T1", "done", tempDir);
+
+		const updated = loadTicket(filePath);
+		expect(updated.status).toBe("done");
+	});
+
+	it("should preserve body when updating ticket in subdirectory", () => {
+		fs.mkdirSync(path.join(tempDir, "board"));
+		const filePath = path.join(tempDir, "board", "t5-board.md");
+		fs.writeFileSync(
+			filePath,
+			makeTicketFile("T5", "Board ticket", "plan-needed"),
+		);
+		const originalBody = loadTicket(filePath).body;
+
+		updateTicketStatus("T5", "ready", tempDir);
+
+		const updated = loadTicket(filePath);
+		expect(updated.body).toBe(originalBody);
 	});
 });
 

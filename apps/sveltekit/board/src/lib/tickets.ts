@@ -74,18 +74,28 @@ function ticketSortKey(filePath: string): number {
 	return /^\d+$/.test(numeric) ? parseInt(numeric, 10) : 0;
 }
 
-export function loadTickets(directory: string): Ticket[] {
+function findTicketFiles(directory: string): string[] {
 	if (!fs.existsSync(directory)) {
 		return [];
 	}
-	const files = fs
-		.readdirSync(directory)
-		.filter((file: string) => /^t\d+.*\.md$/.test(file))
-		.sort((a: string, b: string) => ticketSortKey(a) - ticketSortKey(b));
+	const results: string[] = [];
+	for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+		if (entry.isDirectory()) {
+			results.push(...findTicketFiles(path.join(directory, entry.name)));
+		} else if (/^t\d+.*\.md$/.test(entry.name)) {
+			results.push(path.join(directory, entry.name));
+		}
+	}
+	return results;
+}
+
+export function loadTickets(directory: string): Ticket[] {
+	const files = findTicketFiles(directory).sort(
+		(a: string, b: string) => ticketSortKey(a) - ticketSortKey(b),
+	);
 
 	const tickets: Ticket[] = [];
-	for (const file of files) {
-		const filePath = path.join(directory, file);
+	for (const filePath of files) {
 		const text = fs.readFileSync(filePath, "utf-8");
 		if (!text.startsWith("---\n")) {
 			continue;
@@ -119,12 +129,7 @@ export function updateTicketStatus(
 	newStatus: Status | string,
 	directory: string,
 ): void {
-	const files = fs
-		.readdirSync(directory)
-		.filter((file: string) => /^t\d+.*\.md$/.test(file));
-
-	for (const file of files) {
-		const filePath = path.join(directory, file);
+	for (const filePath of findTicketFiles(directory)) {
 		const text = fs.readFileSync(filePath, "utf-8");
 		if (!text.startsWith("---\n")) {
 			continue;
