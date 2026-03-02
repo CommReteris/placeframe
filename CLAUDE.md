@@ -74,6 +74,7 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. Default dev cred
 - **Variable names**: Always use full words, never abbreviations. `result` not `res`, `command` not `cmd`, `environment` not `env` (as a variable name — `env` as a keyword argument is fine). Exception: universally understood short names like `i`, `k`, `v`, `e` in tight scopes.
 - **Subprocess calls**: Use functions from `common.run_command` instead of raw `subprocess.run`. A single command string is easier to read than an args list. Three functions: `run_command` (run and capture output, raise on failure), `check_command` (return bool, no output, no raise), `exec_command` (replace process). For idempotent operations where failure is expected (zone already exists, interface already bound), use `check_command` — never `try: run_command(...); except CalledProcessError: pass`, which prints spurious errors and swallows Ctrl+C.
 - **Inline aggressively**: If a variable or function is used in only one place, inline it. Don't create names for things that don't need names. Exceptions: when inlining would create unreasonably long lines that the autoformatter mangles, or when a name genuinely clarifies something non-obvious.
+- **Skill authoring**: When creating or modifying any file in `.claude/skills/`, read `.claude/skills/shared/skill-authoring.md` first.
 
 ## Web Conventions (SvelteKit / TypeScript)
 

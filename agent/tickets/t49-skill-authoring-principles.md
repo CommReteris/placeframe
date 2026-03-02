@@ -1,7 +1,7 @@
 ---
 id: T49
 title: Create skill-authoring principles reference
-status: design-needed
+status: in-review
 depends_on: []
 ---
 
@@ -30,14 +30,22 @@ Upstream best practices (from Anthropic docs and community) also apply:
 
 This document would be the authoritative reference for "how to write a good skill in this project," combining project-specific conventions with upstream best practices.
 
+## Approach
+
+Research-backed, prose-only. Created skill-authoring.md covering: cost model (how descriptions/bodies/CLAUDE.md consume context), the CLAUDE.md-vs-skill boundary, description writing for reliable activation, the degrees-of-freedom framework for instruction specificity, progressive disclosure architecture, example usage tradeoffs, and a concrete anti-patterns checklist. CLAUDE.md gets a one-line directive to read it when touching skill files.
+
 ## Key files
 
-- `.claude/skills/shared/` — new file: `skill-authoring.md`
-- CLAUDE.md — would reference it in a new principle or convention
-- Memory file insights to absorb: `/root/.claude/projects/-workspace/memory/MEMORY.md`
+- `.claude/skills/shared/skill-authoring.md` — new: skill authoring principles
+- `.claude/skills/shared/README.md` — updated: added skill-authoring.md to the index
+- `CLAUDE.md` — updated: one-line directive to read skill-authoring.md when editing skills
 
 ## Done when
 
 - `skill-authoring.md` exists with clear, concise principles
 - CLAUDE.md or a skill directs Claude to reference it when creating/modifying skills
 - Memory file insights are absorbed into the document (and removed from memory)
+
+## Log
+
+Memory files referenced in the ticket (`/root/.claude/projects/-workspace/memory/MEMORY.md`) no longer exist — insights were already captured in the ticket's Context section. All listed insights are covered in the new document. No other issues.
