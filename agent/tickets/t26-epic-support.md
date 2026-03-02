@@ -33,6 +33,18 @@ The current system uses flat markdown files with YAML frontmatter (`id`, `title`
 - `.claude/skills/workon/SKILL.md` — update ticket glob pattern
 - `apps/sveltekit/board/src/lib/server/tickets.ts` — update glob to scan subdirectories
 
+### Proposed epic groupings
+
+Initial directories to create as proof-of-concept during implementation:
+
+- **`ci/`** — T1, T2, T3, T4, T7, T8 (build/CI pipeline)
+- **`zed/`** — T10, T11, T12, T13 (ZED camera hardware)
+- **`board/`** — T20, T22, T23, T24, T25, T50 (kanban board features)
+- **`specs/`** — T18, T21, T30, T31, T32 (spec system)
+- **`skills-audit/`** — T27-T49 (skills audit action items)
+
+Standalone tickets (T5, T6, T9, T14, T16, T17, T26, T46) stay at root.
+
 ## Approach
 
 TBD — entering planning phase.
