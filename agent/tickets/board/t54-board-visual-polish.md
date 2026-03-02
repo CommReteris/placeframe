@@ -1,7 +1,7 @@
 ---
 id: T54
 title: Kanban board visual polish (Linear-style)
-status: ready
+status: in-review
 depends_on: []
 plan: t54-plan.md
 ---
@@ -47,3 +47,7 @@ All 13 items from the research report, grouped into 7 logical commits: CSS clean
 - Board feels noticeably more polished in the browser
 - Transitions feel smooth and responsive, not sluggish or abrupt
 - Focus rings are visible and themed appropriately
+
+## Log
+
+Clean implementation, no issues. All 13 changes were mechanical CSS class edits. Lint, type check, and 41 unit tests passed on first run. Process finding: the workon skill and spec-format.md lacked guidance on treating visual behaviors as spec-worthy behaviors, which led to nearly skipping the SPEC.md update. Both files were updated to fix this gap.

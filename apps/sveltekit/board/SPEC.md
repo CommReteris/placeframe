@@ -10,8 +10,11 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 
 - When the page loads, renders six columns in order: Blocked, Design needed, Plan needed, Ready, In review, Done.
 - Each column header shows a colored status dot, the status label, and a ticket count.
+- Columns are separated by 24px (gap-6) of horizontal space.
 - Within each column, tickets are grouped by epic. Named epics appear alphabetically, ungrouped (root-level) tickets appear last.
 - Tickets are sorted numerically by T-number within each epic group.
+- Cards within a column are separated by 10px (gap-2.5) of vertical space.
+- The page title ("Placeframe Board") uses tight letter-spacing.
 
 ### Epics
 
@@ -32,21 +35,33 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 ### Cards
 
 - Each card displays the ticket ID, an optional epic chip, title, and dependency count (if any).
+- Cards have 16px horizontal and 12px vertical padding.
 - When a card is clicked, the detail panel opens for that ticket.
 - When a card is dragged to a different column (native HTML5 drag-and-drop), a PATCH request updates the ticket's status in the frontmatter on disk, then all board data is revalidated. The ticket's epic does not change on drag — epic is derived from file path.
 
 ### Detail panel
 
-- Opens as a right-side drawer overlay with a semi-transparent backdrop.
+- Opens as a right-side drawer overlay with a frosted backdrop (semi-transparent black with slight blur).
 - Displays ticket ID, title, status, dependencies, and the ticket body rendered as HTML via `marked`.
 - Closes on backdrop click, Escape key (via `<svelte:window>` so it works regardless of focus), or the close button.
-- The left edge is a drag handle for resizing (minimum 320px, default 672px).
+- The left edge is a drag handle for resizing (minimum 320px, default 672px). The handle highlights with an accent color on hover and while dragging.
 - Width persists within a session but resets on page reload. Gap: localStorage persistence would be better (T24).
 
 ### Search
 
 - Filters cards client-side by title and ticket ID (case-insensitive).
 - Gap: does not filter by status or dependency — both would be useful (T23).
+
+### Interactions and transitions
+
+- All interactive elements (cards, buttons, inputs, drop zones) transition color changes smoothly rather than snapping instantly.
+- Cards use a 200ms transition for all visual properties (color, transform, shadow).
+- When a card is hovered, it lifts slightly upward (2px) and its border and background brighten.
+- When a card is clicked/pressed, it briefly scales down (98%) with a fast 75ms response, then returns to normal size.
+- Epic section toggle buttons, the close button, and the resize handle all transition their background color smoothly on hover.
+- The search input and epic filter dropdown brighten their border on hover (same treatment as focus).
+- All interactive elements (cards, epic section buttons, drop zones, close button, inputs, select) show a visible focus ring when navigated via keyboard (focus-visible). The ring is a subtle white glow with an offset gap matching the element's background surface.
+- The search input and epic filter dropdown show both a border brightening and a focus ring when focused via keyboard.
 
 ### Ticket data
 
@@ -65,13 +80,14 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 
 ## Design decisions
 
-- **Dark-only theme with oklch tokens** — all colors defined as CSS custom properties in `@theme`, using oklch for perceptual uniformity. Each status has a distinct hue. Epic colors also use oklch with curated hues for known epics and a deterministic hash-to-hue fallback for unknown epics.
+- **Dark-only theme with oklch tokens** — all colors defined as CSS custom properties in `@theme`, using oklch for perceptual uniformity. Each status has a distinct hue. Surface colors step by 0.05 lightness per elevation level. A dedicated accent color is defined for UI highlights (resize handle).
+- **Epic colors in TypeScript, not CSS** — epic colors are defined in `epicColor()` with curated oklch values for known epics and a deterministic hash-to-hue fallback for unknown epics. Applied via inline styles rather than CSS custom properties, so new epics don't require CSS changes.
 - **Epic identity from directory structure** — no frontmatter field needed. `deriveEpic()` computes the epic from the relative path. This keeps the data model simple and avoids requiring ticket authors to manually tag epics.
-- **`epicColor()` utility with fallback** — known epics get curated colors; unknown epics get a deterministic color from a string hash. Avoids maintaining a growing CSS file as new epics are added.
 - **SvelteSet for collapse state** — `SvelteMap` `.get()` didn't reliably trigger Svelte 5 template re-renders. `SvelteSet<string>` with `.has()` / `.add()` / `.delete()` works correctly with Svelte 5's fine-grained reactivity.
 - **`pushState` for epic filter URL** — uses SvelteKit's shallow routing (`pushState` from `$app/navigation`) to update the URL without triggering a server load. The `resolve()` wrapper from `$app/paths` satisfies the `no-navigation-without-resolve` lint rule.
 - **SSR for initial load** — `+page.server.ts` loads all tickets server-side; subsequent interactions (drag-drop, search, epic filter) are client-side.
 - **Native HTML5 drag-and-drop** — uses the browser's built-in drag-and-drop API (`draggable`, `ondragstart`, `ondragover`, `ondrop`) instead of a library. Cards stay in the source column during drag; after drop, `invalidateAll()` reloads data. Simpler, zero-dependency, and testable with Playwright.
+- **Borders over shadows for depth** — follows Linear's dark UI pattern: surface-lightness steps and borders convey depth, not drop shadows. Shadows are reserved for truly floating elements (the detail panel drawer). This avoids the "invisible shadow on dark background" problem.
 - **`@html` for markdown rendering** — uses `marked` to render ticket bodies. Trusted content: only renders local ticket files from `agent/tickets/`, never user-submitted content.
 - **TypeScript ticket module mirrors Python `tickets.py`** — same YAML frontmatter format, same file discovery pattern (`t\d+.*\.md`), same sort order. The board reads the same files the `/roadmap` and `/workon` skills write.
 - **Tickets directory via env var with fallback** — `BOARD_TICKETS_DIR` env var if set, otherwise `path.resolve(process.cwd(), "../../../agent/tickets")`. The env var exists primarily for E2E test fixture isolation (pointing the dev server at a temp directory of synthetic tickets). Still fragile for production use; should be improved to use a SvelteKit `$env` variable (T25).
@@ -93,7 +109,7 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 - `src/routes/+page.server.ts` — SSR data loading (all tickets grouped by status, epic list)
 - `src/routes/+page.svelte` — page layout, search state, epic filter state, detail panel toggle
 - `src/routes/api/tickets/[id]/+server.ts` — PATCH endpoint for status changes
-- `src/app.css` — dark theme tokens (surface, text, border, status, epic) and prose overrides
+- `src/app.css` — dark theme tokens (surface, text, border, status, accent) and prose overrides
 - `playwright.config.ts` — Playwright config (Chromium, single worker, fixture dir, dev server)
 - `e2e/fixtures.ts` — test fixture definitions (root + subdirectory tickets) and temp directory helpers
 - `e2e/board.test.ts` — board rendering E2E tests (columns, cards, epic group sorting)
