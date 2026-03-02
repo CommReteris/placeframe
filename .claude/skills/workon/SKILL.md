@@ -33,6 +33,8 @@ Enter plan mode. Explore the codebase and design the implementation approach.
 
 The plan captures **strategic decisions** — what to build, which approach, which files to touch, and why. It does not need to capture every implementation detail. A fresh session reading the plan should be able to skip exploration and go straight to reading the files it needs to modify. It should NOT need to re-discover the architecture or re-evaluate approaches.
 
+**Sizing check.** After exploring but before writing the plan, evaluate the ticket against the sizing heuristics in `ticket-format.md`. If the scope turns out to be larger than the ticket anticipated — the Key Files list is long, the approach requires changes across unrelated subsystems, or the implementation would exceed ~400 lines of meaningful change — stop planning and flag this to the user. Propose a decomposition into smaller tickets. Do not write a plan for an oversized ticket.
+
 Before calling ExitPlanMode:
 
 1. Copy the session plan file verbatim to `agent/plans/t{N}-plan.md`. This is the canonical copy — the session plan file is ephemeral and will be lost. Do not summarize, condense, or rewrite; the repo file must be identical to the session file. The plan should include:

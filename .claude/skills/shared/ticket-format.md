@@ -84,6 +84,30 @@ Plan files in `agent/plans/` capture the strategic decisions made during the pla
 
 The plan captures enough for a fresh session to skip exploration and go straight to reading/modifying the right files. It does not need to capture every implementation detail — sessions rebuild that context by reading source files during the warm-up phase.
 
+## Ticket sizing
+
+Four constraints determine whether a ticket is the right size. Ordered by durability — the first two are permanent, the last two relax as tooling improves.
+
+### Too big
+
+A ticket is too big if it violates any of these:
+
+1. **Reviewability.** The output must be reviewable in one focused human pass — roughly 400 lines of meaningful change and under 60 minutes of review time. If the reviewer would need to context-switch between unrelated concerns, the ticket is too big. (Grounded in the SmartBear/Cisco code review study: defect detection drops sharply past ~400 lines.)
+
+2. **Atomicity.** The change must be describable in one sentence and revertable as a unit. Apply the one-sentence test: if the description requires "and" joining two unrelated actions ("add auth and refactor the DB layer"), it is multiple tickets. If the "and" joins coupled actions ("add sizing rules and enforce them in skills"), apply the coupling test: **would either half ship independently and be useful?** If yes, split. If no, keep — they are one ticket.
+
+3. **Recoverability.** If a session fails mid-ticket, restarting from scratch should not be painful. A ticket should be completable in a single agent session without context compaction. If the scope is large enough that losing a session means losing hours of work, split.
+
+4. **Context capacity.** The agent must hold the ticket's Key Files, implementation, and tests in working memory without degradation. If the Key Files section lists more files than can be read and understood alongside the implementation work, the ticket is too big. (Agent success rates are 70-80% for tasks a skilled human completes in 1-2 hours, dropping below 20% for 4+ hour tasks per METR's HCAST benchmark.)
+
+**When you discover a ticket is too big during planning:** stop planning, propose a decomposition to the user, create the new tickets, and update dependencies. Do not barrel ahead into a large implementation.
+
+### Too small
+
+A change does not need a ticket if it involves **no design decisions and no review value** — the ticket ceremony (frontmatter, context, plan, done-when) exists to support decisions. Examples: renaming a variable, fixing a typo, updating a version number. Just make the change directly.
+
+If several too-small changes are thematically related, they can be grouped into one ticket — but only if the group itself passes the atomicity test (one sentence, one reviewable concern).
+
 ## Shared context
 
 `agent/tickets/ci/ci-background.md` is shared context for CI-related tickets (T1-T8). It is NOT a ticket — no frontmatter. Shared context files can live in epic directories alongside tickets.

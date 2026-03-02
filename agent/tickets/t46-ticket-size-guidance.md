@@ -1,33 +1,36 @@
 ---
 id: T46
-title: Add ticket sizing guidance to ticket-format.md
-status: design-needed
+title: Add ticket sizing discipline — rules, creation check, planning escape hatch
+status: in-review
 depends_on: []
 ---
 
-# T46: Add ticket sizing guidance to ticket-format.md
+# T46: Add ticket sizing discipline — rules, creation check, planning escape hatch
 
 ## Goal
 
-Add guidance to ticket-format.md on when a ticket is too big and should be split, or too small to warrant its own ticket.
+Add sizing guidance to ticket-format.md and wire enforcement into the roadmap (creation) and workon (planning) skills.
 
 ## Context
 
-No sizing guidance exists. Some candidate heuristics, none obviously correct:
+No sizing guidance exists. After research (agent/research/) and design discussion, settled on four structural constraints grounded in empirical evidence rather than arbitrary thresholds: reviewability, atomicity, recoverability, and context capacity. Also defined a coupling test to disambiguate the common case where individual changes are too small but naturally belong together, and a "too small" heuristic based on whether design decisions exist.
 
-- **Numeric threshold**: "If Done-when has more than N criteria, consider splitting." Simple but arbitrary — some tickets have many small criteria, some have few massive ones.
-- **Session-scoped**: "If the ticket can't be completed in a single /workon session, it's too big." Practical but hard to estimate in advance.
-- **Subsystem-scoped**: "If Done-when criteria span multiple unrelated subsystems, split." Catches the worst cases but misses single-subsystem tickets that are just large.
-- **Review-scoped**: "If the RED phase would produce more tests than you'd want to review in one batch, the ticket is too big." Ties to the TDD workflow but only applies after you've started.
+## Approach
 
-The inverse (too small) is also unclear. A drive-by rename doesn't need a ticket, but where's the line?
-
-This needs a design discussion before committing to a rule.
+Prose-only, three files. Write the sizing rules as a new section in ticket-format.md. Add a sizing check step to the roadmap skill's Create and Import workflows. Add a "ticket too big" escape hatch to workon's planning phase (step 3a). All three reference ticket-format.md as the single source of truth for the rules themselves.
 
 ## Key files
 
-- `.claude/skills/shared/ticket-format.md`
+- `.claude/skills/shared/ticket-format.md` — new "Ticket sizing" section
+- `.claude/skills/roadmap/SKILL.md` — sizing check in Create and Import workflows
+- `.claude/skills/workon/SKILL.md` — escape hatch in planning phase
 
 ## Done when
 
-- ticket-format.md has sizing guidance that helps decide when to split or merge tickets
+- ticket-format.md has a "Ticket sizing" section with too-big and too-small heuristics, including the coupling test for borderline cases
+- roadmap skill checks proposed scope against sizing heuristics during Create and Import, proposing splits when appropriate
+- workon skill flags oversized tickets discovered during planning and proposes splitting before proceeding
+
+## Log
+
+Clean implementation, no issues.

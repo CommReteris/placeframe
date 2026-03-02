@@ -22,18 +22,20 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 1. Read all `agent/tickets/**/t*.md` files to find the highest ticket number.
 2. Assign the next T-number (e.g., if T17 exists, the new ticket is T18).
 3. Ask the user for: title, status (default `design-needed`), dependencies (default `[]`), and a brief goal.
-4. Ask which epic to place the ticket in (list existing epic directories, plus "root" for ungrouped). Default to root if the user doesn't specify.
-5. Write `agent/tickets/{epic}/t{N}-{slug}.md` (or `agent/tickets/t{N}-{slug}.md` for root) with full ticket structure (frontmatter + Goal/Context/Approach/Done-when sections). Slug is derived from the title: lowercase, hyphens, no special characters.
-6. Offer to `/commit`.
+4. **Check sizing.** Evaluate the proposed scope against the sizing heuristics in `ticket-format.md`. If the goal implies multiple unrelated actions (fails the one-sentence test), or the scope would likely exceed ~400 lines of change or touch many unrelated subsystems, propose a decomposition — suggest how to split and what the individual tickets would be. The user decides whether to split or keep as-is.
+5. Ask which epic to place the ticket in (list existing epic directories, plus "root" for ungrouped). Default to root if the user doesn't specify.
+6. Write `agent/tickets/{epic}/t{N}-{slug}.md` (or `agent/tickets/t{N}-{slug}.md` for root) with full ticket structure (frontmatter + Goal/Context/Approach/Done-when sections). Slug is derived from the title: lowercase, hyphens, no special characters.
+7. Offer to `/commit`.
 
 ## 2. Import
 
 1. Accept a list of items from the user — could be bullet points, numbered list, freeform text, or pasted from elsewhere.
 2. Extract discrete ticket ideas. For each: derive a title, suggest a status (default `design-needed`), and identify dependencies on existing tickets.
-3. Ask which epic to place the batch in (or root). All tickets in a single import go to the same epic by default, but the user can override per-ticket during review.
-4. Present the parsed list for user review. Allow edits, deletions, and reordering.
-5. After approval, create all ticket files (same process as Create, in sequence).
-6. Offer to `/commit`.
+3. **Check sizing.** Evaluate each proposed ticket against the sizing heuristics in `ticket-format.md`. Flag any that fail the one-sentence test or appear too large, and suggest splits. Also flag items that appear too small (no design decisions) and suggest grouping or dropping them.
+4. Ask which epic to place the batch in (or root). All tickets in a single import go to the same epic by default, but the user can override per-ticket during review.
+5. Present the parsed list for user review. Allow edits, deletions, and reordering.
+6. After approval, create all ticket files (same process as Create, in sequence).
+7. Offer to `/commit`.
 
 ## 3. Query
 
