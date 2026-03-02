@@ -52,10 +52,7 @@ def install_host_dependencies() -> None:
 
 def configure_firewalld() -> None:
     print("Configuring firewalld...")
-    try:
-        run_command("sudo ufw disable")
-    except CalledProcessError:
-        pass
+    check_command("sudo ufw disable")
     run_command("sudo systemctl enable --now firewalld")
 
     username = getpass.getuser()
@@ -64,10 +61,7 @@ def configure_firewalld() -> None:
     run_command("sudo chmod 440 /etc/sudoers.d/coi-firewalld")
     run_command("sudo visudo -cf /etc/sudoers.d/coi-firewalld")
 
-    try:
-        run_command("sudo firewall-cmd --permanent --new-zone=incus")
-    except CalledProcessError:
-        pass
+    check_command("sudo firewall-cmd --permanent --new-zone=incus")
 
 
 def ensure_subuid_subgid() -> None:
@@ -116,24 +110,15 @@ def configure_firewall_rules() -> None:
         "--add-service=dns",
         "--add-masquerade",
     ]:
-        try:
-            run_command(f"sudo firewall-cmd --permanent --zone=incus {rule}")
-        except CalledProcessError:
-            pass
-    try:
-        run_command("sudo firewall-cmd --reload")
-    except CalledProcessError:
-        pass
+        check_command(f"sudo firewall-cmd --permanent --zone=incus {rule}")
+    check_command("sudo firewall-cmd --reload")
 
 
 def add_gpu_passthrough() -> None:
     profile_devices = run_command("incus profile device show default")
     if "gpu:" not in profile_devices:
         print("Adding GPU passthrough to default profile...")
-        try:
-            run_command("incus profile device add default gpu gpu")
-        except CalledProcessError:
-            pass
+        check_command("incus profile device add default gpu gpu")
 
 
 def install_coi_binary() -> None:
@@ -168,10 +153,7 @@ def build_base_image() -> None:
 def build_placeframe_image(rebuild: bool) -> None:
     if rebuild:
         print(f"Removing existing {PLACEFRAME_IMAGE} image (--rebuild)...")
-        try:
-            run_command(f"incus image delete {PLACEFRAME_IMAGE}")
-        except CalledProcessError:
-            pass
+        check_command(f"incus image delete {PLACEFRAME_IMAGE}")
 
     if not check_command(f"incus image info {PLACEFRAME_IMAGE}"):
         build_script = Path(__file__).resolve().parents[3] / "agent" / "coi-placeframe-build.sh"
