@@ -1,7 +1,7 @@
 ---
 id: T34
 title: Add git state pre-flight check to commit skill
-status: ready
+status: done
 depends_on: []
 ---
 

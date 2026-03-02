@@ -1,7 +1,7 @@
 ---
 id: T35
 title: Add empty-diff early exit to commit skill
-status: ready
+status: done
 depends_on: []
 ---
 

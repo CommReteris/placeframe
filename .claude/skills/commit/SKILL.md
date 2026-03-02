@@ -6,9 +6,11 @@ argument-hint: "[hint-text]"
 
 Create a git commit of current changes with a clear, accurate commit message. If the user provided arguments (e.g. `/commit T4 branch strategy`), use them as hints for the message. Follow these steps:
 
+0. **Check git state**: Run `git status`. If the output indicates a rebase, merge, or cherry-pick in progress (e.g. "interactive rebase in progress", "You have unmerged paths", "cherry-pick in progress"), tell the user what state git is in and stop. Do not proceed with the commit flow.
+
 1. **Read the style guide**: Read `.claude/skills/shared/commit-style.md` for commit message conventions.
 
-2. **Understand the changes**: Run `git status` and `git diff` (staged and unstaged) to see exactly what changed. Read specific files if the diff alone isn't clear enough to write an accurate message.
+2. **Understand the changes**: Run `git status` and `git diff` (staged and unstaged) to see exactly what changed. If there are no staged changes, no unstaged modifications, and no untracked files, say "Nothing to commit" and stop. Read specific files if the diff alone isn't clear enough to write an accurate message.
 
 3. **Check for prose/code mix**: Classify dirty files as prose (markdown, text, skill files, research notes) or code (Python, configs, .gitignore, pyproject.toml). If both groups are present, commit them separately — stage and commit one group first, then the other. Follow the remaining steps for each group independently. If a file doesn't clearly fit either category, ask the user which group it belongs in.
 
