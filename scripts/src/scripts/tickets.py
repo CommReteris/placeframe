@@ -4,7 +4,7 @@ from typing import Any
 
 import yaml
 
-PLANS_DIRECTORY = Path(__file__).resolve().parent.parent.parent.parent / "agent" / "plans"
+TICKETS_DIRECTORY = Path(__file__).resolve().parent.parent.parent.parent / "agent" / "tickets"
 
 STATUSES = ["blocked", "design-needed", "plan-needed", "ready", "done"]
 
@@ -47,7 +47,7 @@ def load_ticket(path: Path) -> Ticket:
 
 
 def load_tickets(directory: Path | None = None) -> list[Ticket]:
-    directory = directory or PLANS_DIRECTORY
+    directory = directory or TICKETS_DIRECTORY
     tickets = []
     for path in sorted(directory.glob("t*.md"), key=_ticket_sort_key):
         text = path.read_text(encoding="utf-8")
@@ -71,7 +71,7 @@ def tickets_by_status(tickets: list[Ticket]) -> dict[str, list[Ticket]]:
 
 
 def update_ticket_status(ticket_id: str, new_status: str, directory: Path | None = None) -> None:
-    directory = directory or PLANS_DIRECTORY
+    directory = directory or TICKETS_DIRECTORY
     for path in directory.glob("t*.md"):
         text = path.read_text(encoding="utf-8")
         if not text.startswith("---\n"):

@@ -1,7 +1,7 @@
 import { json, error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types.js";
 import { loadTickets, updateTicketStatus, STATUSES } from "$lib/tickets.js";
-import { PLANS_DIRECTORY } from "$lib/server/plans-dir.js";
+import { TICKETS_DIRECTORY } from "$lib/server/tickets-dir.js";
 
 export const PATCH: RequestHandler = async ({ params, request }) => {
 	const body = (await request.json()) as Record<string, unknown>;
@@ -15,7 +15,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	}
 
 	try {
-		updateTicketStatus(params.id, newStatus, PLANS_DIRECTORY);
+		updateTicketStatus(params.id, newStatus, TICKETS_DIRECTORY);
 	} catch (e) {
 		if (e instanceof Error && e.message.includes("not found")) {
 			error(404, e.message);
@@ -23,7 +23,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		throw e;
 	}
 
-	const tickets = loadTickets(PLANS_DIRECTORY);
+	const tickets = loadTickets(TICKETS_DIRECTORY);
 	const updated = tickets.find((t) => t.id === params.id);
 	return json(updated);
 };
