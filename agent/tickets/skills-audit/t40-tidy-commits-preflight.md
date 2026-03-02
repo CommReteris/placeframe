@@ -1,7 +1,7 @@
 ---
 id: T40
 title: Move uncommitted-changes check to step 0 in tidy-commits
-status: ready
+status: done
 depends_on: []
 ---
 
