@@ -33,7 +33,7 @@ The plan captures **strategic decisions** — what to build, which approach, whi
 
 Before calling ExitPlanMode:
 
-1. Write the plan to `agent/plans/t{N}-plan.md`. Include:
+1. Copy the session plan file verbatim to `agent/plans/t{N}-plan.md`. This is the canonical copy — the session plan file is ephemeral and will be lost. Do not summarize, condense, or rewrite; the repo file must be identical to the session file. The plan should include:
    - **Context**: why this change is needed (1-2 sentences, not a copy of the ticket Goal)
    - **Approach**: numbered steps describing what to build and how, with rationale for non-obvious decisions
    - **Key files**: files to create and modify, with brief notes on what changes in each

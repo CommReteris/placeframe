@@ -1,8 +1,9 @@
 ---
 id: T26
 title: Add epic support to ticket system
-status: plan-needed
+status: ready
 depends_on: []
+plan: t26-plan.md
 ---
 
 # T26: Add epic support to ticket system
@@ -47,7 +48,7 @@ Standalone tickets (T5, T6, T9, T14, T16, T17, T26, T46) stay at root.
 
 ## Approach
 
-TBD — entering planning phase.
+Extend the ticket system with directory-based epics. Update the three skill files (ticket-format, roadmap, workon) to document the convention and use recursive glob patterns. Make the board's `tickets.ts` scan subdirectories recursively. Create five epic directories (ci, zed, board, specs, skills-audit) with EPIC.md files and move ~40 tickets into them as proof-of-concept. Full plan in `agent/plans/t26-plan.md`.
 
 ## Done when
 
