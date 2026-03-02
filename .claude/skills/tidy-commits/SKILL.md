@@ -24,37 +24,55 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
    - Write a clear commit message for each planned commit following the style guide.
    - Do NOT present the plan for conversational approval — the Write tool permission prompt is the gate.
 
-4. **Write the commit-building script:**
-   - First, **delete any existing `tidy-commits.sh`** using the Bash tool (`rm -f tidy-commits.sh`) so the user sees the new script cleanly instead of a meaningless diff against an old version.
-   - Then use the Write tool to create a fresh `tidy-commits.sh` in the repo root.
-   - The wrapper script (`uv run tidy-commits-wrapper`) handles backup, invariance checking, and rollback. The generated script only builds commits. It receives three environment variables from the wrapper: `$BRANCH`, `$BASE`, and `$BACKUP`. Use these — do NOT compute them.
-   - The script should:
-     - `set -euo pipefail` for safety
-     - Build new commits on a **temporary branch** (e.g. `${BRANCH}-tmp`) starting from `$BASE`
-     - Use `git checkout $BACKUP -- <files>` to pull files from the backup. **NEVER use `git add -A` or `git add .`** — these will pick up untracked files (like the script itself). Instead, `git checkout ... -- <files>` already stages the files, so just run `git commit` directly without a separate add step.
-     - **Preserve original commit authors**: When a new commit maps to a single original commit, use `--author="Name <email>"` with the original commit's author. When a new commit merges multiple original commits, use the author from the earliest one (or the most common one if they differ). Read authors during analysis with `git log --format="%an <%ae>" <base>..HEAD`.
-     - **Set committer identity explicitly**: Export `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` at the top of the script to match the author. Environment variables (e.g. from a container) can override `git config`, so always set these explicitly.
-     - On success, move the **original branch name** to the new commits: `git branch -f $BRANCH ${BRANCH}-tmp`
-     - Switch back to the original branch: `git checkout $BRANCH`
-     - Delete the temp branch: `git branch -d ${BRANCH}-tmp`
-   - **Do NOT create a backup branch** — the wrapper handles this.
-   - **Do NOT verify tree invariance** — the wrapper handles this.
-   - **Do NOT include `tidy-commits.sh` in any of the new commits.** It's a temporary utility, not project code.
-   - Do NOT present the script for conversational review. The user reviews it when the Write tool prompts for approval.
+4. **Write the commit plan:**
+   - First, **delete any existing `tidy-commits.json`** using the Bash tool (`rm -f tidy-commits.json`) so the user sees the new plan cleanly instead of a meaningless diff against an old version.
+   - Then use the Write tool to create a fresh `tidy-commits.json` in the repo root.
+   - The wrapper script (`uv run tidy-commits-wrapper`) handles backup, invariance checking, and rollback. The plan only declares commits.
+   - Read authors during analysis with `git log --format="%an <%ae>" <base>..HEAD`.
+
+   **JSON schema:**
+   ```json
+   {
+     "committer": { "name": "Full Name", "email": "email@example.com" },
+     "commits": [
+       {
+         "message": "Subject line\n\n- Body bullet",
+         "author": "Full Name <email@example.com>",
+         "checkout": ["path/to/file"],
+         "delete": ["path/to/old_file"],
+         "content": { "path/to/partial_file": "full intermediate content" }
+       }
+     ]
+   }
+   ```
+
+   **Field reference:**
+   - `committer`: Sets `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` for all commits. Use the most common author from the branch.
+   - `message`: Full commit message. Use `\n` for newlines (it's JSON).
+   - `author`: Per-commit `--author` flag. When a new commit maps to a single original commit, use that commit's author. When merging multiple, use the earliest.
+   - `checkout`: Files to `git checkout $BACKUP -- <files>`. Auto-staged by git. This covers 95% of cases. **Every path must exist in the backup** — verify with the file analysis from step 2.
+   - `delete`: Files to `git rm`. Use for deletions and the old-path side of renames.
+   - `content`: Dict of filepath → literal file content string. Use for partial file splits where a file's changes need to appear in different commits (see step 5). The wrapper writes the content and runs `git add`.
+   - Each commit must have at least one of `checkout`, `delete`, or `content`.
+
+   - **Preserve original commit authors**: When a new commit maps to a single original commit, use `author` with the original commit's author. When a new commit merges multiple original commits, use the author from the earliest one (or the most common one if they differ).
+   - **Do NOT include `tidy-commits.json` in any of the new commits.** It's a temporary artifact, not project code.
+   - Do NOT present the plan for conversational review. The user reviews it when the Write tool prompts for approval.
 
 5. **Handle partial file splits (if needed):**
-   - Sometimes a single file has changes belonging to different logical commits. This requires generating patches and applying specific hunks — which is fragile and hard to review in a script.
-   - **We don't have a reliable automated approach for this yet.** If the plan requires splitting a file across commits, flag this to the user and discuss how to handle it before writing the script.
+   - Sometimes a single file has changes belonging to different logical commits. Use the `content` field for this.
+   - For the earlier commit(s), set `content` to the file's intermediate state (the full file content as it should exist at that point in history).
+   - For the final commit that includes the file's ultimate state, use `checkout` to pull the final version from the backup.
+   - Example: if `config.py` has both a refactor change and a feature change, the refactor commit uses `"content": {"config.py": "...refactored version..."}` and the feature commit uses `"checkout": ["config.py"]`.
 
-6. **Run the wrapper** immediately after writing the script: `uv run tidy-commits-wrapper`. Then report the result.
+6. **Run the wrapper** immediately after writing the plan: `uv run tidy-commits-wrapper`. Then report the result.
 
 ## Important rules
 
-- NEVER use `git rebase -i` — it requires interactive input. Instead, build commits from scratch on a new branch.
-- NEVER use `$()` command substitution or `for` loops over git output in Bash commands — these trigger permission prompts every time. Use single git commands (e.g., `git log --reverse --oneline --name-only`) instead.
+- NEVER use `git rebase -i` — it requires interactive input. Instead, the plan builds commits from scratch on a new branch.
 - NEVER force-push or delete branches without explicit user approval.
 - NEVER delete backup branches. The wrapper auto-numbers them (`-backup`, `-backup-2`, etc.) when previous backups exist.
 - NEVER modify commits on main.
 - If there are uncommitted changes, ask the user to commit or stash them first.
 - If the branch has only 1 commit already, ask the user if they still want to proceed.
-- **File renames**: When original commits renamed files (e.g., `a.md` → `b.md`), the script must `git rm` the old filename in the same commit that checks out the new filename. Check `git diff <base>..HEAD --stat` for renames.
+- **File renames**: When original commits renamed files (e.g., `a.md` → `b.md`), use `delete` for the old filename in the same commit that checks out the new filename. Check `git diff <base>..HEAD --stat` for renames.

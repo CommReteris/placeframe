@@ -13,7 +13,7 @@ Add a permission allow rule to `.claude/settings.json`. The user just encountere
 
 **One gate per skill**: Each skill should have exactly one prompted tool call — the one where the user reviews the skill's output. Everything else (reads, staging, cleanup) should be auto-allowed. Examples:
 - `/commit`: gate = `git commit` (user reviews the message)
-- `/tidy-commits`: gate = `Write(tidy-commits.sh)` (user reviews the script)
+- `/tidy-commits`: gate = `Write(tidy-commits.json)` (user reviews the plan)
 
 **Consequence**: `git add` is safe to auto-allow — it only stages pre-approved content. The commit is the gate. Write commands that are mechanical steps *after* an approval gate (like `uv run tidy-commits-wrapper` running an already-approved script) are also safe.
 
@@ -32,7 +32,7 @@ Add a permission allow rule to `.claude/settings.json`. The user just encountere
 
    **Pre-approved writes** — safe to auto-allow (see strategy above):
    - `git add` — only stages content already approved through Edit/Write prompts
-   - Specific cleanup commands tied to a skill (e.g. `rm -f tidy-commits.sh`)
+   - Specific cleanup commands tied to a skill (e.g. `rm -f tidy-commits.json`)
    - Execution of an already-approved artifact (e.g. `uv run tidy-commits-wrapper`)
 
    **Unapproved writes** — must stay prompted, refuse to auto-allow:
