@@ -7,7 +7,6 @@ Manage the Placeframe roadmap tickets. Four workflows: create, import, query, re
 
 Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, statuses).
 Ticket files: `agent/tickets/t*.md`.
-Python module: `scripts/src/scripts/tickets.py` (parse, load, update).
 
 ## Determine workflow
 
@@ -35,7 +34,7 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 
 ## 3. Query
 
-1. Load all tickets using `load_tickets()` pattern (read frontmatter from all `agent/tickets/t*.md`).
+1. Read frontmatter from all `agent/tickets/t*.md` files.
 2. Apply filters based on user request:
    - **By status**: e.g., "show me all ready tickets"
    - **By dependency**: e.g., "what depends on T5?"
@@ -46,7 +45,7 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 ## 4. Reorganize
 
 Handle structural changes to the roadmap:
-- **Change status**: Update frontmatter via `update_ticket_status()` pattern. Validate the transition makes sense.
+- **Change status**: Update the `status` field in the ticket's YAML frontmatter. Validate the transition makes sense.
 - **Update dependencies**: Edit `depends_on` in frontmatter. Warn about circular dependencies.
 - **Merge tickets**: Combine two tickets into one. Move content from the absorbed ticket into the survivor. Mark the absorbed ticket as done with a note.
 - **Split ticket**: Break one ticket into multiple. Create new tickets and update the original.

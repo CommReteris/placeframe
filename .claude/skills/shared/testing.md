@@ -11,7 +11,7 @@ Tests live alongside the code they test:
 - `docker/localizer/tests/` for localizer tests
 - `scripts/tests/` for scripts package tests
 
-Mirror the source structure. If the module is `scripts/src/scripts/tickets.py`, the test is `scripts/tests/test_tickets.py`.
+Mirror the source structure. If the module is `scripts/src/scripts/build.py`, the test is `scripts/tests/test_build.py`.
 
 ## Naming
 

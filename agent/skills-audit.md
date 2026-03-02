@@ -6,7 +6,7 @@ Audited: 2026-03-02
 
 ## Summary
 
-The skill suite is unusually well-designed. The permission strategy (one gate per skill), prose/code commit separation, TDD enforcement with human review gates, and user-owned spec convention are all ahead of what the community typically does. The issues found are mostly about missing frontmatter features, a few edge cases in skill logic, and opportunities to harden security using newer Claude Code capabilities.
+The skill suite is unusually well-designed. The permission strategy (one gate per skill), prose/code commit separation, TDD enforcement with human review gates, and user-owned spec convention are all ahead of what the community typically does. The issues found are mostly about missing frontmatter features, a few edge cases in skill logic, and opportunities to harden security using newer Claude Code capabilities. The tidy-commits shell injection risk identified during audit has been resolved by landing the JSON plan + Pydantic executor that was previously stranded on a backup branch.
 
 Severity labels: **high** = could cause incorrect behavior or data loss; **medium** = missed opportunity or friction; **low** = cosmetic or minor improvement.
 
@@ -99,16 +99,16 @@ Severity labels: **high** = could cause incorrect behavior or data loss; **mediu
 ### 6. tidy-commits
 
 **What it does well:**
-- The wrapper/script separation is excellent — deterministic safety (backup, invariance check, rollback) is separate from LLM-generated logic
+- The wrapper/plan separation is excellent — deterministic safety (backup, invariance check, rollback) is separate from LLM-generated logic
+- JSON plan + Pydantic executor eliminates shell injection entirely (commit messages are passed as Python strings to `run_command`, never interpolated into shell)
+- Pydantic validation catches malformed plans before any git operations begin
+- `content` field enables partial file splits that were previously unsupported
 - "Never use `git rebase -i`" shows awareness of interactive-input limitation
-- File rename handling guidance is a subtle but important edge case
-- The "partial file splits" honest admission (step 5) is better than pretending it works
+- File rename handling guidance via `delete` field is a subtle but important edge case
 
 **Issues:**
 
-- **[high] Race condition with uncommitted changes.** Step 6 says "If there are uncommitted changes, ask the user to commit or stash them first." But this check is listed at the end, in the "Important rules" section, not in the main flow. By step 4 (writing the script), the skill has already invested significant work. Move the uncommitted-changes check to step 0, before any analysis.
-
-- **[medium] Script injection risk.** The generated `tidy-commits.sh` includes commit messages derived from git log output, which could contain shell metacharacters (backticks, `$()`, quotes). If a commit message contains `$(rm -rf /)`, it would execute when the bash script runs. The wrapper runs the script with `bash tidy-commits.sh`, not in a sandbox. Mitigation: instruct the script to use `git commit -m` with proper quoting, or better, use `git commit -F <(echo "...")` with a temp file approach. At minimum, add a note: "Escape or single-quote all commit messages in the generated script to prevent shell injection."
+- **[medium] Uncommitted-changes check is buried.** The "Important rules" section says "If there are uncommitted changes, ask the user to commit or stash them first." But this is at the end, not in the main flow. By step 4 (writing the plan), the skill has already invested significant work. Move this check to step 0, before any analysis.
 
 - **[medium] No `disable-model-invocation: true`.** This skill rewrites git history. It should never auto-trigger — only on explicit `/tidy-commits`. Add the frontmatter field.
 
@@ -231,7 +231,7 @@ When a skill is modified, there's no record of what changed or why. Skills are c
 
 2. **Consider a shared "pre-flight check" pattern.** Multiple skills need to verify git state before starting (clean tree, not in rebase, etc.). This could be a shared reference file (`.claude/skills/shared/git-preflight.md`) that skills reference, avoiding duplication.
 
-3. **The `tickets.py` module could do more.** It provides `load_tickets()` and `update_ticket_status()` but skills also need: validate dependency references, find next ticket number, check for circular dependencies. Some of this logic is duplicated in skill prose (roadmap steps 1-2, workon step 1). Consider extending the module.
+3. ~~**The `tickets.py` module could do more.**~~ **Resolved** — `tickets.py` was dead code (a reference implementation Claude read but never executed). Deleted; skill references simplified to direct instructions.
 
 4. **Testing conventions should cover TypeScript.** The project has a SvelteKit app with Vitest tests. The testing.md shared reference only covers Python/pytest. Either extend it or create a separate `testing-web.md`.
 
@@ -243,7 +243,7 @@ When a skill is modified, there's no record of what changed or why. Skills are c
 
 1. Add `disable-model-invocation: true` to tidy-commits and allow-tool
 2. Move tidy-commits' uncommitted-changes check to step 0
-3. Add shell-injection mitigation note to tidy-commits script generation instructions
+3. ~~Add shell-injection mitigation note to tidy-commits script generation instructions~~ **Resolved** — JSON plan + Pydantic executor eliminates shell injection entirely
 4. Add `argument-hint` to workon, roadmap, and backfill-spec
 
 ### Do soon (medium-value, medium-effort)

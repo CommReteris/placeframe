@@ -9,7 +9,7 @@ Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, st
 
 ## 1. Select ticket
 
-Read frontmatter from all `agent/tickets/t*.md` files using the `parse_frontmatter()` pattern from `scripts/src/scripts/tickets.py`. If the user specified a ticket (e.g. `/workon T4`), use that one. Otherwise, list tickets grouped by status and ask.
+Read frontmatter from all `agent/tickets/t*.md` files. If the user specified a ticket (e.g. `/workon T4`), use that one. Otherwise, list tickets grouped by status and ask.
 
 ## 2. Read the detail file
 
@@ -115,4 +115,4 @@ Update the ticket's frontmatter status to `done`.
 
 ## 8. Commit
 
-Offer to `/commit` or `/tidy-commits` as appropriate. Remember: separate prose and code commits.
+Offer to `/commit`. Remember: separate prose and code commits.

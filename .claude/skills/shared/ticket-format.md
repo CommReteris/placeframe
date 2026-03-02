@@ -74,8 +74,3 @@ The plan captures enough for a fresh session to skip exploration and go straight
 
 `agent/tickets/ci-background.md` is shared context for CI-related tickets (T1-T8). It is NOT a ticket — no frontmatter.
 
-## Programmatic access
-
-`scripts/src/scripts/tickets.py` provides:
-- `load_tickets()` — parse all ticket files, return list of Ticket dataclass instances
-- `update_ticket_status(ticket_id, new_status)` — update frontmatter in place
