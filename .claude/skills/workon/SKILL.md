@@ -58,7 +58,7 @@ Call ExitPlanMode when you have enough context to implement. Proceed to step 4.
 
 ## 4. TDD implementation cycle
 
-When status is `ready`, implement using Red-Green-Refactor.
+When status is `ready`, implement using Red-Green-Refactor. If the ticket is prose-only (skill files, shared docs, tickets — no code changes), skip TDD and make the edits directly.
 
 ### RED phase — write failing tests
 
