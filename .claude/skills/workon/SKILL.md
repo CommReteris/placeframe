@@ -24,6 +24,7 @@ If the ticket's frontmatter has a `plan` field, also read the referenced plan fi
 - **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the frontmatter status to `plan-needed`. Proceed to step 4.
 - **`plan-needed`** — If the ticket already has a `plan` field (i.e. it was moved back to `plan-needed` for revision), go to step 3c (revise plan). Otherwise go to step 3a (create plan).
 - **`ready`** — Go to step 3b (warm up from plan) if the ticket has a `plan` field. Otherwise go directly to step 4 (implement).
+- **`in-review`** — Inform the user the ticket is awaiting their review. Ask if they want to move it to `done` (accept) or back to an earlier status (rework needed).
 - **`done`** — Inform the user the ticket is done and ask if they want to reopen it.
 
 ### 3a. Create plan (status: `plan-needed`)
@@ -126,9 +127,17 @@ If the ticket added new behaviors, modified existing behaviors, or introduced ne
 
 If no SPEC.md exists and the feature is not yet mature enough for a spec, do not pressure the user — simply note that no spec exists and move on.
 
-## 7. Complete
+## 7. Submit for review
 
-Update the ticket's frontmatter status to `done`.
+Update the ticket's frontmatter status to `in-review`.
+
+Add a `## Log` section to the ticket body. This section records what was tried and failed during implementation, and what was changed to resolve each failure:
+
+- For each failure encountered (test failures, wrong approaches, dead ends): describe what was tried, why it failed, and what was changed to keep going.
+- Only record failures and pivots — not a summary of what was built or a restatement of the approach.
+- If implementation was clean with no failures, write "Clean implementation, no issues."
+
+The `## Log` section is always present once a ticket reaches `in-review`.
 
 ## 8. Commit
 

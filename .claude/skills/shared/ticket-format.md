@@ -30,11 +30,14 @@ Ordered by lifecycle progression:
 | `design-needed` | Design needed | Open questions must be discussed before planning |
 | `plan-needed` | Plan needed | Enter plan mode, write approach, get user approval |
 | `ready` | Ready | Approved plan exists, start implementing |
-| `done` | Done | Implemented and verified |
+| `in-review` | In review | Implementation complete, awaiting human review |
+| `done` | Done | Reviewed and accepted by a human |
 
 ## Status transitions
 
-Normal flow: `design-needed` → `plan-needed` → `ready` → `done`
+Normal flow: `design-needed` → `plan-needed` → `ready` → `in-review` → `done`
+
+Only a human moves a ticket from `in-review` to `done`. The workon skill moves tickets to `in-review` after implementation is verified.
 
 A ticket can enter `blocked` from any status and return to its previous status when unblocked.
 
@@ -68,6 +71,7 @@ After frontmatter, ticket files use this structure:
 - **`## Key files`** — bulleted list of files this ticket creates/modifies
 - **`## Approach`** — brief summary of the implementation strategy (2-5 sentences). If a plan file exists, this summarizes it — the full plan lives in `agent/plans/t{N}-plan.md`.
 - **`## Done when`** — bulleted acceptance criteria, split into "Verifiable now" and "Requires manual verification" where applicable
+- **`## Log`** — records what was tried and failed during implementation, and what was changed to resolve each failure. Always present once implementation begins. If implementation was clean with no issues, state that. This section is written by the workon skill when moving a ticket to `in-review`.
 
 ## Plan files
 

@@ -2,7 +2,7 @@
 id: T20
 title: Playwright E2E testing for board app
 status: blocked
-depends_on: [T18, T51]
+depends_on: [T51]
 plan: t20-plan.md
 ---
 

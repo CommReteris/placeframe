@@ -1,8 +1,8 @@
 ---
 id: T50
 title: Board UI epic grouping
-status: blocked
-depends_on: [T26]
+status: design-needed
+depends_on: []
 ---
 
 # T50: Board UI epic grouping
