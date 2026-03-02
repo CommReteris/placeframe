@@ -63,3 +63,22 @@ Rule of thumb: if the output has a fixed format, show an example. If the output 
 3. **Over-specification.** So much detail the agent has no room for judgment. If unexpected scenarios arise, rigid instructions collapse. Constrain only what's genuinely fragile.
 4. **Under-specification.** Vague instructions expecting Claude to divine intent. "Handle the data appropriately" is not a useful instruction.
 5. **Offering multiple approaches.** "You can use X, Y, or Z" forces a choice the agent shouldn't have to make. Provide a default with an escape hatch for specific cases.
+
+## Upstream workarounds
+
+When a recommended feature is broken upstream, put the caveat **in the reference doc next to the recommendation** — not in CLAUDE.md. This way:
+- The caveat only loads when someone is about to use the broken feature (zero always-loaded cost).
+- Cross-link to the tracking ticket so the caveat gets cleaned up: add the reference doc to the ticket's Key Files and "remove caveat" to its Done-when.
+- Do not put temporary upstream workarounds in CLAUDE.md — they accumulate and go stale.
+
+## Invocation model
+
+Skills are either auto-invoke (Claude fires when user intent matches) or manual-only (user must type the slash command). The decision depends on whether Claude should ever initiate the workflow unprompted.
+
+**Auto-invoke** (frequently used, natural-language triggering is valuable):
+- `/commit`, `/workon`, `/roadmap`, `/research`
+
+**Manual-only** (rare, sensitive, or explicitly user-initiated):
+- `/tidy-commits`, `/allow-tool`, `/debrief`, `/backfill-spec`
+
+Manual-only skills should use `disable-model-invocation: true` in frontmatter, which removes them from context entirely (zero token cost). See the caveat in the Description section above for the current upstream status of this flag.

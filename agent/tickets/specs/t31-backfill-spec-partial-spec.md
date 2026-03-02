@@ -1,7 +1,7 @@
 ---
 id: T31
 title: Handle existing partial SPEC.md in backfill-spec
-status: ready
+status: done
 depends_on: []
 ---
 
@@ -27,3 +27,7 @@ Add a check before step 1: if SPEC.md exists, read it, assess completeness, and 
 
 - backfill-spec detects existing SPEC.md files before starting
 - User is asked how to proceed when a partial spec exists
+
+## Log
+
+Merged into T30 (backfill-spec edge case handling) per ticket sizing guidelines.

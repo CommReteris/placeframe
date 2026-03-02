@@ -1,7 +1,7 @@
 ---
 id: T32
 title: Note shared ticket numbering convention in backfill-spec
-status: ready
+status: done
 depends_on: []
 ---
 
@@ -22,3 +22,7 @@ backfill-spec creates tickets for gaps (step 6) using the next available T-numbe
 ## Done when
 
 - Step 6 notes it uses the same numbering convention as `/roadmap create`
+
+## Log
+
+Merged into T30 (backfill-spec edge case handling) per ticket sizing guidelines.
