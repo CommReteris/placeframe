@@ -22,7 +22,7 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 
 - Opens as a right-side drawer overlay with a semi-transparent backdrop.
 - Displays ticket ID, title, status, dependencies, and the ticket body rendered as HTML via `marked`.
-- Closes on backdrop click, Escape key, or the close button.
+- Closes on backdrop click, Escape key (via `<svelte:window>` so it works regardless of focus), or the close button.
 - The left edge is a drag handle for resizing (minimum 320px, default 672px).
 - Width persists within a session but resets on page reload. Gap: localStorage persistence would be better (T24).
 
@@ -52,14 +52,16 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 - **Native HTML5 drag-and-drop** — uses the browser's built-in drag-and-drop API (`draggable`, `ondragstart`, `ondragover`, `ondrop`) instead of a library. Cards stay in the source column during drag; after drop, `invalidateAll()` reloads data. Simpler, zero-dependency, and testable with Playwright.
 - **`@html` for markdown rendering** — uses `marked` to render ticket bodies. Trusted content: only renders local ticket files from `agent/tickets/`, never user-submitted content.
 - **TypeScript ticket module mirrors Python `tickets.py`** — same YAML frontmatter format, same file discovery pattern (`t\d+.*\.md`), same sort order. The board reads the same files the `/roadmap` and `/workon` skills write.
-- **Tickets directory resolved via `process.cwd()`** — currently `path.resolve(process.cwd(), "../../../agent/tickets")`. This is fragile and couples the app to being run from a specific working directory. Should be improved to use a SvelteKit `$env` variable or similar configuration (T25).
+- **Tickets directory via env var with fallback** — `BOARD_TICKETS_DIR` env var if set, otherwise `path.resolve(process.cwd(), "../../../agent/tickets")`. The env var exists primarily for E2E test fixture isolation (pointing the dev server at a temp directory of synthetic tickets). Still fragile for production use; should be improved to use a SvelteKit `$env` variable (T25).
 - **Pointer capture for resize handle** — ensures smooth dragging even when the cursor moves off the handle during resize.
+- **`data-testid` attributes for E2E** — Column (`data-testid="column-{status}"`) and Card (`data-testid="card-{ticket.id}"`) components carry stable test selectors. These decouple E2E tests from CSS classes and DOM structure.
+- **Playwright E2E with fixture isolation** — Chromium-only, single worker (shared fixture directory), global setup/teardown creates and cleans a temp directory of synthetic ticket files. `beforeEach` resets fixtures so DnD mutations don't leak between tests. DnD tests use synthetic `DragEvent` dispatch (Playwright's `dragTo()` doesn't reliably carry `dataTransfer` data for native HTML5 DnD).
 
 ## Key files
 
 - `src/lib/tickets.ts` — ticket types, YAML frontmatter parsing, file I/O, status grouping
 - `src/lib/tickets.test.ts` — unit tests for all ticket module functions
-- `src/lib/server/tickets-dir.ts` — tickets directory path resolution
+- `src/lib/server/tickets-dir.ts` — tickets directory path resolution (env var override)
 - `src/lib/components/Board.svelte` — column grid, passes tickets and status-change callback to columns
 - `src/lib/components/Column.svelte` — single status column with native drag-and-drop drop target
 - `src/lib/components/Card.svelte` — ticket card (ID, title, dep count)
@@ -69,3 +71,8 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 - `src/routes/+page.svelte` — page layout, search state, detail panel toggle
 - `src/routes/api/tickets/[id]/+server.ts` — PATCH endpoint for status changes
 - `src/app.css` — dark theme tokens and prose overrides
+- `playwright.config.ts` — Playwright config (Chromium, single worker, fixture dir, dev server)
+- `e2e/fixtures.ts` — test fixture definitions and temp directory helpers
+- `e2e/board.test.ts` — board rendering E2E tests (columns, cards, sorting)
+- `e2e/drag-and-drop.test.ts` — DnD E2E tests (move, persist, counts)
+- `e2e/detail-panel.test.ts` — detail panel and search E2E tests

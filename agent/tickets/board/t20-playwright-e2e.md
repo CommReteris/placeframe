@@ -1,7 +1,7 @@
 ---
 id: T20
 title: Playwright E2E testing for board app
-status: blocked
+status: in-review
 depends_on: [T51]
 plan: t20-plan.md
 ---
@@ -45,3 +45,11 @@ Add Playwright with Chromium-only config, a `BOARD_TICKETS_DIR` env var override
 ### Requires manual verification
 - Tests run reliably (no flakiness in DnD tests)
 - Board SPEC.md updated with user approval to reflect E2E testing setup
+
+## Log
+
+- Initial test run: all detail panel and DnD tests failed. Detail panel tests failed because `page.goto("/")` returns before SvelteKit hydration completes, so `onclick` handlers weren't active. Fixed by adding `page.waitForLoadState("networkidle")` after navigation in interaction tests.
+- Playwright's `locator.dragTo()` does not correctly carry `dataTransfer` data for native HTML5 DnD. The drag events fire but `getData("text/plain")` returns empty. Fixed by implementing a `dragCardToColumn()` helper that dispatches synthetic `DragEvent`s with a shared `DataTransfer` object via `page.evaluate()`.
+- Escape key test failed because the `onkeydown` handler was on the panel wrapper div which never received focus. Focus stayed on the card button (behind the backdrop). This was a real bug in DetailPanel.svelte — moved the Escape handler to `<svelte:window>` so it fires regardless of focus state.
+- Resize test failed for two reasons: (1) measuring handle position during the `fly` transition gave wrong coordinates — fixed by waiting 400ms for transition to complete; (2) `page.mouse` doesn't correctly trigger `setPointerCapture` — fixed by using `dispatchEvent("pointerdown/pointermove/pointerup")` directly on the handle locator.
+- Running 3 workers caused fixture interference (shared temp directory + shared dev server). Fixed by setting `workers: 1` in playwright.config.ts.
