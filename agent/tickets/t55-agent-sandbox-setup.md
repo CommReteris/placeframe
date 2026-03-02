@@ -1,8 +1,9 @@
 ---
 id: T55
 title: Rewrite agent sandbox setup in Python and add worktree support
-status: plan-needed
+status: ready
 depends_on: []
+plan: t55-plan.md
 ---
 
 # T55: Rewrite agent sandbox setup in Python and add worktree support
@@ -88,6 +89,10 @@ When launched from a normal repo (`.git` is a directory), pass through to `coi s
 - **`coi-placeframe-build.sh` stays as bash.** COI's `coi build custom --script` requires a bash script. This file is 10 lines and runs inside a throwaway container — not worth abstracting.
 - **`coi-shell` is a Python script** registered as `uv run coi-shell`. It detects worktrees, adds the extra Incus disk device, and delegates to `coi shell`. When not in a worktree, it passes through unchanged.
 - **`agent/setup.sh` is deleted** and replaced by `scripts/src/scripts/setup_sandbox.py`. The `coi-placeframe-build.sh` stays in `agent/` since it's referenced by the setup script during image build.
+
+## Approach
+
+Two new Python scripts replace `agent/setup.sh` and add worktree support. `setup_sandbox.py` is a Typer-based script that translates each section of the bash script into an idempotent function, called in order. `coi_shell.py` is a direct-main wrapper that detects worktrees via `git rev-parse --git-common-dir`, adds an Incus disk device for the main `.git` directory to the container, then delegates to `coi shell`. For non-worktree repos it's a pure passthrough via `exec_command`.
 
 ## Key files
 
