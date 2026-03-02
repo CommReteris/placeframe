@@ -2,13 +2,13 @@
 
 ## What it does
 
-A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket markdown files (with YAML frontmatter) from `agent/tickets/`, displays them across five status columns, and supports drag-and-drop status changes, a resizable detail drawer, and client-side search.
+A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket markdown files (with YAML frontmatter) from `agent/tickets/`, displays them across six status columns, and supports drag-and-drop status changes, a resizable detail drawer, and client-side search.
 
 ## Behaviors
 
 ### Board layout
 
-- When the page loads, renders five columns in order: Blocked, Design needed, Plan needed, Ready, Done.
+- When the page loads, renders six columns in order: Blocked, Design needed, Plan needed, Ready, In review, Done.
 - Each column header shows a colored status dot, the status label, and a ticket count.
 - Tickets are sorted numerically by T-number within each column.
 
@@ -16,7 +16,7 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 
 - Each card displays the ticket ID, title, and dependency count (if any).
 - When a card is clicked, the detail panel opens for that ticket.
-- When a card is dragged to a different column, a PATCH request updates the ticket's status in the frontmatter on disk, then all board data is revalidated.
+- When a card is dragged to a different column (native HTML5 drag-and-drop), a PATCH request updates the ticket's status in the frontmatter on disk, then all board data is revalidated.
 
 ### Detail panel
 
@@ -39,7 +39,7 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 
 ### API
 
-- `PATCH /api/tickets/[id]` — accepts `{ status }`, validates against the five allowed statuses, writes updated frontmatter to disk, returns the updated ticket. Returns 400 for invalid status, 404 if ticket not found.
+- `PATCH /api/tickets/[id]` — accepts `{ status }`, validates against the six allowed statuses, writes updated frontmatter to disk, returns the updated ticket. Returns 400 for invalid status, 404 if ticket not found.
 
 ### Gaps
 
@@ -49,7 +49,7 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 
 - **Dark-only theme with oklch tokens** — all colors defined as CSS custom properties in `@theme`, using oklch for perceptual uniformity. Each status has a distinct hue.
 - **SSR for initial load** — `+page.server.ts` loads all tickets server-side; subsequent interactions (drag-drop, search) are client-side.
-- **svelte-dnd-action for drag-and-drop** — Svelte-native, independently maintained FOSS library. Provides `onconsider`/`onfinalize` events for responsive drag feedback.
+- **Native HTML5 drag-and-drop** — uses the browser's built-in drag-and-drop API (`draggable`, `ondragstart`, `ondragover`, `ondrop`) instead of a library. Cards stay in the source column during drag; after drop, `invalidateAll()` reloads data. Simpler, zero-dependency, and testable with Playwright.
 - **`@html` for markdown rendering** — uses `marked` to render ticket bodies. Trusted content: only renders local ticket files from `agent/tickets/`, never user-submitted content.
 - **TypeScript ticket module mirrors Python `tickets.py`** — same YAML frontmatter format, same file discovery pattern (`t\d+.*\.md`), same sort order. The board reads the same files the `/roadmap` and `/workon` skills write.
 - **Tickets directory resolved via `process.cwd()`** — currently `path.resolve(process.cwd(), "../../../agent/tickets")`. This is fragile and couples the app to being run from a specific working directory. Should be improved to use a SvelteKit `$env` variable or similar configuration (T25).
@@ -60,8 +60,8 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 - `src/lib/tickets.ts` — ticket types, YAML frontmatter parsing, file I/O, status grouping
 - `src/lib/tickets.test.ts` — unit tests for all ticket module functions
 - `src/lib/server/tickets-dir.ts` — tickets directory path resolution
-- `src/lib/components/Board.svelte` — column grid, drag-and-drop state management
-- `src/lib/components/Column.svelte` — single status column with dndzone
+- `src/lib/components/Board.svelte` — column grid, passes tickets and status-change callback to columns
+- `src/lib/components/Column.svelte` — single status column with native drag-and-drop drop target
 - `src/lib/components/Card.svelte` — ticket card (ID, title, dep count)
 - `src/lib/components/DetailPanel.svelte` — resizable right-side drawer with rendered markdown
 - `src/lib/components/SearchBar.svelte` — search input with two-way binding

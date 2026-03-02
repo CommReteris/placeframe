@@ -1,7 +1,8 @@
 ---
 id: T51
 title: Replace svelte-dnd-action with native HTML5 drag-and-drop
-status: plan-needed
+status: ready
+plan: t51-plan.md
 ---
 
 # T51: Replace svelte-dnd-action with native HTML5 drag-and-drop
