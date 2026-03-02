@@ -145,6 +145,11 @@ def install_coi_binary() -> None:
     run_command(f"sudo mv {temporary_path} /usr/local/bin/coi")
 
 
+# `coi build` requires the repo cloned locally because build scripts aren't embedded in the
+# binary. Once a release ships with embedded scripts, we can drop clone_or_update_coi_repo()
+# and the cwd= argument to the build calls below.
+# Upstream: https://github.com/mensfeld/code-on-incus/issues/50
+# Tracking: agent/tickets/T57.md
 def clone_or_update_coi_repo() -> None:
     if not COI_REPO_DIR.exists():
         print("Cloning COI repo...")

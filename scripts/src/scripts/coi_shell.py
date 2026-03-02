@@ -9,8 +9,15 @@ from subprocess import CalledProcessError
 
 import typer
 from common.run_command import check_command, exec_command, run_command
+from scripts.setup_sandbox import PLACEFRAME_IMAGE
 
 DEVICE_NAME = "main-git"
+
+# COI's config.toml supports [defaults] image = "..." but the binary never applies it —
+# PersistentPreRunE only wires up the "persistent" default, not "image". The empty --image
+# flag falls through to the hardcoded "coi" base image. We pass --image explicitly until
+# this is fixed upstream. Tracking: agent/tickets/T56.md
+SHELL_COMMAND = f"coi shell --image {PLACEFRAME_IMAGE}"
 
 app = typer.Typer(add_completion=False)
 
@@ -61,14 +68,14 @@ def coi_shell() -> None:
     main_git_path = detect_worktree()
 
     if main_git_path is None:
-        exec_command("coi shell")
+        exec_command(SHELL_COMMAND)
 
     container_name = compute_container_name(Path.cwd())
 
     if container_exists(container_name):
         assert main_git_path is not None
         add_git_mount(container_name, main_git_path)
-        exec_command("coi shell")
+        exec_command(SHELL_COMMAND)
     else:
         assert main_git_path is not None
 
@@ -83,7 +90,7 @@ def coi_shell() -> None:
         thread = threading.Thread(target=add_mount_when_ready, daemon=True)
         thread.start()
 
-        process = subprocess.Popen(["coi", "shell"])
+        process = subprocess.Popen(["coi", "shell", "--image", PLACEFRAME_IMAGE])
         signal.signal(signal.SIGINT, lambda signum, frame: process.send_signal(signum))
         signal.signal(signal.SIGTERM, lambda signum, frame: process.send_signal(signum))
         sys.exit(process.wait())
