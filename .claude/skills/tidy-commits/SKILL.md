@@ -1,7 +1,6 @@
 ---
 name: tidy-commits
 description: Reorganize commits on the current branch into clean, logical commits for PR review. Use when the user wants to clean up history before merging.
-disable-model-invocation: true
 ---
 
 Reorganize the commits on the current branch into clean, logical commits suitable for PR review. Follow these steps:

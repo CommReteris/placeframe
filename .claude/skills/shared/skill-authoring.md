@@ -19,7 +19,7 @@ The `description` frontmatter field is the single most important factor for reli
 - Write in third person: "Stage and commit current changes" not "I can help you commit."
 - Include "Use when..." trigger phrases with concrete examples of user intents that should activate the skill.
 - Be specific: "Stage and commit current changes with a well-crafted message" not "Helps with git."
-- Set `disable-model-invocation: true` for side-effect workflows where timing matters (deploys, destructive operations) — this removes the skill from context entirely until the user explicitly invokes it.
+- Set `disable-model-invocation: true` for side-effect workflows where timing matters (deploys, destructive operations) — this removes the skill from context entirely until the user explicitly invokes it. **Do not add this flag yet** — upstream bug #26251 sometimes prevents even explicit slash-command invocation when the field is set. Tracked by T27; remove this caveat when T27 is resolved.
 
 ## Instruction style
 

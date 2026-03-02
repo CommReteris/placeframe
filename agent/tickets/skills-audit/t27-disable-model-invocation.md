@@ -9,7 +9,7 @@ depends_on: []
 
 ## Goal
 
-Add `disable-model-invocation: true` to allow-tool, tidy-commits, and debrief so they only fire on explicit `/skill` invocation, not auto-triggered by Claude.
+Add `disable-model-invocation: true` to allow-tool, tidy-commits, debrief, and backfill-spec so they only fire on explicit `/skill` invocation, not auto-triggered by Claude.
 
 ## Context
 
@@ -20,9 +20,12 @@ These three skills have side effects (modifying settings.json, rewriting git his
 - `.claude/skills/allow-tool/SKILL.md`
 - `.claude/skills/tidy-commits/SKILL.md`
 - `.claude/skills/debrief/SKILL.md`
+- `.claude/skills/backfill-spec/SKILL.md`
+- `.claude/skills/shared/skill-authoring.md` — remove the "do not add this flag yet" caveat
 
 ## Done when
 
 - Upstream bug #26251 is confirmed fixed
-- All three skills have `disable-model-invocation: true` in frontmatter
-- Verified that `/allow-tool`, `/tidy-commits`, and `/debrief` still work when explicitly invoked
+- All four skills have `disable-model-invocation: true` in frontmatter
+- Verified that `/allow-tool`, `/tidy-commits`, `/debrief`, and `/backfill-spec` still work when explicitly invoked
+- Caveat removed from skill-authoring.md

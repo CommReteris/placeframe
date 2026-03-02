@@ -1,7 +1,6 @@
 ---
 name: allow-tool
 description: Add a permission rule to .claude/settings.json so a previously-prompted tool is auto-allowed in future sessions.
-disable-model-invocation: true
 ---
 
 Add a permission allow rule to `.claude/settings.json`. The user just encountered a tool permission prompt they don't want to see again.

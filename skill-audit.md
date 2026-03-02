@@ -133,10 +133,10 @@ Budget impact: 4 skills in the always-loaded description budget (~200-400 tokens
 | /workon | Step 3 `design-needed` says "Proceed to step 4" — should be step 3a | Fix reference |
 | /roadmap | Description too vague, no trigger phrases, missing argument-hint | Expand description, add hint |
 | /allow-tool | Permission strategy section is project-level design rationale, not skill instructions | Consider moving to shared ref |
-| /tidy-commits | Should be manual-only but missing `disable-model-invocation: true` | Add frontmatter flag |
-| /allow-tool | Should be manual-only but missing `disable-model-invocation: true` | Add frontmatter flag |
-| /debrief | Should be manual-only but missing `disable-model-invocation: true` | Add frontmatter flag |
-| /backfill-spec | Should be manual-only but missing `disable-model-invocation: true` | Add frontmatter flag |
+| /tidy-commits | Should be manual-only but `disable-model-invocation` has upstream bugs (T27) | Deferred to T27 |
+| /allow-tool | Should be manual-only but `disable-model-invocation` has upstream bugs (T27) | Deferred to T27 |
+| /debrief | Should be manual-only but `disable-model-invocation` has upstream bugs (T27) | Deferred to T27 |
+| /backfill-spec | Should be manual-only but `disable-model-invocation` has upstream bugs (T27) | Deferred to T27 |
 
 ## Summary: MEDIUM priority
 

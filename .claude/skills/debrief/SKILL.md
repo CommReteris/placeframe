@@ -1,7 +1,6 @@
 ---
 name: debrief
 description: Scan the conversation for uncaptured context before clearing. Surface decisions, insights, and loose threads that didn't land in a repo artifact. Use before /clear or ending a session.
-disable-model-invocation: true
 ---
 
 Review the current conversation for meaningful context that was not persisted to a repo artifact. Run this before clearing context to avoid losing insights.

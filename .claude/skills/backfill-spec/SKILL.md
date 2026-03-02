@@ -2,7 +2,6 @@
 name: backfill-spec
 description: Retroactively create a SPEC.md for a feature directory that predates the spec convention. Use when a feature directory has code but no SPEC.md.
 argument-hint: "[directory-path]"
-disable-model-invocation: true
 ---
 
 Backfill a SPEC.md for a feature directory that has code but no specification. This is a one-time migration process for code that predates the SPEC.md convention. For ongoing spec maintenance, see workon steps 6a/6b.
