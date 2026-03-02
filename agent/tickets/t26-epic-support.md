@@ -1,7 +1,7 @@
 ---
 id: T26
 title: Add epic support to ticket system
-status: ready
+status: done
 depends_on: []
 plan: t26-plan.md
 ---
