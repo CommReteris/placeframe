@@ -18,6 +18,7 @@ Fields:
 - **title** — short descriptive title, sentence case, no period.
 - **status** — one of the values below.
 - **depends_on** — list of ticket ID strings. Empty list `[]` if none.
+- **plan** — (optional) filename of the plan file in `agent/plans/`, e.g. `t3-plan.md`. Added when a plan is created during the `plan-needed` phase.
 
 ## Status values
 
@@ -41,9 +42,11 @@ A `done` ticket can be reopened to any earlier status if rework is needed.
 
 ## File naming
 
-`agent/plans/t{N}-{slug}.md` — N is the ticket number (no leading zeros), slug is a lowercase-hyphenated summary.
+Tickets: `agent/tickets/t{N}-{slug}.md` — N is the ticket number (no leading zeros), slug is a lowercase-hyphenated summary.
 
-Examples: `t4-branch-based-builds.md`, `t17-workon-tdd.md`
+Plans: `agent/plans/t{N}-plan.md` — one plan file per ticket, created during the `plan-needed` phase.
+
+Examples: `agent/tickets/t4-branch-based-builds.md`, `agent/plans/t4-plan.md`
 
 ## Body structure
 
@@ -53,12 +56,23 @@ After frontmatter, ticket files use this structure:
 - **`## Goal`** — one-paragraph summary of what this ticket achieves
 - **`## Context`** — background, motivation, constraints, prior art
 - **`## Key files`** — bulleted list of files this ticket creates/modifies
-- **`## Approach`** — implementation-ready plan. Must contain enough detail for a fresh session to implement without re-exploring the codebase: numbered steps, key code changes with snippets for non-obvious logic, files to create/modify, technical decisions with rationale. Use H3 subsections for major steps.
+- **`## Approach`** — brief summary of the implementation strategy (2-5 sentences). If a plan file exists, this summarizes it — the full plan lives in `agent/plans/t{N}-plan.md`.
 - **`## Done when`** — bulleted acceptance criteria, split into "Verifiable now" and "Requires manual verification" where applicable
+
+## Plan files
+
+Plan files in `agent/plans/` capture the strategic decisions made during the planning phase. Structure:
+
+- **Context** — why this change is needed (1-2 sentences)
+- **Approach** — numbered steps describing what to build and how, with rationale for non-obvious decisions
+- **Key files** — files to create and modify, with notes on what changes
+- **Verification** — how to confirm the implementation is correct
+
+The plan captures enough for a fresh session to skip exploration and go straight to reading/modifying the right files. It does not need to capture every implementation detail — sessions rebuild that context by reading source files during the warm-up phase.
 
 ## Shared context
 
-`agent/plans/ci-background.md` is shared context for CI-related tickets (T1-T8). It is NOT a ticket — no frontmatter.
+`agent/tickets/ci-background.md` is shared context for CI-related tickets (T1-T8). It is NOT a ticket — no frontmatter.
 
 ## Programmatic access
 
