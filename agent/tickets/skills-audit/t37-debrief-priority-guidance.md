@@ -1,7 +1,7 @@
 ---
 id: T37
 title: Add priority guidance to debrief skill
-status: ready
+status: done
 depends_on: []
 ---
 

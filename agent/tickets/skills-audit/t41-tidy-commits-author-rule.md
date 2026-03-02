@@ -1,7 +1,7 @@
 ---
 id: T41
 title: Simplify author preservation rule in tidy-commits
-status: ready
+status: done
 depends_on: []
 ---
 

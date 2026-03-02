@@ -49,13 +49,13 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
    **Field reference:**
    - `committer`: Sets `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` for all commits. Use the most common author from the branch.
    - `message`: Full commit message. Use `\n` for newlines (it's JSON).
-   - `author`: Per-commit `--author` flag. When a new commit maps to a single original commit, use that commit's author. When merging multiple, use the earliest.
+   - `author`: Per-commit `--author` flag. When a new commit maps to a single original, use that commit's author. When merging multiple, use the earliest.
    - `checkout`: Files to `git checkout $BACKUP -- <files>`. Auto-staged by git. This covers 95% of cases. **Every path must exist in the backup** — verify with the file analysis from step 2.
    - `delete`: Files to `git rm`. Use for deletions and the old-path side of renames.
    - `content`: Dict of filepath → literal file content string. Use for partial file splits where a file's changes need to appear in different commits (see step 5). The wrapper writes the content and runs `git add`.
    - Each commit must have at least one of `checkout`, `delete`, or `content`.
 
-   - **Preserve original commit authors**: When a new commit maps to a single original commit, use `author` with the original commit's author. When a new commit merges multiple original commits, use the author from the earliest one (or the most common one if they differ).
+   - **Preserve original commit authors**: When a new commit maps to a single original commit, use `author` with the original commit's author. When merging multiple, use the earliest.
    - **Do NOT include `tidy-commits.json` in any of the new commits.** It's a temporary artifact, not project code.
    - Do NOT present the plan for conversational review. The user reviews it when the Write tool prompts for approval.
 

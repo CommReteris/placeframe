@@ -25,7 +25,7 @@ Ignore:
 
 If nothing is uncaptured: say so. "Nothing uncaptured — safe to clear."
 
-If something is uncaptured: list each item with:
+If something is uncaptured: list each item in priority order (decisions about how the project works > identified gaps or problems > future work ideas > user preferences > open threads), with:
 - What the insight/decision/thread is (one line)
 - Where it should go (ticket, spec update, CLAUDE.md rule, memory file, skill tweak)
 

@@ -42,7 +42,9 @@ Add a permission allow rule to `.claude/settings.json`. The user just encountere
    - Docker mutation: `docker run`, `docker build`, `docker compose up`, `docker compose down`
    - Process control: `kill`, `pkill`
 
-   If the command is an unapproved write or ambiguous, **refuse** — tell the user why. Do not proceed to steps 3–5.
+   If the command is an unapproved write, **refuse** — tell the user why. Do not proceed to steps 3–5.
+
+   **Unrecognized** — if the command doesn't clearly fit any category above, don't guess. Tell the user which category you think it's closest to and ask them to confirm before proceeding.
 
 3. **Read the current settings**: Read `.claude/settings.json` to see existing permissions.
 

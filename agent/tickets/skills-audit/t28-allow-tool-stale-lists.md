@@ -1,7 +1,7 @@
 ---
 id: T28
 title: Add fallback guidance to allow-tool classification lists
-status: ready
+status: done
 depends_on: []
 ---
 

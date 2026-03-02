@@ -1,7 +1,7 @@
 ---
 id: T36
 title: Add fallback for ambiguous prose/code classification in commit
-status: ready
+status: done
 depends_on: []
 ---
 

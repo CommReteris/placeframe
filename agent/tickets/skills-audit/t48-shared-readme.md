@@ -1,7 +1,7 @@
 ---
 id: T48
 title: Add README index to .claude/skills/shared/
-status: ready
+status: done
 depends_on: []
 ---
 

@@ -1,7 +1,7 @@
 ---
 id: T42
 title: Add context pollution guidance to workon RED phase
-status: ready
+status: done
 depends_on: []
 ---
 
