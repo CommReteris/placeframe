@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { dndzone, type DndEvent } from "svelte-dnd-action";
 	import type { Ticket, Status } from "$lib/tickets.js";
 	import { STATUS_LABELS } from "$lib/tickets.js";
 	import Card from "./Card.svelte";
@@ -8,15 +7,16 @@
 		status,
 		tickets,
 		onselect,
-		onconsider,
-		onfinalize,
+		onticketdrop,
 	}: {
 		status: Status;
-		tickets: (Ticket & { id: string })[];
+		tickets: Ticket[];
 		onselect: (ticket: Ticket) => void;
-		onconsider: (status: Status, event: CustomEvent<DndEvent<Ticket & { id: string }>>) => void;
-		onfinalize: (status: Status, event: CustomEvent<DndEvent<Ticket & { id: string }>>) => void;
+		onticketdrop: (ticketId: string, newStatus: Status) => void;
 	} = $props();
+
+	let dragOverCount = $state(0);
+	let isDragOver = $derived(dragOverCount > 0);
 
 	const statusColors: Record<Status, string> = {
 		blocked: "bg-status-blocked",
@@ -35,10 +35,29 @@
 		<span class="text-xs text-text-muted">{tickets.length}</span>
 	</div>
 	<div
-		class="flex min-h-16 flex-1 flex-col gap-2 rounded-xl border border-border-subtle bg-surface-900 p-2"
-		use:dndzone={{ items: tickets, dropTargetStyle: {} }}
-		onconsider={(event: CustomEvent<DndEvent<Ticket & { id: string }>>) => onconsider(status, event)}
-		onfinalize={(event: CustomEvent<DndEvent<Ticket & { id: string }>>) => onfinalize(status, event)}
+		role="listbox"
+		tabindex="0"
+		aria-label="{STATUS_LABELS[status]} tickets"
+		class="flex min-h-16 flex-1 flex-col gap-2 rounded-xl border bg-surface-900 p-2 transition-colors {isDragOver ? 'border-border-default bg-surface-800' : 'border-border-subtle'}"
+		ondragover={(event: DragEvent) => {
+			event.preventDefault();
+			if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+		}}
+		ondragenter={(event: DragEvent) => {
+			event.preventDefault();
+			dragOverCount++;
+		}}
+		ondragleave={() => {
+			dragOverCount--;
+		}}
+		ondrop={(event: DragEvent) => {
+			event.preventDefault();
+			dragOverCount = 0;
+			const ticketId = event.dataTransfer?.getData("text/plain");
+			if (ticketId && !tickets.some((t) => t.id === ticketId)) {
+				onticketdrop(ticketId, status);
+			}
+		}}
 	>
 		{#each tickets as ticket (ticket.id)}
 			<Card {ticket} {onselect} />

@@ -6,6 +6,11 @@
 
 <button
 	class="w-full rounded-lg border border-border-subtle bg-surface-800 px-4 py-3.5 text-left transition-colors hover:border-border-default hover:bg-surface-700"
+	draggable="true"
+	ondragstart={(event: DragEvent) => {
+		event.dataTransfer?.setData("text/plain", ticket.id);
+		if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+	}}
 	onclick={() => onselect(ticket)}
 >
 	<div class="mb-1 flex items-center gap-2">
