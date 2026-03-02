@@ -5,6 +5,8 @@ description: Reorganize commits on the current branch into clean, logical commit
 
 Reorganize the commits on the current branch into clean, logical commits suitable for PR review. Follow these steps:
 
+0. **Pre-flight**: Run the checks in `.claude/skills/shared/git-preflight.md`. Stop if any fail.
+
 1. **Determine the base:**
    - Check if `origin/<current-branch>` exists (`git rev-parse --verify origin/<branch>`). If so, use it directly as `<base>` — this limits tidying to unpushed commits only, preventing history rewrites that would require a force push.
    - If the branch hasn't been pushed yet, fall back to `git merge-base origin/main HEAD` (or `git merge-base main HEAD` if `origin/main` doesn't exist).
@@ -73,6 +75,5 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
 - NEVER force-push or delete branches without explicit user approval.
 - NEVER delete backup branches. The wrapper auto-numbers them (`-backup`, `-backup-2`, etc.) when previous backups exist.
 - NEVER modify commits on main.
-- If there are uncommitted changes, ask the user to commit or stash them first.
 - If the branch has only 1 commit already, ask the user if they still want to proceed.
 - **File renames**: When original commits renamed files (e.g., `a.md` → `b.md`), use `delete` for the old filename in the same commit that checks out the new filename. Check `git diff <base>..HEAD --stat` for renames.

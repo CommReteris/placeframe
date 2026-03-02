@@ -1,7 +1,7 @@
 ---
 id: T47
 title: Create shared git pre-flight check reference
-status: ready
+status: done
 depends_on: []
 ---
 

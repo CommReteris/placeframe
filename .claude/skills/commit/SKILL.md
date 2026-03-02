@@ -6,7 +6,7 @@ argument-hint: "[hint-text]"
 
 Create a git commit of current changes with a clear, accurate commit message. If the user provided arguments (e.g. `/commit T4 branch strategy`), use them as hints for the message. Follow these steps:
 
-0. **Check git state**: Run `git status`. If the output indicates a rebase, merge, or cherry-pick in progress (e.g. "interactive rebase in progress", "You have unmerged paths", "cherry-pick in progress"), tell the user what state git is in and stop. Do not proceed with the commit flow.
+0. **Pre-flight**: Run the checks in `.claude/skills/shared/git-preflight.md`. Stop if any fail.
 
 1. **Read the style guide**: Read `.claude/skills/shared/commit-style.md` for commit message conventions.
 
