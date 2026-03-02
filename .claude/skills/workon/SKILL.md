@@ -79,7 +79,7 @@ When status is `ready`, implement using Red-Green-Refactor. If the ticket is pro
 ### RED phase — write failing tests
 
 1. Read the ticket's "Done when" criteria. Each criterion is the starting point for one or more test cases.
-2. **Check for existing SPEC.md.** Identify the primary directory from the ticket's "Key files" section. If a SPEC.md exists there, read it. The Behaviors section contains testable statements about existing functionality. For each behavior that the current ticket modifies or extends: write regression tests that verify the existing behavior still holds (unless the ticket explicitly changes it), and derive new test cases for behaviors the ticket adds or modifies. If the ticket's changes conflict with a spec behavior, flag this as spec drift (see step 6a).
+2. **Check for existing SPEC.md.** Identify the primary directory from the ticket's "Key files" section. If a SPEC.md exists there, read it. The Behaviors section contains testable statements about existing functionality. For each behavior that the current ticket modifies or extends: write regression tests that verify the existing behavior still holds (unless the ticket explicitly changes it), and derive new test cases for behaviors the ticket adds or modifies. If the ticket's changes conflict with a spec behavior, flag this as spec drift (see step 7a).
 3. Write tests that encode the criteria and any relevant spec behaviors. Focus exclusively on the "Done when" criteria and spec behaviors — do not consider implementation approach. Tests should encode requirements, not predicted code structure. Add additional tests for edge cases, error handling, and implementation details the criteria don't explicitly mention.
 4. Follow the conventions in `.claude/skills/shared/testing.md`: AAA pattern, descriptive names (`test_should_<expected>_when_<condition>`), mock only at system boundaries.
 5. Run the tests. Verify they **fail for the right reason** — missing functionality, not syntax errors or import failures. Fix any mechanical issues until all failures are "expected" failures.
@@ -109,11 +109,26 @@ Run the full verification suite from the ticket's "Done when" section:
 
 Report which passed and which failed. List any "Requires manual verification" items.
 
-## 6. Spec maintenance
+## 6. Capture learnings
+
+Re-read the ticket's `## Log` section. For each failure or pivot recorded:
+
+1. **Is it generalizable?** Ask: "Would a future session working on a different ticket hit this same wall?" Skip anything that's purely ticket-specific (e.g. a typo in the test, a one-off API misunderstanding).
+2. **Where should it live?** For each generalizable item, identify the destination:
+   - **CLAUDE.md** — conventions, rules, or pitfalls that apply project-wide (e.g. "SvelteSet works but SvelteMap doesn't for template reactivity")
+   - **`.claude/skills/shared/testing.md` or `testing-web.md`** — testing patterns or E2E gotchas (e.g. "must wait for hydration before interactive tests")
+   - **A skill file** — if the learning reveals a gap in a skill's instructions
+   - **A SPEC.md design decision** — if the learning explains a non-obvious architectural choice
+3. **Present proposals to the user.** List each item with its proposed destination. Do not write anything until the user approves. Format: one line per item — what the insight is, where it should go.
+4. **Write approved items.** For each approved item, add it to the appropriate file. Keep additions concise — a sentence or two, same style as surrounding content.
+
+If the log says "Clean implementation, no issues," skip this step entirely.
+
+## 7. Spec maintenance
 
 Check if the primary directory (from the ticket's "Key files") has a SPEC.md.
 
-### 6a. Spec drift detection
+### 7a. Spec drift detection
 
 If a SPEC.md exists, re-read it and compare its Behaviors section against the current code (including changes just implemented). If any spec behaviors no longer match the code:
 
@@ -121,13 +136,13 @@ If a SPEC.md exists, re-read it and compare its Behaviors section against the cu
 - **Ask the user how to proceed** for each discrepancy: update the spec to match the code (behavior intentionally changed), update the code to match the spec (the code has a bug), or defer (the discrepancy is known and acceptable for now).
 - **Never auto-correct** either direction. The user decides.
 
-### 6b. Spec update proposal
+### 7b. Spec update proposal
 
 If the ticket added new behaviors, modified existing behaviors, or introduced new design decisions, draft proposed updates to the SPEC.md (or a new SPEC.md if none exists and the user wants one). Present the complete proposed SPEC.md — show the full document, not a diff. The user must explicitly approve before any changes are written to disk.
 
 If no SPEC.md exists and the feature is not yet mature enough for a spec, do not pressure the user — simply note that no spec exists and move on.
 
-## 7. Submit for review
+## 8. Submit for review
 
 Update the ticket's frontmatter status to `in-review`.
 
@@ -139,6 +154,6 @@ Add a `## Log` section to the ticket body. This section records what was tried a
 
 The `## Log` section is always present once a ticket reaches `in-review`.
 
-## 8. Commit
+## 9. Commit
 
 Offer to `/commit`. Remember: separate prose and code commits.

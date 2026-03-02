@@ -42,6 +42,15 @@ For Svelte components, use `@testing-library/svelte` `render()` and query the DO
 - `beforeEach`/`afterEach` for temp directory creation and cleanup.
 - Global setup in `src/test-setup.ts` (DOM matchers, etc.).
 
+## E2E (Playwright)
+
+Playwright E2E tests live in `e2e/`. Config in `playwright.config.ts` (Chromium-only, single worker, dev server via `pnpm dev`).
+
+- **Hydration timing**: `page.goto("/")` returns before Svelte 5 hydration completes. Tests that interact with components (click, selectOption, type) must call `await page.waitForLoadState("networkidle")` after `goto()` — otherwise event handlers aren't attached yet. Tests that only read the DOM (check visibility, text content) don't need this.
+- **Fixture isolation**: `beforeEach` calls `writeFixtureTickets()` to reset the fixture directory. Fixtures support `subdirectory` for epic-aware tests.
+- **Stable selectors**: Use `data-testid` attributes, not CSS classes or DOM structure. Pattern: `data-testid="card-{ticket.id}"`, `data-testid="column-{status}"`.
+- **DnD testing**: Playwright's `dragTo()` doesn't reliably carry `dataTransfer` data for native HTML5 DnD. Use synthetic `DragEvent` dispatch via `page.evaluate()`.
+
 ## What not to test
 
 Same as Python: auto-generated code, third-party internals, pure config, trivial property access.
