@@ -24,12 +24,12 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 - Displays ticket ID, title, status, dependencies, and the ticket body rendered as HTML via `marked`.
 - Closes on backdrop click, Escape key, or the close button.
 - The left edge is a drag handle for resizing (minimum 320px, default 672px).
-- Width persists within a session but resets on page reload. Gap: localStorage persistence would be better.
+- Width persists within a session but resets on page reload. Gap: localStorage persistence would be better (T24).
 
 ### Search
 
 - Filters cards client-side by title and ticket ID (case-insensitive).
-- Gap: does not filter by status or dependency — both would be useful.
+- Gap: does not filter by status or dependency — both would be useful (T23).
 
 ### Ticket data
 
@@ -43,7 +43,7 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 
 ### Gaps
 
-- No live refresh: if a ticket file changes on disk while the board is open, the board does not update until a page reload or a drag-drop operation.
+- No live refresh: if a ticket file changes on disk while the board is open, the board does not update until a page reload or a drag-drop operation (T22).
 
 ## Design decisions
 
@@ -52,7 +52,7 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 - **svelte-dnd-action for drag-and-drop** — Svelte-native, independently maintained FOSS library. Provides `onconsider`/`onfinalize` events for responsive drag feedback.
 - **`@html` for markdown rendering** — uses `marked` to render ticket bodies. Trusted content: only renders local ticket files from `agent/plans/`, never user-submitted content.
 - **TypeScript ticket module mirrors Python `tickets.py`** — same YAML frontmatter format, same file discovery pattern (`t\d+.*\.md`), same sort order. The board reads the same files the `/roadmap` and `/workon` skills write.
-- **Plans directory resolved via `process.cwd()`** — currently `path.resolve(process.cwd(), "../../../agent/plans")`. This is fragile and couples the app to being run from a specific working directory. Should be improved to use a SvelteKit `$env` variable or similar configuration.
+- **Plans directory resolved via `process.cwd()`** — currently `path.resolve(process.cwd(), "../../../agent/plans")`. This is fragile and couples the app to being run from a specific working directory. Should be improved to use a SvelteKit `$env` variable or similar configuration (T25).
 - **Pointer capture for resize handle** — ensures smooth dragging even when the cursor moves off the handle during resize.
 
 ## Key files

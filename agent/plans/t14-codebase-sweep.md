@@ -2,7 +2,7 @@
 id: T14
 title: Codebase sweep — harvest TODOs into tickets
 status: plan-needed
-depends_on: []
+depends_on: [T21]
 ---
 
 # T14: Codebase sweep — harvest TODOs into tickets
