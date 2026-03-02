@@ -1,18 +1,23 @@
-# Spec Backfill Process
+---
+name: backfill-spec
+description: Retroactively create a SPEC.md for a feature directory that predates the spec convention.
+---
 
-Interactive process for reverse-engineering a SPEC.md from existing code. Triggered when the `/workon` skill encounters a done ticket whose feature directory has no SPEC.md.
+Backfill a SPEC.md for a feature directory that has code but no specification. This is a one-time migration process for code that predates the SPEC.md convention. For ongoing spec maintenance, see workon steps 6a/6b.
 
-Backfill is collaborative — it requires user participation to capture design intent that code alone cannot reveal. Follow the format defined in `spec-format.md`.
+Takes a directory path as argument: `/backfill-spec apps/sveltekit/board`. If no argument is given, ask the user which directory to backfill.
+
+Backfill is collaborative — it requires user participation to capture design intent that code alone cannot reveal. Follow the format defined in `.claude/skills/shared/spec-format.md`.
 
 **Ownership model during backfill:** The general SPEC.md rule ("present complete content, get explicit approval before writing") does not apply during backfill. In backfill, behaviors are derived from code (factual, not intentional) and design decisions are captured through Q&A. The Q&A process is the approval gate for intent; the on-disk review is the approval gate for the final document. This avoids presenting a wall of unrenderable markdown in chat for the user to "approve."
 
 ## Step 1: Read the code
 
-Read the key files in the feature directory. Understand the structure, public interface, and data flow. Read any existing tests. Read the originating ticket for historical context — but the code is the source of truth for behavior, and the user is the source of truth for intent.
+Read the key files in the feature directory. Understand the structure, public interface, and data flow. Read any existing tests. If there is an associated ticket in `agent/plans/`, read it for historical context — but the code is the source of truth for behavior, and the user is the source of truth for intent.
 
 ## Step 2: Draft the spec (internal)
 
-Draft a complete SPEC.md internally following the format in `spec-format.md`. Do not show the draft to the user — it is working state. Fill in all sections based on what the code reveals:
+Draft a complete SPEC.md internally following the format in `.claude/skills/shared/spec-format.md`. Do not show the draft to the user — it is working state. Fill in all sections based on what the code reveals:
 
 - **What it does** — derive from the feature's public interface and user-facing behavior
 - **Behaviors** — derive from code paths, event handlers, API endpoints, UI interactions. Each bullet should be a testable "When {trigger}, {outcome}" statement.

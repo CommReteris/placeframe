@@ -5,7 +5,7 @@ description: Pick up and work on a roadmap ticket.
 
 Pick up a ticket from the Placeframe roadmap and work through its lifecycle. Enforces test-driven development during implementation.
 
-Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, statuses), `.claude/skills/shared/testing.md` (test conventions), `.claude/skills/shared/spec-format.md` (SPEC.md convention), `.claude/skills/shared/spec-backfill.md` (spec backfill process).
+Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, statuses), `.claude/skills/shared/testing.md` (test conventions), `.claude/skills/shared/spec-format.md` (SPEC.md convention).
 
 ## 1. Select ticket
 
@@ -21,7 +21,7 @@ Read the ticket's full markdown body. Understand the Goal, Context, Approach, an
 - **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the frontmatter status to `plan-needed`. Proceed to step 4.
 - **`plan-needed`** — Enter plan mode. Explore the codebase, write an implementation plan in the ticket's Approach section, get user approval. Update frontmatter status to `ready`. Proceed to step 4.
 - **`ready`** — Proceed to step 4 (TDD implementation).
-- **`done`** — Check if the ticket's feature directory has a colocated SPEC.md. To find the directory: read the ticket's "Key files" section and identify the primary directory (the one most files are in). If that directory has no SPEC.md, inform the user the ticket is done but has no specification, and ask if they want to backfill one now. If yes, follow the process in `.claude/skills/shared/spec-backfill.md`. If the directory already has a SPEC.md, or the user declines backfill, inform the user the ticket is done and ask if they want to reopen.
+- **`done`** — Inform the user the ticket is done and ask if they want to reopen it.
 
 ## 4. TDD implementation cycle
 
