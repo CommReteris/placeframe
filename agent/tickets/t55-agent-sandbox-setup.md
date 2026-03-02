@@ -10,7 +10,7 @@ plan: t55-plan.md
 
 ## Goal
 
-Move the COI (Code on Incus) sandbox provisioning logic from `agent/setup.sh` into a Python script in `scripts/`, and create a `coi-shell` Python wrapper that transparently handles git worktrees by mounting the main `.git` directory into the container.
+Move the COI (Code on Incus) sandbox provisioning logic from `agent/setup.sh` into a Python script in `scripts/`, and create a `agent-shell` Python wrapper that transparently handles git worktrees by mounting the main `.git` directory into the container.
 
 ## Context
 
@@ -50,7 +50,7 @@ fatal: not a git repository: /home/tyler/Repos/placeframe/.git/worktrees/ci-impr
 
 **Why it can't be fixed in setup.sh alone:** The mount decision is dynamic — it depends on where the engineer cloned the repo and which worktree they're in. COI doesn't expose a pre-launch hook. The extra mount must be added at `coi shell` launch time, not at provisioning time.
 
-**Solution:** A `coi-shell` wrapper that detects worktrees and adds an extra Incus disk device for the main `.git` directory before launching the container.
+**Solution:** A `agent-shell` wrapper that detects worktrees and adds an extra Incus disk device for the main `.git` directory before launching the container.
 
 ### COI mount architecture (research)
 
@@ -85,30 +85,30 @@ When launched from a normal repo (`.git` is a directory), pass through to `coi s
 
 ### Design decisions (settled)
 
-- **uv is a host prerequisite.** No bash bootstrap shim needed. The setup script is a Python script run via `uv run setup-sandbox`.
+- **uv is a host prerequisite.** No bash bootstrap shim needed. The setup script is a Python script run via `uv run setup-agent-sandbox`.
 - **`coi-placeframe-build.sh` stays as bash.** COI's `coi build custom --script` requires a bash script. This file is 10 lines and runs inside a throwaway container — not worth abstracting.
-- **`coi-shell` is a Python script** registered as `uv run coi-shell`. It detects worktrees, adds the extra Incus disk device, and delegates to `coi shell`. When not in a worktree, it passes through unchanged.
-- **`agent/setup.sh` is deleted** and replaced by `scripts/src/scripts/setup_sandbox.py`. The `coi-placeframe-build.sh` stays in `agent/` since it's referenced by the setup script during image build.
+- **`agent-shell` is a Python script** registered as `uv run agent-shell`. It detects worktrees, adds the extra Incus disk device, and delegates to `coi shell`. When not in a worktree, it passes through unchanged.
+- **`agent/setup.sh` is deleted** and replaced by `scripts/src/scripts/setup_agent_sandbox.py`. The `coi-placeframe-build.sh` stays in `agent/` since it's referenced by the setup script during image build.
 
 ## Approach
 
-Two new Typer-based Python scripts replace `agent/setup.sh` and add worktree support. `setup_sandbox.py` translates each section of the bash script into an idempotent function, called in order. `coi_shell.py` detects worktrees via `git rev-parse --git-common-dir`, adds an Incus disk device for the main `.git` directory to the container, then delegates to `coi shell`. For non-worktree repos it's a pure passthrough via `exec_command`. No TDD — both scripts are pure system command orchestration with no testable surface beyond mock-call verification.
+Two new Typer-based Python scripts replace `agent/setup.sh` and add worktree support. `setup_agent_sandbox.py` translates each section of the bash script into an idempotent function, called in order. `agent_shell.py` detects worktrees via `git rev-parse --git-common-dir`, adds an Incus disk device for the main `.git` directory to the container, then delegates to `coi shell`. For non-worktree repos it's a pure passthrough via `exec_command`. No TDD — both scripts are pure system command orchestration with no testable surface beyond mock-call verification.
 
 ## Key files
 
 - `agent/setup.sh` — delete (replaced by Python)
 - `agent/coi-placeframe-build.sh` — keep as-is (COI requires bash)
-- `scripts/src/scripts/setup_sandbox.py` — new: host provisioning logic
-- `scripts/src/scripts/coi_shell.py` — new: coi shell wrapper with worktree support
-- `scripts/pyproject.toml` — register `setup-sandbox` and `coi-shell` commands
+- `scripts/src/scripts/setup_agent_sandbox.py` — new: host provisioning logic
+- `scripts/src/scripts/agent_shell.py` — new: agent shell wrapper with worktree support
+- `scripts/pyproject.toml` — register `setup-agent-sandbox` and `agent-shell` commands
 
 ## Done when
 
-- `uv run setup-sandbox` provisions the host identically to the current `agent/setup.sh`
-- `uv run coi-shell` launches a COI container; when run from a worktree, it mounts the main `.git` directory so git works inside the container
-- `uv run coi-shell` from a non-worktree repo works identically to bare `coi shell`
+- `uv run setup-agent-sandbox` provisions the host identically to the current `agent/setup.sh`
+- `uv run agent-shell` launches a COI container; when run from a worktree, it mounts the main `.git` directory so git works inside the container
+- `uv run agent-shell` from a non-worktree repo works identically to bare `coi shell`
 - `agent/setup.sh` is deleted
-- `agent/coi-placeframe-build.sh` still works (referenced by setup-sandbox during image build)
+- `agent/coi-placeframe-build.sh` still works (referenced by setup-agent-sandbox during image build)
 - Both new scripts are registered in `scripts/pyproject.toml`
 
 ## Log
@@ -119,6 +119,6 @@ Verification (all in sandbox, no Incus):
 - ruff check: passed
 - ruff format: passed (after auto-format)
 - basedpyright: 0 errors
-- `uv run setup-sandbox --help`: works
-- `uv run coi-shell --help`: works
+- `uv run setup-agent-sandbox --help`: works
+- `uv run agent-shell --help`: works
 - Full provisioning and worktree testing require a host with Incus (manual verification)

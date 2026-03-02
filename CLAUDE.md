@@ -32,8 +32,8 @@ All top-level commands are run via `uv run <command>` from the repo root. These 
 | `uv run generate-datamodels` | Regenerate Pydantic data models |
 | `uv run generate-lock-files` | Regenerate per-service `uv.lock` files |
 | `uv run deptry-check` | Check for dependency issues across all packages |
-| `uv run setup-sandbox` | Provision host for COI containers (Incus, firewalld, images). Pass `--rebuild` to force-rebuild the project image. |
-| `uv run coi-shell` | Launch a COI container. Auto-mounts main `.git` when run from a worktree. |
+| `uv run setup-agent-sandbox` | Provision host for COI containers (Incus, firewalld, images). Pass `--rebuild` to force-rebuild the project image. |
+| `uv run agent-shell` | Launch a COI container. Auto-mounts main `.git` when run from a worktree. |
 
 **Linting and type checking** (run from repo root):
 ```bash
@@ -99,7 +99,7 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. Default dev cred
 When running in a containerized Claude Code environment (no GPU, no ngrok):
 
 1. **Install prerequisites**: `uv` may not be pre-installed. Install with `curl -LsSf https://astral.sh/uv/install.sh | sh` and ensure `~/.local/bin` is on PATH.
-1. **Venv isolation**: The container's venv lives outside the mounted workspace at `$UV_PROJECT_ENVIRONMENT` (`/home/code/.venvs/placeframe`) so it doesn't overwrite the host's `.venv`. This is set via the Incus default profile (configured by `uv run setup-sandbox`). If not set, export it manually: `export UV_PROJECT_ENVIRONMENT=/home/code/.venvs/placeframe`. Run `uv sync --all-packages` to create it.
+1. **Venv isolation**: The container's venv lives outside the mounted workspace at `$UV_PROJECT_ENVIRONMENT` (`/home/code/.venvs/placeframe`) so it doesn't overwrite the host's `.venv`. This is set via the Incus default profile (configured by `uv run setup-agent-sandbox`). If not set, export it manually: `export UV_PROJECT_ENVIRONMENT=/home/code/.venvs/placeframe`. Run `uv sync --all-packages` to create it.
 2. **Create `.env` from sample**: `cp .env.sample .env` — set `PUBLIC_DOMAIN=localhost`, `NGROK_AUTHTOKEN=dummy`, and clear `COMPOSE_PROFILES=` (remove `ngrok`).
 3. **Use `--gpu none`**: This environment has no GPU. Use `uv run up --gpu none` and `uv run down --gpu none`.
 4. **Use long timeouts for Docker commands**: `uv run up`, `uv run down`, and any `docker compose` commands may need to pull images on first run. Always use `timeout: 600000` (10 minutes) on these Bash calls.

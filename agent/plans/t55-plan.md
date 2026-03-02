@@ -6,7 +6,7 @@
 
 ## Approach
 
-### 1. Create `scripts/src/scripts/setup_sandbox.py`
+### 1. Create `scripts/src/scripts/setup_agent_sandbox.py`
 
 Typer-based script (Pattern A, matching `up.py`/`build.py`) with a `--rebuild` flag. Each section of `setup.sh` becomes a function, called in order from the Typer command.
 
@@ -28,16 +28,16 @@ Functions (in execution order):
 
 Error handling: `run_command` raises on failure by default. Idempotent commands (zone creation, device additions) use `try/except CalledProcessError` to match the `|| true` pattern from bash. The group membership gate calls `sys.exit(0)` with an informational message.
 
-### 2. Create `scripts/src/scripts/coi_shell.py`
+### 2. Create `scripts/src/scripts/agent_shell.py`
 
-Typer-based script (Pattern A, matching `up.py`/`setup_sandbox.py`). No extra CLI options needed — just `coi_shell()` command that detects worktrees and delegates to `coi shell`.
+Typer-based script (Pattern A, matching `up.py`/`setup_agent_sandbox.py`). No extra CLI options needed — just `agent_shell()` command that detects worktrees and delegates to `coi shell`.
 
 Functions:
 1. `detect_worktree() -> Path | None` — check if `.git` is a file; if so, run `git rev-parse --git-common-dir` and return resolved main `.git` path
 2. `compute_container_name(workspace: Path, slot: int = 1) -> str` — replicate COI's naming: `coi-{sha256(str(workspace))[:8]}-{slot}`
 3. `container_exists(name: str) -> bool` — `check_command(f"incus info {name}")`
 4. `add_git_mount(container_name: str, main_git_path: Path)` — `incus config device add <name> main-git disk source=<path> path=<path> shift=true` (idempotent, ignore "already exists"). Also add `safe.directory` for the main repo path via `incus exec <name> -- git config --system --add safe.directory <parent>`
-5. Typer command `coi_shell()` — entry point with two paths:
+5. Typer command `agent_shell()` — entry point with two paths:
    - **Not a worktree**: `exec_command("coi shell")` — pure passthrough
    - **Worktree, container exists**: `add_git_mount()`, then `exec_command("coi shell")`
    - **Worktree, container doesn't exist (first launch)**: run `coi shell` as subprocess with a background thread that polls for container readiness and calls `add_git_mount()` once running. Forward SIGINT/SIGTERM to the subprocess. Exit with its return code.
@@ -48,22 +48,22 @@ No TDD for this ticket — both scripts are pure orchestration of system command
 
 Add:
 ```toml
-setup-sandbox = "scripts.setup_sandbox:main"
-coi-shell = "scripts.coi_shell:main"
+setup-agent-sandbox = "scripts.setup_agent_sandbox:main"
+agent-shell = "scripts.agent_shell:main"
 ```
 
 ### 4. Delete `agent/setup.sh`
 
 ### 5. Update `CLAUDE.md`
 
-Line 99 references `agent/setup.sh` — update to say "the Incus default profile (configured by `uv run setup-sandbox`)".
+Line 99 references `agent/setup.sh` — update to say "the Incus default profile (configured by `uv run setup-agent-sandbox`)".
 
 ## Key files
 
 | File | Action |
 |---|---|
-| `scripts/src/scripts/setup_sandbox.py` | Create — host provisioning |
-| `scripts/src/scripts/coi_shell.py` | Create — worktree-aware coi shell wrapper |
+| `scripts/src/scripts/setup_agent_sandbox.py` | Create — host provisioning |
+| `scripts/src/scripts/agent_shell.py` | Create — worktree-aware coi shell wrapper |
 | `scripts/pyproject.toml` | Modify — register both commands |
 | `agent/setup.sh` | Delete |
 | `CLAUDE.md` | Modify — update setup.sh reference |
@@ -72,8 +72,8 @@ Line 99 references `agent/setup.sh` — update to say "the Incus default profile
 
 ## Verification
 
-- `uv run ruff check scripts/src/scripts/setup_sandbox.py scripts/src/scripts/coi_shell.py`
-- `uv run ruff format --check scripts/src/scripts/setup_sandbox.py scripts/src/scripts/coi_shell.py`
-- `uv run basedpyright scripts/src/scripts/setup_sandbox.py scripts/src/scripts/coi_shell.py`
-- Confirm `uv run setup-sandbox --help` and `uv run coi-shell --help` work
+- `uv run ruff check scripts/src/scripts/setup_agent_sandbox.py scripts/src/scripts/agent_shell.py`
+- `uv run ruff format --check scripts/src/scripts/setup_agent_sandbox.py scripts/src/scripts/agent_shell.py`
+- `uv run basedpyright scripts/src/scripts/setup_agent_sandbox.py scripts/src/scripts/agent_shell.py`
+- Confirm `uv run setup-agent-sandbox --help` and `uv run agent-shell --help` work
 - Full provisioning and worktree testing require a host with Incus (manual verification)
