@@ -1,6 +1,7 @@
 ---
 name: tidy-commits
 description: Reorganize commits on the current branch into clean, logical commits for PR review. Use when the user wants to clean up history before merging.
+disable-model-invocation: true
 ---
 
 Reorganize the commits on the current branch into clean, logical commits suitable for PR review. Follow these steps:
@@ -57,9 +58,7 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
    - `content`: Dict of filepath → literal file content string. Use for partial file splits where a file's changes need to appear in different commits (see step 5). The wrapper writes the content and runs `git add`.
    - Each commit must have at least one of `checkout`, `delete`, or `content`.
 
-   - **Preserve original commit authors**: When a new commit maps to a single original commit, use `author` with the original commit's author. When merging multiple, use the earliest.
    - **Do NOT include `tidy-commits.json` in any of the new commits.** It's a temporary artifact, not project code.
-   - Do NOT present the plan for conversational review. The user reviews it when the Write tool prompts for approval.
 
 5. **Handle partial file splits (if needed):**
    - Sometimes a single file has changes belonging to different logical commits. Use the `content` field for this.

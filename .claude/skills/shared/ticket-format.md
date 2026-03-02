@@ -1,5 +1,17 @@
 # Ticket Format Reference
 
+## Contents
+
+- [Frontmatter schema](#frontmatter-schema)
+- [Status values](#status-values)
+- [Status transitions](#status-transitions)
+- [File naming](#file-naming)
+- [Epics](#epics-directory-based-grouping)
+- [Body structure](#body-structure)
+- [Plan files](#plan-files)
+- [Ticket sizing](#ticket-sizing)
+- [Shared context](#shared-context)
+
 ## Frontmatter schema
 
 Every ticket file begins with a YAML frontmatter block:

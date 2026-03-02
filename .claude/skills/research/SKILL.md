@@ -1,6 +1,6 @@
 ---
 name: research
-description: Open-ended brainstorming interview followed by web/codebase research, producing a report in agent/research/.
+description: Open-ended brainstorming interview followed by web/codebase research, producing a report in agent/research/. Use when the user wants to investigate a topic, compare tools, or gather information before making a decision.
 argument-hint: "[topic]"
 ---
 

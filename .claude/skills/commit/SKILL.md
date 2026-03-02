@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Stage and commit current changes with a well-crafted message. Smarter replacement for quick WIP commits — actually reads diffs to write accurate messages.
+description: Stage and commit current changes with a well-crafted message. Use when the user says "commit this", asks to save changes, or approves a commit offer.
 argument-hint: "[hint-text]"
 ---
 

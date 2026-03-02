@@ -1,6 +1,6 @@
 ---
 name: workon
-description: Pick up and work on a roadmap ticket.
+description: Pick up and work on a roadmap ticket through its full lifecycle (planning, TDD, spec maintenance). Use when the user says "work on T4", "pick up a ticket", or wants to implement a roadmap item.
 argument-hint: "[ticket-id]"
 ---
 
@@ -21,7 +21,7 @@ If the ticket's frontmatter has a `plan` field, also read the referenced plan fi
 ## 3. Check status and act
 
 - **`blocked`** — Show the blocking reason from the ticket body. Ask if the user wants to unblock (change status and proceed) or pick a different ticket.
-- **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the frontmatter status to `plan-needed`. Proceed to step 4.
+- **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the frontmatter status to `plan-needed`. Proceed to step 3a.
 - **`plan-needed`** — If the ticket already has a `plan` field (i.e. it was moved back to `plan-needed` for revision), go to step 3c (revise plan). Otherwise go to step 3a (create plan).
 - **`ready`** — Go to step 3b (warm up from plan) if the ticket has a `plan` field. Otherwise go directly to step 4 (implement).
 - **`in-review`** — Inform the user the ticket is awaiting their review. Ask if they want to move it to `done` (accept) or back to an earlier status (rework needed).
@@ -82,7 +82,7 @@ When status is `ready`, implement using Red-Green-Refactor. If the ticket is pro
 
 1. Read the ticket's "Done when" criteria. Each criterion is the starting point for one or more test cases.
 2. **Check for existing SPEC.md.** Identify the primary directory from the ticket's "Key files" section. If a SPEC.md exists there, read it. The Behaviors section contains testable statements about existing functionality. For each behavior that the current ticket modifies or extends: write regression tests that verify the existing behavior still holds (unless the ticket explicitly changes it), and derive new test cases for behaviors the ticket adds or modifies. If the ticket's changes conflict with a spec behavior, flag this as spec drift (see step 7a).
-3. Write tests that encode the criteria and any relevant spec behaviors. Focus exclusively on the "Done when" criteria and spec behaviors — do not consider implementation approach. Tests should encode requirements, not predicted code structure. Add additional tests for edge cases, error handling, and implementation details the criteria don't explicitly mention.
+3. Write tests that encode the criteria and any relevant spec behaviors. Start from the "Done when" criteria and spec behaviors, then add tests for edge cases and error handling implied by those criteria. Tests should encode requirements, not predicted code structure.
 4. Follow the conventions in `.claude/skills/shared/testing.md`: AAA pattern, descriptive names (`test_should_<expected>_when_<condition>`), mock only at system boundaries.
 5. Run the tests. Verify they **fail for the right reason** — missing functionality, not syntax errors or import failures. Fix any mechanical issues until all failures are "expected" failures.
 6. **STOP. Present the test file(s) to the user and ask them to review the test design.** Do NOT proceed to the GREEN phase until the user approves. Explain what each test covers and why. If any tests derive from SPEC.md behaviors, note which spec behavior they verify.

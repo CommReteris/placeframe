@@ -1,6 +1,6 @@
 ---
 name: roadmap
-description: Create, import, query, and reorganize tickets on the Placeframe roadmap.
+description: Create, import, query, and reorganize tickets on the Placeframe roadmap. Use when the user wants to create a ticket, import tickets from a list, check ticket status, or restructure the roadmap.
 argument-hint: "[create|import|query|reorganize]"
 ---
 
