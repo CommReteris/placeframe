@@ -19,7 +19,7 @@ Read the ticket's full markdown body. Understand the Goal, Context, Approach, an
 
 - **`blocked`** — Show the blocking reason from the ticket body. Ask if the user wants to unblock (change status and proceed) or pick a different ticket.
 - **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the frontmatter status to `plan-needed`. Proceed to step 4.
-- **`plan-needed`** — Enter plan mode. Explore the codebase, write an implementation plan in the ticket's Approach section, get user approval. Update frontmatter status to `ready`. Proceed to step 4.
+- **`plan-needed`** — Enter plan mode to explore the codebase and design an approach. The ticket's Approach section is the primary plan artifact — the Claude Code plan file (`~/.claude/plans/`) is ephemeral scratch space. Before calling ExitPlanMode, write the full implementation plan into the ticket's `## Approach` section. This must include everything a fresh session needs to implement without re-exploring: key code changes (with snippets for non-obvious logic), files to create and modify, technical decisions with rationale, and test/verification strategy. A fresh session reading only the ticket should be exactly as prepared to implement as the current session. Update frontmatter status to `ready`. Proceed to step 4.
 - **`ready`** — Proceed to step 4 (TDD implementation).
 - **`done`** — Inform the user the ticket is done and ask if they want to reopen it.
 

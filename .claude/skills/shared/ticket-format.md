@@ -53,7 +53,7 @@ After frontmatter, ticket files use this structure:
 - **`## Goal`** — one-paragraph summary of what this ticket achieves
 - **`## Context`** — background, motivation, constraints, prior art
 - **`## Key files`** — bulleted list of files this ticket creates/modifies
-- **`## Approach`** — numbered implementation steps with H3 subsections
+- **`## Approach`** — implementation-ready plan. Must contain enough detail for a fresh session to implement without re-exploring the codebase: numbered steps, key code changes with snippets for non-obvious logic, files to create/modify, technical decisions with rationale. Use H3 subsections for major steps.
 - **`## Done when`** — bulleted acceptance criteria, split into "Verifiable now" and "Requires manual verification" where applicable
 
 ## Shared context
