@@ -4,7 +4,9 @@
 
 Specs are distinct from tickets. Tickets are disposable intent ("build X"). Specs are the durable record of what was built and why ("X works like this, these decisions were made"). Tickets live in the backlog (`agent/tickets/`); specs live with the code they describe.
 
-A spec captures enough detail for an AI agent or new contributor to understand and reproduce a feature without reading every source file. It covers both observable behaviors and the architectural and design reasoning behind them — organized around a feature, not around individual decision points (which distinguishes it from ADRs).
+The aspiration: if the code were deleted and the feature regenerated purely from the spec, the result should look and feel identical. This is not always achievable, but it is the standard to strive for. A spec that omits how something looks, feels, or transitions is incomplete.
+
+A spec captures enough detail for an AI agent or new contributor to understand and reproduce a feature without reading every source file. It covers both observable behaviors (functional and visual) and the architectural and design reasoning behind them — organized around a feature, not around individual decision points (which distinguishes it from ADRs).
 
 ## Ownership
 
