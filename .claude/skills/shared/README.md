@@ -8,4 +8,5 @@ Reference files used by multiple skills. Check here before creating new shared c
 | `git-preflight.md` | Pre-flight checks before creating/reorganizing commits: rebase, merge, detached HEAD |
 | `spec-format.md` | SPEC.md structure and purpose: sections, behaviors, design decisions |
 | `testing.md` | Python/pytest testing conventions: AAA pattern, naming, mocking boundaries |
+| `testing-web.md` | TypeScript/Vitest testing conventions for the SvelteKit board app |
 | `ticket-format.md` | Ticket frontmatter schema, statuses, and lifecycle |

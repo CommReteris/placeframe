@@ -6,7 +6,7 @@ argument-hint: "[ticket-id]"
 
 Pick up a ticket from the Placeframe roadmap and work through its lifecycle. Enforces test-driven development during implementation.
 
-Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, statuses), `.claude/skills/shared/testing.md` (test conventions), `.claude/skills/shared/spec-format.md` (SPEC.md convention).
+Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, statuses), `.claude/skills/shared/testing.md` (Python test conventions), `.claude/skills/shared/testing-web.md` (TypeScript test conventions), `.claude/skills/shared/spec-format.md` (SPEC.md convention).
 
 ## 1. Select ticket
 

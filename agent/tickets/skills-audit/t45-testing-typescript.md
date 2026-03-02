@@ -1,7 +1,7 @@
 ---
 id: T45
 title: Add TypeScript/Vitest testing conventions to shared docs
-status: ready
+status: done
 depends_on: []
 ---
 
