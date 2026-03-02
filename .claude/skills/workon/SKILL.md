@@ -79,7 +79,7 @@ If no SPEC.md exists and the feature is not yet mature enough for a spec, do not
 
 ## 7. Complete
 
-Update the ticket's frontmatter status to `done`. Regenerate `roadmap.md` by running `generate_roadmap(load_tickets())` from `tickets.py` (or updating the roadmap entry manually to match).
+Update the ticket's frontmatter status to `done`.
 
 ## 8. Commit
 

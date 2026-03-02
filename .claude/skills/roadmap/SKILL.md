@@ -6,8 +6,8 @@ description: Create, import, query, and reorganize tickets on the Placeframe roa
 Manage the Placeframe roadmap tickets. Four workflows: create, import, query, reorganize.
 
 Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, statuses).
-Ticket files: `agent/plans/t*.md`. Roadmap summary: `agent/plans/roadmap.md`.
-Python module: `scripts/src/scripts/tickets.py` (parse, load, update, generate roadmap).
+Ticket files: `agent/plans/t*.md`.
+Python module: `scripts/src/scripts/tickets.py` (parse, load, update).
 
 ## Determine workflow
 
@@ -23,8 +23,7 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 2. Assign the next T-number (e.g., if T17 exists, the new ticket is T18).
 3. Ask the user for: title, status (default `design-needed`), dependencies (default `[]`), and a brief goal.
 4. Write `agent/plans/t{N}-{slug}.md` with full ticket structure (frontmatter + Goal/Context/Approach/Done-when sections). Slug is derived from the title: lowercase, hyphens, no special characters.
-5. Regenerate `agent/plans/roadmap.md` using the `generate_roadmap(load_tickets())` pattern from `tickets.py`.
-6. Offer to `/commit`.
+5. Offer to `/commit`.
 
 ## 2. Import
 
@@ -32,8 +31,7 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 2. Extract discrete ticket ideas. For each: derive a title, suggest a status (default `design-needed`), and identify dependencies on existing tickets.
 3. Present the parsed list for user review. Allow edits, deletions, and reordering.
 4. After approval, create all ticket files (same process as Create step 4, in sequence).
-5. Regenerate roadmap.
-6. Offer to `/commit`.
+5. Offer to `/commit`.
 
 ## 3. Query
 
@@ -54,5 +52,4 @@ Handle structural changes to the roadmap:
 - **Split ticket**: Break one ticket into multiple. Create new tickets and update the original.
 - **Reorder/renumber**: Not supported (ticket IDs are permanent). Suggest using dependencies to express ordering instead.
 
-After any changes, regenerate `agent/plans/roadmap.md`.
-Offer to `/commit`.
+After any changes, offer to `/commit`.

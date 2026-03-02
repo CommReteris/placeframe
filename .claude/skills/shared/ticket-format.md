@@ -65,4 +65,3 @@ After frontmatter, ticket files use this structure:
 `scripts/src/scripts/tickets.py` provides:
 - `load_tickets()` — parse all ticket files, return list of Ticket dataclass instances
 - `update_ticket_status(ticket_id, new_status)` — update frontmatter in place
-- `generate_roadmap(tickets)` — regenerate `roadmap.md` from ticket data
