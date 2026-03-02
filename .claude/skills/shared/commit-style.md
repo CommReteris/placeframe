@@ -7,3 +7,16 @@
 - **Structure**: Subject line summarizes the theme; body bullets cover specifics that wouldn't fit in the subject. Omit the body entirely for trivial changes where the subject says it all.
 - **Separate prose and code**: Never mix documentation files (markdown, text, skill files, research notes) with code files (Python, configs, .gitignore, pyproject.toml) in the same commit. They require different review modes. If a change touches both, split into separate commits.
 - **No trailers**: Do NOT add Co-Authored-By or other trailers.
+
+## Examples
+
+**Bad** → **Good**:
+
+- `Update config files` → `[code] Fix label_type/link_type to NOT NULL`
+  (Name what changed, don't hide behind "update")
+
+- `[code] Refactor board scanning to support nested directories and improve overall code quality` → `[code] Make board ticket scanning recurse into subdirectories`
+  (State the change, not the aspirations)
+
+- `[prose] Add new skill files and update ticket statuses for multiple items` → `[prose] Trivial skill prose fixes: T28, T36, T37, T41, T42, T48`
+  (Be specific — list the tickets or changes)

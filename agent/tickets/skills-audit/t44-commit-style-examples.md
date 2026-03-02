@@ -1,7 +1,7 @@
 ---
 id: T44
 title: Add before/after examples to commit-style.md
-status: ready
+status: done
 depends_on: []
 ---
 
