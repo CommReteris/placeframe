@@ -42,11 +42,21 @@ A `done` ticket can be reopened to any earlier status if rework is needed.
 
 ## File naming
 
-Tickets: `agent/tickets/t{N}-{slug}.md` — N is the ticket number (no leading zeros), slug is a lowercase-hyphenated summary.
+Tickets: `agent/tickets/t{N}-{slug}.md` or `agent/tickets/{epic}/t{N}-{slug}.md` — N is the ticket number (no leading zeros), slug is a lowercase-hyphenated summary.
 
 Plans: `agent/plans/t{N}-plan.md` — one plan file per ticket, created during the `plan-needed` phase.
 
-Examples: `agent/tickets/t4-branch-based-builds.md`, `agent/plans/t4-plan.md`
+Examples: `agent/tickets/t4-branch-based-builds.md`, `agent/tickets/ci/t1-linting-ci.md`, `agent/plans/t4-plan.md`
+
+## Epics (directory-based grouping)
+
+An epic is a subdirectory under `agent/tickets/` (e.g., `agent/tickets/ci/`). The directory name IS the epic identity — there is no `epic` frontmatter field on individual tickets. Epic membership is determined solely by which directory a ticket file lives in.
+
+- **Ungrouped tickets stay at root.** Epic membership is optional. Tickets without an epic remain in `agent/tickets/` directly.
+- **Optional EPIC.md.** Each epic directory may contain an `EPIC.md` with a title and description. Not required — a bare directory with just ticket files is a valid epic.
+- **Shared context files** (like `ci-background.md`) can live in epic directories alongside tickets.
+- **Glob pattern for all tickets:** `agent/tickets/**/t*.md` — this recurses into subdirectories.
+- **No nesting.** Epics are one level deep. Do not create subdirectories within an epic directory.
 
 ## Body structure
 
@@ -72,5 +82,5 @@ The plan captures enough for a fresh session to skip exploration and go straight
 
 ## Shared context
 
-`agent/tickets/ci-background.md` is shared context for CI-related tickets (T1-T8). It is NOT a ticket — no frontmatter.
+`agent/tickets/ci/ci-background.md` is shared context for CI-related tickets (T1-T8). It is NOT a ticket — no frontmatter. Shared context files can live in epic directories alongside tickets.
 
