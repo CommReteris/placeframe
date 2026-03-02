@@ -22,7 +22,7 @@ If the ticket's frontmatter has a `plan` field, also read the referenced plan fi
 
 - **`blocked`** — Show the blocking reason from the ticket body. Ask if the user wants to unblock (change status and proceed) or pick a different ticket.
 - **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the frontmatter status to `plan-needed`. Proceed to step 4.
-- **`plan-needed`** — Go to step 3a (create plan).
+- **`plan-needed`** — If the ticket already has a `plan` field (i.e. it was moved back to `plan-needed` for revision), go to step 3c (revise plan). Otherwise go to step 3a (create plan).
 - **`ready`** — Go to step 3b (warm up from plan) if the ticket has a `plan` field. Otherwise go directly to step 4 (implement).
 - **`done`** — Inform the user the ticket is done and ask if they want to reopen it.
 
@@ -55,6 +55,21 @@ Enter plan mode. The goal is to rebuild implementation context, not to re-plan.
 4. Do NOT write to the plan file or ticket during this phase. The plan is already persisted.
 
 Call ExitPlanMode when you have enough context to implement. Proceed to step 4.
+
+### 3c. Revise plan (status: `plan-needed`, plan already exists)
+
+The ticket was moved back to `plan-needed` after a plan was already created. This means the existing plan needs revision — do NOT assume the status was simply forgotten and skip ahead.
+
+Enter plan mode.
+
+1. Read the existing plan file linked from the ticket's `plan` frontmatter field.
+2. Read the source files the plan references to understand current state.
+3. **Ask the user what needs to change.** The plan exists but something about it is wrong or incomplete — the user moved it back for a reason. Do not guess; ask.
+4. Revise the plan based on the discussion. Update the plan file in `agent/plans/` in place.
+5. Update the ticket's `## Approach` section if the strategy changed.
+6. Update the ticket's frontmatter status to `ready`.
+
+After ExitPlanMode, proceed to step 3b (warm up) or step 4 (implement) depending on whether you have sufficient context.
 
 ## 4. TDD implementation cycle
 
