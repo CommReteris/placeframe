@@ -1,6 +1,7 @@
 ---
 name: commit
 description: Stage and commit current changes with a well-crafted message. Smarter replacement for quick WIP commits — actually reads diffs to write accurate messages.
+argument-hint: "[hint-text]"
 ---
 
 Create a git commit of current changes with a clear, accurate commit message. If the user provided arguments (e.g. `/commit T4 branch strategy`), use them as hints for the message. Follow these steps:

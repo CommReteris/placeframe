@@ -1,6 +1,7 @@
 ---
 name: roadmap
 description: Create, import, query, and reorganize tickets on the Placeframe roadmap.
+argument-hint: "[create|import|query|reorganize]"
 ---
 
 Manage the Placeframe roadmap tickets. Four workflows: create, import, query, reorganize.

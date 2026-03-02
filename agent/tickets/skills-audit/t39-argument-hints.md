@@ -1,7 +1,7 @@
 ---
 id: T39
 title: Add argument-hint frontmatter to skills that accept arguments
-status: ready
+status: done
 depends_on: []
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: workon
 description: Pick up and work on a roadmap ticket.
+argument-hint: "[ticket-id]"
 ---
 
 Pick up a ticket from the Placeframe roadmap and work through its lifecycle. Enforces test-driven development during implementation.
