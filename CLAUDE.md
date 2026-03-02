@@ -32,6 +32,8 @@ All top-level commands are run via `uv run <command>` from the repo root. These 
 | `uv run generate-datamodels` | Regenerate Pydantic data models |
 | `uv run generate-lock-files` | Regenerate per-service `uv.lock` files |
 | `uv run deptry-check` | Check for dependency issues across all packages |
+| `uv run setup-sandbox` | Provision host for COI containers (Incus, firewalld, images). Pass `--rebuild` to force-rebuild the project image. |
+| `uv run coi-shell` | Launch a COI container. Auto-mounts main `.git` when run from a worktree. |
 
 **Linting and type checking** (run from repo root):
 ```bash
