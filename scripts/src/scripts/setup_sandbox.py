@@ -1,4 +1,5 @@
 import getpass
+import shlex
 import shutil
 import sys
 import tempfile
@@ -190,9 +191,9 @@ def propagate_git_identity() -> None:
 
     if name and email:
         for variable in ["GIT_AUTHOR_NAME", "GIT_COMMITTER_NAME"]:
-            run_command(f"incus profile set default environment.{variable}={name}")
+            run_command(f"incus profile set default environment.{variable}={shlex.quote(name)}")
         for variable in ["GIT_AUTHOR_EMAIL", "GIT_COMMITTER_EMAIL"]:
-            run_command(f"incus profile set default environment.{variable}={email}")
+            run_command(f"incus profile set default environment.{variable}={shlex.quote(email)}")
         print(f"Git identity set in Incus default profile: {name} <{email}>")
     else:
         print("WARNING: Could not read git user.name/user.email from host. Set them and re-run, or set manually:")
