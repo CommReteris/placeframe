@@ -26,8 +26,7 @@
       "Bash(git add *)",
       "Bash(rm -f tidy-commits.json)",
       "Bash(uv run tidy-commits-wrapper)",
-      "Bash(docker info *)",
-      "Bash(source *)"
+      "Bash(docker info *)"
     ]
   }
 }
