@@ -18,6 +18,10 @@ npm install -g pnpm
 mkdir -p /root/.local/bin
 ln -sf /home/code/.local/bin/claude /root/.local/bin/claude
 
+# Install Playwright's Chromium and its OS-level dependencies (for E2E tests).
+# Uses npx so we don't need @playwright/test installed globally.
+npx playwright install --with-deps chromium
+
 # The workspace is mounted as code:code but the container runs as root.
 # Git refuses to operate on repos owned by a different user without this.
 git config --system --add safe.directory /workspace
