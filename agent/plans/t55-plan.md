@@ -30,17 +30,19 @@ Error handling: `run_command` raises on failure by default. Idempotent commands 
 
 ### 2. Create `scripts/src/scripts/coi_shell.py`
 
-Direct `main()` pattern (no Typer — needs to forward arbitrary args to `coi shell` without parsing them).
+Typer-based script (Pattern A, matching `up.py`/`setup_sandbox.py`). No extra CLI options needed — just `coi_shell()` command that detects worktrees and delegates to `coi shell`.
 
 Functions:
 1. `detect_worktree() -> Path | None` — check if `.git` is a file; if so, run `git rev-parse --git-common-dir` and return resolved main `.git` path
 2. `compute_container_name(workspace: Path, slot: int = 1) -> str` — replicate COI's naming: `coi-{sha256(str(workspace))[:8]}-{slot}`
 3. `container_exists(name: str) -> bool` — `check_command(f"incus info {name}")`
 4. `add_git_mount(container_name: str, main_git_path: Path)` — `incus config device add <name> main-git disk source=<path> path=<path> shift=true` (idempotent, ignore "already exists"). Also add `safe.directory` for the main repo path via `incus exec <name> -- git config --system --add safe.directory <parent>`
-5. `main()` — entry point with two paths:
-   - **Not a worktree**: `exec_command("coi shell ...")` — pure passthrough
-   - **Worktree, container exists**: `add_git_mount()`, then `exec_command("coi shell ...")`
+5. Typer command `coi_shell()` — entry point with two paths:
+   - **Not a worktree**: `exec_command("coi shell")` — pure passthrough
+   - **Worktree, container exists**: `add_git_mount()`, then `exec_command("coi shell")`
    - **Worktree, container doesn't exist (first launch)**: run `coi shell` as subprocess with a background thread that polls for container readiness and calls `add_git_mount()` once running. Forward SIGINT/SIGTERM to the subprocess. Exit with its return code.
+
+No TDD for this ticket — both scripts are pure orchestration of system commands (sudo, incus, coi). Real verification requires a host with Incus; unit tests would just assert mock call strings.
 
 ### 3. Register both in `scripts/pyproject.toml`
 

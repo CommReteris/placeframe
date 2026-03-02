@@ -1,7 +1,7 @@
 ---
 id: T55
 title: Rewrite agent sandbox setup in Python and add worktree support
-status: ready
+status: in-review
 depends_on: []
 plan: t55-plan.md
 ---
@@ -92,7 +92,7 @@ When launched from a normal repo (`.git` is a directory), pass through to `coi s
 
 ## Approach
 
-Two new Python scripts replace `agent/setup.sh` and add worktree support. `setup_sandbox.py` is a Typer-based script that translates each section of the bash script into an idempotent function, called in order. `coi_shell.py` is a direct-main wrapper that detects worktrees via `git rev-parse --git-common-dir`, adds an Incus disk device for the main `.git` directory to the container, then delegates to `coi shell`. For non-worktree repos it's a pure passthrough via `exec_command`.
+Two new Typer-based Python scripts replace `agent/setup.sh` and add worktree support. `setup_sandbox.py` translates each section of the bash script into an idempotent function, called in order. `coi_shell.py` detects worktrees via `git rev-parse --git-common-dir`, adds an Incus disk device for the main `.git` directory to the container, then delegates to `coi shell`. For non-worktree repos it's a pure passthrough via `exec_command`. No TDD — both scripts are pure system command orchestration with no testable surface beyond mock-call verification.
 
 ## Key files
 
@@ -110,3 +110,15 @@ Two new Python scripts replace `agent/setup.sh` and add worktree support. `setup
 - `agent/setup.sh` is deleted
 - `agent/coi-placeframe-build.sh` still works (referenced by setup-sandbox during image build)
 - Both new scripts are registered in `scripts/pyproject.toml`
+
+## Log
+
+Clean implementation, no issues.
+
+Verification (all in sandbox, no Incus):
+- ruff check: passed
+- ruff format: passed (after auto-format)
+- basedpyright: 0 errors
+- `uv run setup-sandbox --help`: works
+- `uv run coi-shell --help`: works
+- Full provisioning and worktree testing require a host with Incus (manual verification)
