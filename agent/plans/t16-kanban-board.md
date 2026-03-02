@@ -2,7 +2,7 @@
 id: T16
 title: Kanban board web UI
 status: done
-depends_on: [T17]
+depends_on: []
 ---
 
 # T16: Kanban board web UI

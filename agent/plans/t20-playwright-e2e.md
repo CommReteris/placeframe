@@ -2,7 +2,7 @@
 id: T20
 title: Playwright E2E testing for board app
 status: plan-needed
-depends_on: [T18, T19]
+depends_on: [T18]
 ---
 
 # T20: Playwright E2E testing for board app

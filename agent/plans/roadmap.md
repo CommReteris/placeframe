@@ -142,7 +142,7 @@ Use `/roadmap` to create, import, query, or reorganize tickets.
 
 - **Status:** Done
 - **Detail:** `t16-kanban-board.md`
-- **Depends on:** T17
+- **Depends on:** Nothing.
 
 ---
 
@@ -162,19 +162,11 @@ Use `/roadmap` to create, import, query, or reorganize tickets.
 
 ---
 
-### T19: Backfill board app specification
-
-- **Status:** Plan needed
-- **Detail:** `t19-backfill-board-spec.md`
-- **Depends on:** T18
-
----
-
 ### T20: Playwright E2E testing for board app
 
 - **Status:** Plan needed
 - **Detail:** `t20-playwright-e2e.md`
-- **Depends on:** T18, T19
+- **Depends on:** T18
 
 ---
 
@@ -182,6 +174,6 @@ Use `/roadmap` to create, import, query, or reorganize tickets.
 
 - **Status:** Design needed
 - **Detail:** `t21-backfill-all-specs.md`
-- **Depends on:** T18, T19
+- **Depends on:** T18
 
 ---
