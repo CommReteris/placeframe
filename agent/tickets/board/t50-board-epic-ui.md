@@ -1,8 +1,9 @@
 ---
 id: T50
 title: Board UI epic grouping
-status: design-needed
+status: in-review
 depends_on: []
+plan: t50-plan.md
 ---
 
 # T50: Board UI epic grouping
@@ -44,12 +45,13 @@ This is the first step toward the board becoming a multi-view project tool rathe
 
 ## Approach
 
-TBD — needs design discussion. Open questions:
+Design decisions (resolved):
 
-1. **Filtering vs. grouping vs. both?** Filter dropdown (show one epic at a time) is simple. Grouping (swimlanes or colored sections within columns) is richer but more complex. Could start with filtering and add grouping later.
-2. **Visual treatment** — small colored chip on each card? Epic-colored left border? Subtle background tint per epic? Needs to work with the existing dark theme.
-3. **URL state** — should the active epic filter be in the URL (shareable, bookmarkable) or just client state?
-4. **"All" vs. default** — when no filter is active, show all tickets (current behavior). The filter adds specificity, doesn't remove it.
+1. **Filter + visual grouping** — epic dropdown in the header filters by epic. When showing all epics, tickets are visually grouped within columns.
+2. **Colored chip** — small pill/chip next to the ticket ID on each card, colored per epic. Root-level tickets show no chip.
+3. **URL query param** — `?epic=board` for shareable, bookmarkable filter state via `$page.url.searchParams`.
+4. **Collapsible epic sections** — within each status column, tickets are grouped under collapsible epic subheaders (e.g. "▼ board (2)"). Collapse state is client-side only. Epics with no tickets in a column are omitted.
+5. **"All" default** — no filter active = show all tickets with epic grouping. Filter narrows to one epic.
 
 ## Done when
 
@@ -59,3 +61,11 @@ TBD — needs design discussion. Open questions:
 - Ungrouped (root-level) tickets display cleanly without an epic label
 - Existing unit tests and E2E tests still pass
 - New E2E test verifies epic filtering works
+
+## Log
+
+- **SvelteMap reactivity**: Initially used `SvelteMap<string | null, boolean>` for collapse state. The `.get()` calls in the template didn't reliably trigger re-renders. Switched to `SvelteSet<string>` with a `collapseKey()` helper (maps `null` → `"__ungrouped"`). SvelteSet's `.has()` tracks correctly.
+- **`$state({})` property additions**: Tried plain `$state` object for collapse. Setting a new property (`collapsed[key] = true` where key didn't exist) didn't trigger reactivity. Svelte 5's proxy doesn't track property additions on objects — only mutations to existing properties. SvelteSet avoids this.
+- **`window.history.replaceState` conflicts with SvelteKit**: Initially used `window.history.replaceState` for URL updates. SvelteKit warns this conflicts with its router. Switched to `pushState` from `$app/navigation`.
+- **ESLint `no-navigation-without-resolve` rule**: Required wrapping the URL arg to `pushState`/`goto`/`replaceState` with `resolve()` from `$app/paths`. Since `resolve()` only accepts typed route IDs (not query strings), used `as "/"` cast for the path with query params — `resolve` just prepends the base path, so the cast is safe at runtime.
+- **E2E hydration timing**: Tests failed because `page.goto("/")` returns before Svelte 5 hydration completes, so event handlers weren't attached. Added `await page.waitForLoadState("networkidle")` before interactive tests that use `selectOption` or `click`.
