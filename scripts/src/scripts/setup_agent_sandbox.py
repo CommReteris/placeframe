@@ -195,7 +195,7 @@ def set_uv_project_environment() -> None:
 
 
 @app.command()
-def setup_sandbox(
+def setup_agent_sandbox(
     rebuild: bool = typer.Option(False, "--rebuild", help="Delete and rebuild the coi-placeframe image"),
 ) -> None:
     print("Provisioning COI (code-on-incus) on Ubuntu")
@@ -214,7 +214,7 @@ def setup_sandbox(
     propagate_git_identity()
     set_uv_project_environment()
     print("Done.")
-    print("Run: coi shell")
+    print("Run: uv run agent-shell")
 
 
 def main() -> None:

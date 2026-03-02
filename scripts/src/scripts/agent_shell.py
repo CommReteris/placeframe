@@ -9,7 +9,7 @@ from subprocess import CalledProcessError
 
 import typer
 from common.run_command import check_command, exec_command, run_command
-from scripts.setup_sandbox import PLACEFRAME_IMAGE
+from scripts.setup_agent_sandbox import PLACEFRAME_IMAGE
 
 DEVICE_NAME = "main-git"
 
@@ -64,7 +64,7 @@ def add_git_mount(container_name: str, main_git_path: Path) -> None:
 
 
 @app.command()
-def coi_shell() -> None:
+def agent_shell() -> None:
     main_git_path = detect_worktree()
 
     if main_git_path is None:
