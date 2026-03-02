@@ -9,7 +9,7 @@ depends_on: []
 
 ## Goal
 
-Replace the fragile `path.resolve(process.cwd(), "../../../agent/plans")` with a configurable approach, such as a SvelteKit `$env` variable.
+Replace the fragile `path.resolve(process.cwd(), "../../../agent/tickets")` with a configurable approach, such as a SvelteKit `$env` variable.
 
 ## Context
 

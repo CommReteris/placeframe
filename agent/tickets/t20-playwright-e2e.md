@@ -34,7 +34,7 @@ In `apps/sveltekit/board/`: `pnpm add -D @playwright/test` and `pnpm exec playwr
 
 ### 2. Add `BOARD_PLANS_DIR` env var override to `plans-dir.ts`
 
-Change the hardcoded path to: `process.env["BOARD_PLANS_DIR"] ?? path.resolve(process.cwd(), "../../../agent/plans")`. This lets tests point at a fixture directory without touching real ticket files.
+Change the hardcoded path to: `process.env["BOARD_PLANS_DIR"] ?? path.resolve(process.cwd(), "../../../agent/tickets")`. This lets tests point at a fixture directory without touching real ticket files.
 
 ### 3. Add `data-testid` attributes to components
 

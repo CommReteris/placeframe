@@ -31,8 +31,8 @@ The codebase has accumulated TODO/FIXME comments, GitHub issue references, and "
 ## Key files
 
 - `pyproject.toml` — Ruff config (add `FIX002`)
-- `agent/plans/roadmap.md` — add new tickets
-- `agent/plans/` — new ticket detail files
+- `agent/tickets/roadmap.md` — add new tickets
+- `agent/tickets/` — new ticket detail files
 
 ## Done when
 

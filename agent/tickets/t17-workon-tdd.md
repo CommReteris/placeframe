@@ -25,19 +25,19 @@ Research into Claude Code TDD workflows (tdd-guard, multi-agent architectures, m
 
 ## Key files
 
-- `agent/plans/t*.md` — all ticket files (add frontmatter)
+- `agent/tickets/t*.md` — all ticket files (add frontmatter)
 - `scripts/src/scripts/tickets.py` — shared ticket module (already exists, needs review)
 - `.claude/skills/workon/SKILL.md` — new (replaces `.claude/skills/ticket/SKILL.md`)
 - `.claude/skills/shared/ticket-format.md` — new shared format reference
 - `.claude/skills/shared/testing.md` — new test conventions guide
 - `.claude/skills/ticket/` — delete
-- `agent/plans/roadmap.md` — regenerated from frontmatter
+- `agent/tickets/roadmap.md` — regenerated from frontmatter
 
 ## Approach
 
 ### 1. Add frontmatter to all ticket files
 
-Add YAML frontmatter block to the top of each `agent/plans/t*.md` file:
+Add YAML frontmatter block to the top of each `agent/tickets/t*.md` file:
 
 ```yaml
 ---
@@ -75,7 +75,7 @@ New file `.claude/skills/shared/testing.md`. Detailed test style guide covering:
 
 New file `.claude/skills/workon/SKILL.md`. Workflow:
 
-1. **Select ticket**: Read frontmatter from all `agent/plans/t*.md` files. If ticket ID provided (e.g. `/workon T4`), use it. Otherwise, list tickets by status and ask user.
+1. **Select ticket**: Read frontmatter from all `agent/tickets/t*.md` files. If ticket ID provided (e.g. `/workon T4`), use it. Otherwise, list tickets by status and ask user.
 
 2. **Check status and act**:
    - `blocked` — show reason, ask if user wants to unblock

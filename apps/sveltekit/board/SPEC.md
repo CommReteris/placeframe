@@ -2,7 +2,7 @@
 
 ## What it does
 
-A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket markdown files (with YAML frontmatter) from `agent/plans/`, displays them across five status columns, and supports drag-and-drop status changes, a resizable detail drawer, and client-side search.
+A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket markdown files (with YAML frontmatter) from `agent/tickets/`, displays them across five status columns, and supports drag-and-drop status changes, a resizable detail drawer, and client-side search.
 
 ## Behaviors
 
@@ -33,7 +33,7 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 
 ### Ticket data
 
-- Reads `.md` files matching `t\d+.*\.md` from the plans directory.
+- Reads `.md` files matching `t\d+.*\.md` from the tickets directory.
 - Parses YAML frontmatter for id, title, status, and depends_on; everything after frontmatter is the body.
 - Files without valid frontmatter are silently skipped.
 
@@ -50,16 +50,16 @@ A SvelteKit kanban board for managing Placeframe roadmap tickets. Reads ticket m
 - **Dark-only theme with oklch tokens** — all colors defined as CSS custom properties in `@theme`, using oklch for perceptual uniformity. Each status has a distinct hue.
 - **SSR for initial load** — `+page.server.ts` loads all tickets server-side; subsequent interactions (drag-drop, search) are client-side.
 - **svelte-dnd-action for drag-and-drop** — Svelte-native, independently maintained FOSS library. Provides `onconsider`/`onfinalize` events for responsive drag feedback.
-- **`@html` for markdown rendering** — uses `marked` to render ticket bodies. Trusted content: only renders local ticket files from `agent/plans/`, never user-submitted content.
+- **`@html` for markdown rendering** — uses `marked` to render ticket bodies. Trusted content: only renders local ticket files from `agent/tickets/`, never user-submitted content.
 - **TypeScript ticket module mirrors Python `tickets.py`** — same YAML frontmatter format, same file discovery pattern (`t\d+.*\.md`), same sort order. The board reads the same files the `/roadmap` and `/workon` skills write.
-- **Plans directory resolved via `process.cwd()`** — currently `path.resolve(process.cwd(), "../../../agent/plans")`. This is fragile and couples the app to being run from a specific working directory. Should be improved to use a SvelteKit `$env` variable or similar configuration (T25).
+- **Tickets directory resolved via `process.cwd()`** — currently `path.resolve(process.cwd(), "../../../agent/tickets")`. This is fragile and couples the app to being run from a specific working directory. Should be improved to use a SvelteKit `$env` variable or similar configuration (T25).
 - **Pointer capture for resize handle** — ensures smooth dragging even when the cursor moves off the handle during resize.
 
 ## Key files
 
 - `src/lib/tickets.ts` — ticket types, YAML frontmatter parsing, file I/O, status grouping
 - `src/lib/tickets.test.ts` — unit tests for all ticket module functions
-- `src/lib/server/plans-dir.ts` — plans directory path resolution
+- `src/lib/server/tickets-dir.ts` — tickets directory path resolution
 - `src/lib/components/Board.svelte` — column grid, drag-and-drop state management
 - `src/lib/components/Column.svelte` — single status column with dndzone
 - `src/lib/components/Card.svelte` — ticket card (ID, title, dep count)

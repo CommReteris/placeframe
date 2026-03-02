@@ -62,7 +62,7 @@ Edit `tsconfig.json` — add `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 
 ### 4. TypeScript ticket module (`src/lib/tickets.ts`)
 
-Port the Python `tickets.py` logic to TypeScript. Types: `Ticket` (id, title, status, dependsOn, body, filePath), `Status` union type. Functions: `parseFrontmatter`, `dumpFrontmatter`, `loadTickets`, `loadTicket`, `updateTicketStatus`, `ticketsByStatus`. Uses `yaml` npm package for YAML parsing and Node.js `fs` for file I/O. Path resolution via `$env/static/private` or `path.resolve(import.meta.dirname, '../../../../agent/plans/')`.
+Port the Python `tickets.py` logic to TypeScript. Types: `Ticket` (id, title, status, dependsOn, body, filePath), `Status` union type. Functions: `parseFrontmatter`, `dumpFrontmatter`, `loadTickets`, `loadTicket`, `updateTicketStatus`, `ticketsByStatus`. Uses `yaml` npm package for YAML parsing and Node.js `fs` for file I/O. Path resolution via `$env/static/private` or `path.resolve(import.meta.dirname, '../../../../agent/tickets/')`.
 
 ### 5. Server routes
 
