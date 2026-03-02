@@ -50,3 +50,8 @@ Replace `svelte-dnd-action`'s `use:dndzone` directive with native HTML5 DnD:
 ### Requires manual verification
 - Visual drop-target feedback is clear (user can see where they're dropping)
 - Drag feels responsive (no noticeable lag vs the old library)
+
+## Log
+
+- `svelte-check` flagged a11y warning on Column drop target `<div>` with drag handlers: "must have an ARIA role". Added `role="listbox"` + `aria-label`. Second pass flagged "elements with 'listbox' interactive role must have a tabindex value". Added `tabindex="0"`. Zero warnings after that.
+- No test failures or wrong approaches otherwise.
