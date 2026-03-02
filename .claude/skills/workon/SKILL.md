@@ -88,6 +88,7 @@ Run the full verification suite from the ticket's "Done when" section:
 - `uv run ruff format --check .`
 - `uv run basedpyright` (for new/modified files)
 - `uv run pytest`
+- If the ticket touches TypeScript/SvelteKit code, also run `pnpm --dir <app-dir> check` and `pnpm --dir <app-dir> lint` (e.g. `pnpm --dir apps/sveltekit/board check`)
 - Any ticket-specific checks listed under "Verifiable now"
 
 Report which passed and which failed. List any "Requires manual verification" items.

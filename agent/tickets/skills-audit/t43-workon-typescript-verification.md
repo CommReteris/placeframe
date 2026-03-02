@@ -1,7 +1,7 @@
 ---
 id: T43
 title: Add TypeScript verification to workon step 5
-status: ready
+status: done
 depends_on: []
 ---
 
