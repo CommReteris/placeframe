@@ -60,8 +60,9 @@ All sections are required except Constraints (include only when notable constrai
 ## Writing guidelines
 
 - **Behaviors are the core.** Each behavior should be independently testable. Use "When {trigger}, {outcome}" format consistently.
+- **Visual behaviors are behaviors.** Hover states, transitions, focus treatment, active/pressed feedback, spacing rhythm, and animation are all observable, testable behaviors — not implementation details. "When a card is hovered, it lifts slightly and the border brightens with a smooth transition" belongs in the Behaviors section. A spec detailed enough to reproduce the feature's look and feel, not just its functionality, is the goal.
 - **Design decisions capture the "why" that code cannot express.** If the rationale is obvious from the code, omit the decision.
-- **Avoid implementation details in Behaviors.** "When a card is dragged to a new column, the status updates" is correct. "When `onfinalize` fires, the handler calls `fetch('/api/tickets/...')`" leaks implementation.
+- **Avoid implementation details in Behaviors.** "When a card is dragged to a new column, the status updates" is correct. "When `onfinalize` fires, the handler calls `fetch('/api/tickets/...')`" leaks implementation. The distinction: behaviors describe what a user observes; implementation details describe how the code achieves it. Specific CSS classes or function names are implementation details. Transition duration, hover effect, and focus ring appearance are observable behaviors.
 - **Present tense throughout.** "Renders", "displays", not "should render", "will display".
-- **Target 50–150 lines** for a typical subsystem. A spec that takes longer to maintain than the code it describes is too verbose.
+- **Target 50–150 lines** for a typical subsystem. UI-heavy features with detailed visual behaviors may exceed this — that's fine. A spec that takes longer to maintain than the code it describes is too verbose, but a spec that omits visual behaviors to hit a line count is too terse.
 - **No frontmatter.** Unlike tickets, specs have no YAML frontmatter. The filename and location provide all the metadata needed.

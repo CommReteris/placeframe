@@ -138,7 +138,7 @@ If a SPEC.md exists, re-read it and compare its Behaviors section against the cu
 
 ### 7b. Spec update proposal
 
-If the ticket added new behaviors, modified existing behaviors, or introduced new design decisions, draft proposed updates to the SPEC.md (or a new SPEC.md if none exists and the user wants one). Present the complete proposed SPEC.md — show the full document, not a diff. The user must explicitly approve before any changes are written to disk.
+If the ticket added new behaviors, modified existing behaviors, or introduced new design decisions, draft proposed updates to the SPEC.md (or a new SPEC.md if none exists and the user wants one). Visual changes (transitions, hover states, focus rings, spacing, typography) are behaviors — include them in spec proposals. Present the complete proposed SPEC.md — show the full document, not a diff. The user must explicitly approve before any changes are written to disk.
 
 If no SPEC.md exists and the feature is not yet mature enough for a spec, do not pressure the user — simply note that no spec exists and move on.
 
