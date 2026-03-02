@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Specs are distinct from tickets. Tickets are disposable intent ("build X"). Specs are the durable record of what was built and why ("X works like this, these decisions were made"). Tickets live in the backlog (`agent/plans/`); specs live with the code they describe.
+Specs are distinct from tickets. Tickets are disposable intent ("build X"). Specs are the durable record of what was built and why ("X works like this, these decisions were made"). Tickets live in the backlog (`agent/tickets/`); specs live with the code they describe.
 
 A spec captures enough detail for an AI agent or new contributor to understand and reproduce a feature without reading every source file. It covers both observable behaviors and the architectural and design reasoning behind them — organized around a feature, not around individual decision points (which distinguishes it from ADRs).
 

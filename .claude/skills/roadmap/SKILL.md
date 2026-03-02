@@ -6,7 +6,7 @@ description: Create, import, query, and reorganize tickets on the Placeframe roa
 Manage the Placeframe roadmap tickets. Four workflows: create, import, query, reorganize.
 
 Reference docs: `.claude/skills/shared/ticket-format.md` (frontmatter schema, statuses).
-Ticket files: `agent/plans/t*.md`.
+Ticket files: `agent/tickets/t*.md`.
 Python module: `scripts/src/scripts/tickets.py` (parse, load, update).
 
 ## Determine workflow
@@ -19,10 +19,10 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 
 ## 1. Create
 
-1. Read all `agent/plans/t*.md` files to find the highest ticket number.
+1. Read all `agent/tickets/t*.md` files to find the highest ticket number.
 2. Assign the next T-number (e.g., if T17 exists, the new ticket is T18).
 3. Ask the user for: title, status (default `design-needed`), dependencies (default `[]`), and a brief goal.
-4. Write `agent/plans/t{N}-{slug}.md` with full ticket structure (frontmatter + Goal/Context/Approach/Done-when sections). Slug is derived from the title: lowercase, hyphens, no special characters.
+4. Write `agent/tickets/t{N}-{slug}.md` with full ticket structure (frontmatter + Goal/Context/Approach/Done-when sections). Slug is derived from the title: lowercase, hyphens, no special characters.
 5. Offer to `/commit`.
 
 ## 2. Import
@@ -35,7 +35,7 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 
 ## 3. Query
 
-1. Load all tickets using `load_tickets()` pattern (read frontmatter from all `agent/plans/t*.md`).
+1. Load all tickets using `load_tickets()` pattern (read frontmatter from all `agent/tickets/t*.md`).
 2. Apply filters based on user request:
    - **By status**: e.g., "show me all ready tickets"
    - **By dependency**: e.g., "what depends on T5?"

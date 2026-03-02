@@ -13,7 +13,7 @@ Backfill is collaborative — it requires user participation to capture design i
 
 ## Step 1: Read the code
 
-Read the key files in the feature directory. Understand the structure, public interface, and data flow. Read any existing tests. If there is an associated ticket in `agent/plans/`, read it for historical context — but the code is the source of truth for behavior, and the user is the source of truth for intent.
+Read the key files in the feature directory. Understand the structure, public interface, and data flow. Read any existing tests. If there is an associated ticket in `agent/tickets/`, read it for historical context — but the code is the source of truth for behavior, and the user is the source of truth for intent.
 
 For large subsystems, identify natural sub-features first. If the subsystem has clearly distinct sub-features (e.g., a service with separate extraction, matching, and estimation pipelines), consider whether sub-specs are more appropriate than one monolithic spec. Ask the user if uncertain.
 
@@ -68,7 +68,7 @@ Incorporate all answers into the draft. Resolve all `[?]` markers. Write the SPE
 ## Step 6: Create tickets for gaps
 
 Review all confirmed `[gap]` items. For each gap:
-1. Create a ticket in `agent/plans/` with the next available T-number, status `design-needed`
+1. Create a ticket in `agent/tickets/` with the next available T-number, status `design-needed`
 2. Update the SPEC.md to reference the ticket ID inline (e.g., "Gap: no live refresh (T22)")
 
 This ensures gaps are tracked as actionable work, not just noted in prose. Offer to `/commit` after creating the tickets and updating the spec.
