@@ -9,11 +9,11 @@ depends_on: [T18]
 
 ## Goal
 
-Create SPEC.md files for all major subsystems in the project, using the backfill workflow from T18 and the board spec from T19 as the reference example.
+Create SPEC.md files for all major subsystems in the project, using the backfill workflow from T18 and the board spec (`apps/sveltekit/board/SPEC.md`) as the reference example.
 
 ## Context
 
-The spec convention (T18) and the first spec (T19) establish the pattern. This ticket extends it across the full project. The effort is large and deferred — this ticket exists to record the decision that comprehensive specs are worth doing, not to do them immediately.
+The spec convention (T18) and the first spec (the board, backfilled under T16) establish the pattern. This ticket extends it across the full project. The effort is large and deferred — this ticket exists to record the decision that comprehensive specs are worth doing, not to do them immediately.
 
 Key open questions that need discussion before planning:
 
