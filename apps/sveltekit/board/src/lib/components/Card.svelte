@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Ticket } from "$lib/tickets.js";
+	import { epicColor } from "$lib/epic-colors.js";
 
 	let { ticket, onselect }: { ticket: Ticket; onselect: (ticket: Ticket) => void } = $props();
 </script>
@@ -16,6 +17,15 @@
 >
 	<div class="mb-1 flex items-center gap-2">
 		<span class="text-xs font-medium text-text-muted">{ticket.id}</span>
+		{#if ticket.epic}
+			<span
+				class="rounded-full px-2 py-0.5 text-[10px] font-medium leading-tight text-surface-900"
+				style="background-color: {epicColor(ticket.epic)}"
+				data-testid="epic-chip-{ticket.epic}"
+			>
+				{ticket.epic}
+			</span>
+		{/if}
 		{#if ticket.dependsOn.length > 0}
 			<span class="text-xs text-text-muted" title="Dependencies: {ticket.dependsOn.join(', ')}">
 				{ticket.dependsOn.length} dep{ticket.dependsOn.length > 1 ? "s" : ""}

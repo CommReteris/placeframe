@@ -60,12 +60,12 @@ test.describe("Drag and drop", () => {
 		await page.waitForLoadState("networkidle");
 		const readyColumn = page.locator("[data-testid='column-ready']");
 		const inReviewColumn = page.locator("[data-testid='column-in-review']");
-		await expect(readyColumn.locator("h2 + span")).toHaveText("2");
+		await expect(readyColumn.locator("h2 + span")).toHaveText("3");
 		await expect(inReviewColumn.locator("h2 + span")).toHaveText("1");
 		const card = page.locator("[data-testid='card-T4']");
 		const targetColumn = inReviewColumn.locator("[role='listbox']");
 		await dragCardToColumn(page, card, targetColumn);
-		await expect(readyColumn.locator("h2 + span")).toHaveText("1");
+		await expect(readyColumn.locator("h2 + span")).toHaveText("2");
 		await expect(inReviewColumn.locator("h2 + span")).toHaveText("2");
 	});
 });

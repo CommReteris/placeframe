@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { SvelteSet } from "svelte/reactivity";
 	import type { Ticket, Status } from "$lib/tickets.js";
-	import { STATUS_LABELS } from "$lib/tickets.js";
+	import { STATUS_LABELS, groupByEpic } from "$lib/tickets.js";
+	import { epicColor } from "$lib/epic-colors.js";
 	import Card from "./Card.svelte";
 
 	let {
@@ -17,6 +19,24 @@
 
 	let dragOverCount = $state(0);
 	let isDragOver = $derived(dragOverCount > 0);
+
+	const epicGroups = $derived(groupByEpic(tickets));
+	const hasMultipleGroups = $derived(epicGroups.length > 1);
+
+	const collapsedEpics = new SvelteSet<string>();
+
+	function collapseKey(epic: string | null): string {
+		return epic ?? "__ungrouped";
+	}
+
+	function toggleEpic(epic: string | null): void {
+		const key = collapseKey(epic);
+		if (collapsedEpics.has(key)) {
+			collapsedEpics.delete(key);
+		} else {
+			collapsedEpics.add(key);
+		}
+	}
 
 	const statusColors: Record<Status, string> = {
 		blocked: "bg-status-blocked",
@@ -59,8 +79,34 @@
 			}
 		}}
 	>
-		{#each tickets as ticket (ticket.id)}
-			<Card {ticket} {onselect} />
+		{#each epicGroups as group (group.epic)}
+			{#if group.epic !== null}
+				<button
+					class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-text-muted hover:bg-surface-700"
+					onclick={() => toggleEpic(group.epic)}
+					data-testid="epic-section-{group.epic}"
+				>
+					<span class="inline-block h-2 w-2 rounded-full" style="background-color: {epicColor(group.epic)}"></span>
+					<span>{collapsedEpics.has(collapseKey(group.epic)) ? "\u25B6" : "\u25BC"}</span>
+					<span>{group.epic}</span>
+					<span class="text-text-muted">({group.tickets.length})</span>
+				</button>
+			{:else if hasMultipleGroups}
+				<button
+					class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-text-muted hover:bg-surface-700"
+					onclick={() => toggleEpic(null)}
+					data-testid="epic-section-ungrouped"
+				>
+					<span>{collapsedEpics.has(collapseKey(null)) ? "\u25B6" : "\u25BC"}</span>
+					<span>ungrouped</span>
+					<span class="text-text-muted">({group.tickets.length})</span>
+				</button>
+			{/if}
+			{#if !collapsedEpics.has(collapseKey(group.epic))}
+				{#each group.tickets as ticket (ticket.id)}
+					<Card {ticket} {onselect} />
+				{/each}
+			{/if}
 		{/each}
 	</div>
 </div>

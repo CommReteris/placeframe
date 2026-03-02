@@ -40,14 +40,14 @@ test.describe("Board rendering", () => {
 		await expect(card).toContainText("1 dep");
 	});
 
-	test("should sort tickets numerically within columns", async ({ page }) => {
+	test("should sort tickets numerically within epic groups", async ({ page }) => {
 		await page.goto("/");
 		const readyColumn = page.locator("[data-testid='column-ready']");
 		const cards = readyColumn.locator("[data-testid^='card-']");
-		await expect(cards).toHaveCount(2);
-		const firstId = await cards.nth(0).locator("[data-testid^='card-']").or(cards.nth(0)).getAttribute("data-testid");
-		const secondId = await cards.nth(1).getAttribute("data-testid");
-		expect(firstId).toBe("card-T4");
-		expect(secondId).toBe("card-T5");
+		await expect(cards).toHaveCount(3);
+		const ids = await cards.evaluateAll((elements) =>
+			elements.map((element) => element.getAttribute("data-testid")),
+		);
+		expect(ids).toEqual(["card-T7", "card-T4", "card-T5"]);
 	});
 });

@@ -29,6 +29,51 @@ export interface Ticket {
 	dependsOn: string[];
 	body: string;
 	filePath: string;
+	epic: string | null;
+}
+
+export interface EpicGroup {
+	epic: string | null;
+	tickets: Ticket[];
+}
+
+export function deriveEpic(filePath: string, ticketsDirectory: string): string | null {
+	const relative = path.relative(ticketsDirectory, filePath);
+	const segments = relative.split(path.sep);
+	return segments.length > 1 ? (segments[0] ?? null) : null;
+}
+
+export function collectEpics(tickets: Ticket[]): string[] {
+	const epics = new Set<string>();
+	for (const ticket of tickets) {
+		if (ticket.epic !== null) {
+			epics.add(ticket.epic);
+		}
+	}
+	return [...epics].sort();
+}
+
+export function groupByEpic(tickets: Ticket[]): EpicGroup[] {
+	const groups = new Map<string | null, Ticket[]>();
+	for (const ticket of tickets) {
+		const existing = groups.get(ticket.epic);
+		if (existing) {
+			existing.push(ticket);
+		} else {
+			groups.set(ticket.epic, [ticket]);
+		}
+	}
+	const result: EpicGroup[] = [];
+	for (const [epic, epicTickets] of groups) {
+		result.push({ epic, tickets: epicTickets });
+	}
+	result.sort((a, b) => {
+		if (a.epic === null && b.epic === null) return 0;
+		if (a.epic === null) return 1;
+		if (b.epic === null) return -1;
+		return a.epic.localeCompare(b.epic);
+	});
+	return result;
 }
 
 export function parseFrontmatter(text: string): {
@@ -66,6 +111,7 @@ export function loadTicket(filePath: string): Ticket {
 		dependsOn: Array.isArray(dependsOn) ? (dependsOn as string[]) : [],
 		body,
 		filePath,
+		epic: null,
 	};
 }
 
@@ -102,7 +148,9 @@ export function loadTickets(directory: string): Ticket[] {
 		if (!text.startsWith("---\n")) {
 			continue;
 		}
-		tickets.push(loadTicket(filePath));
+		const ticket = loadTicket(filePath);
+		ticket.epic = deriveEpic(filePath, directory);
+		tickets.push(ticket);
 	}
 	return tickets;
 }

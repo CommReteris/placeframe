@@ -8,6 +8,7 @@ interface FixtureTicket {
 	status: string;
 	dependsOn?: string[];
 	body: string;
+	subdirectory?: string;
 }
 
 const FIXTURE_TICKETS: FixtureTicket[] = [
@@ -48,6 +49,20 @@ const FIXTURE_TICKETS: FixtureTicket[] = [
 		status: "in-review",
 		body: "\n# T6: In review ticket\n\nAwaiting review.\n",
 	},
+	{
+		id: "T7",
+		title: "CI setup ticket",
+		status: "ready",
+		subdirectory: "ci",
+		body: "\n# T7: CI setup ticket\n\nCI pipeline work.\n",
+	},
+	{
+		id: "T8",
+		title: "Board refactor ticket",
+		status: "blocked",
+		subdirectory: "board",
+		body: "\n# T8: Board refactor ticket\n\nBoard improvement.\n",
+	},
 ];
 
 function ticketToMarkdown(ticket: FixtureTicket): string {
@@ -62,10 +77,17 @@ function ticketToMarkdown(ticket: FixtureTicket): string {
 export const FIXTURE_DIR = path.join(os.tmpdir(), "board-e2e-fixtures");
 
 export function writeFixtureTickets(): void {
+	if (fs.existsSync(FIXTURE_DIR)) {
+		fs.rmSync(FIXTURE_DIR, { recursive: true });
+	}
 	fs.mkdirSync(FIXTURE_DIR, { recursive: true });
 	for (const ticket of FIXTURE_TICKETS) {
+		const directory = ticket.subdirectory
+			? path.join(FIXTURE_DIR, ticket.subdirectory)
+			: FIXTURE_DIR;
+		fs.mkdirSync(directory, { recursive: true });
 		const filename = `${ticket.id.toLowerCase()}-${ticket.title.toLowerCase().replaceAll(" ", "-")}.md`;
-		fs.writeFileSync(path.join(FIXTURE_DIR, filename), ticketToMarkdown(ticket));
+		fs.writeFileSync(path.join(directory, filename), ticketToMarkdown(ticket));
 	}
 }
 

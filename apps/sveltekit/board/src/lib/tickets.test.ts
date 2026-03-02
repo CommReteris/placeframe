@@ -13,6 +13,9 @@ import {
 	loadTicket,
 	updateTicketStatus,
 	ticketsByStatus,
+	deriveEpic,
+	collectEpics,
+	groupByEpic,
 } from "./tickets.js";
 
 function makeFrontmatter(fields: {
@@ -45,6 +48,19 @@ function makeTicketFile(
 
 Test goal for ${id}.
 `;
+}
+
+function makeTicket(overrides: Partial<Ticket> = {}): Ticket {
+	return {
+		id: "T1",
+		title: "Test",
+		status: "ready",
+		dependsOn: [],
+		body: "",
+		filePath: "t1.md",
+		epic: null,
+		...overrides,
+	};
 }
 
 describe("STATUSES", () => {
@@ -126,6 +142,26 @@ describe("dumpFrontmatter", () => {
 	});
 });
 
+describe("deriveEpic", () => {
+	it("should return null when ticket is directly in the tickets directory", () => {
+		expect(deriveEpic("/tickets/t1-test.md", "/tickets")).toBeNull();
+	});
+
+	it("should return subdirectory name when ticket is in a subdirectory", () => {
+		expect(deriveEpic("/tickets/ci/t1-build.md", "/tickets")).toBe("ci");
+	});
+
+	it("should return first segment when ticket is deeply nested", () => {
+		expect(deriveEpic("/tickets/ci/sub/t1.md", "/tickets")).toBe("ci");
+	});
+
+	it("should handle different epic names", () => {
+		expect(deriveEpic("/tickets/board/t50.md", "/tickets")).toBe("board");
+		expect(deriveEpic("/tickets/zed/t10.md", "/tickets")).toBe("zed");
+		expect(deriveEpic("/tickets/skills-audit/t30.md", "/tickets")).toBe("skills-audit");
+	});
+});
+
 describe("loadTicket", () => {
 	let tempDir: string;
 
@@ -159,6 +195,14 @@ describe("loadTicket", () => {
 
 		const ticket = loadTicket(filePath);
 		expect(ticket.dependsOn).toEqual(["T1", "T3"]);
+	});
+
+	it("should set epic to null when loaded standalone", () => {
+		const filePath = path.join(tempDir, "t1-test.md");
+		fs.writeFileSync(filePath, makeTicketFile("T1", "Test", "ready"));
+
+		const ticket = loadTicket(filePath);
+		expect(ticket.epic).toBeNull();
 	});
 });
 
@@ -255,6 +299,28 @@ describe("loadTickets", () => {
 		expect(tickets[2]?.id).toBe("T3");
 	});
 
+	it("should derive epic from subdirectory name", () => {
+		fs.writeFileSync(
+			path.join(tempDir, "t1-root.md"),
+			makeTicketFile("T1", "Root ticket", "ready"),
+		);
+		fs.mkdirSync(path.join(tempDir, "ci"));
+		fs.writeFileSync(
+			path.join(tempDir, "ci", "t2-ci-ticket.md"),
+			makeTicketFile("T2", "CI ticket", "done"),
+		);
+		fs.mkdirSync(path.join(tempDir, "board"));
+		fs.writeFileSync(
+			path.join(tempDir, "board", "t3-board-ticket.md"),
+			makeTicketFile("T3", "Board ticket", "plan-needed"),
+		);
+
+		const tickets = loadTickets(tempDir);
+		expect(tickets[0]?.epic).toBeNull();
+		expect(tickets[1]?.epic).toBe("ci");
+		expect(tickets[2]?.epic).toBe("board");
+	});
+
 	it("should sort tickets from subdirectories by number globally", () => {
 		fs.mkdirSync(path.join(tempDir, "ci"));
 		fs.writeFileSync(
@@ -307,33 +373,106 @@ describe("loadTickets", () => {
 	});
 });
 
+describe("collectEpics", () => {
+	it("should return sorted unique epic names", () => {
+		const tickets = [
+			makeTicket({ id: "T1", epic: "ci" }),
+			makeTicket({ id: "T2", epic: "board" }),
+			makeTicket({ id: "T3", epic: "ci" }),
+			makeTicket({ id: "T4", epic: "zed" }),
+		];
+
+		expect(collectEpics(tickets)).toEqual(["board", "ci", "zed"]);
+	});
+
+	it("should exclude null epics", () => {
+		const tickets = [
+			makeTicket({ id: "T1", epic: null }),
+			makeTicket({ id: "T2", epic: "ci" }),
+			makeTicket({ id: "T3", epic: null }),
+		];
+
+		expect(collectEpics(tickets)).toEqual(["ci"]);
+	});
+
+	it("should return empty array when all tickets are root-level", () => {
+		const tickets = [
+			makeTicket({ id: "T1", epic: null }),
+			makeTicket({ id: "T2", epic: null }),
+		];
+
+		expect(collectEpics(tickets)).toEqual([]);
+	});
+
+	it("should return empty array for empty input", () => {
+		expect(collectEpics([])).toEqual([]);
+	});
+});
+
+describe("groupByEpic", () => {
+	it("should group tickets by epic", () => {
+		const tickets = [
+			makeTicket({ id: "T1", epic: "ci" }),
+			makeTicket({ id: "T2", epic: "board" }),
+			makeTicket({ id: "T3", epic: "ci" }),
+		];
+
+		const groups = groupByEpic(tickets);
+		expect(groups).toHaveLength(2);
+		expect(groups[0]?.epic).toBe("board");
+		expect(groups[0]?.tickets).toHaveLength(1);
+		expect(groups[1]?.epic).toBe("ci");
+		expect(groups[1]?.tickets).toHaveLength(2);
+	});
+
+	it("should sort named epics alphabetically with null last", () => {
+		const tickets = [
+			makeTicket({ id: "T1", epic: null }),
+			makeTicket({ id: "T2", epic: "zed" }),
+			makeTicket({ id: "T3", epic: "board" }),
+		];
+
+		const groups = groupByEpic(tickets);
+		expect(groups).toHaveLength(3);
+		expect(groups[0]?.epic).toBe("board");
+		expect(groups[1]?.epic).toBe("zed");
+		expect(groups[2]?.epic).toBeNull();
+	});
+
+	it("should maintain ticket order within each group", () => {
+		const tickets = [
+			makeTicket({ id: "T1", epic: "ci" }),
+			makeTicket({ id: "T5", epic: "ci" }),
+			makeTicket({ id: "T3", epic: "ci" }),
+		];
+
+		const groups = groupByEpic(tickets);
+		expect(groups[0]?.tickets.map((t) => t.id)).toEqual(["T1", "T5", "T3"]);
+	});
+
+	it("should return empty array for empty input", () => {
+		expect(groupByEpic([])).toEqual([]);
+	});
+
+	it("should handle all tickets being ungrouped", () => {
+		const tickets = [
+			makeTicket({ id: "T1", epic: null }),
+			makeTicket({ id: "T2", epic: null }),
+		];
+
+		const groups = groupByEpic(tickets);
+		expect(groups).toHaveLength(1);
+		expect(groups[0]?.epic).toBeNull();
+		expect(groups[0]?.tickets).toHaveLength(2);
+	});
+});
+
 describe("ticketsByStatus", () => {
 	it("should group tickets by status with all columns present", () => {
 		const tickets: Ticket[] = [
-			{
-				id: "T1",
-				title: "One",
-				status: "ready",
-				dependsOn: [],
-				body: "",
-				filePath: "t1.md",
-			},
-			{
-				id: "T2",
-				title: "Two",
-				status: "done",
-				dependsOn: [],
-				body: "",
-				filePath: "t2.md",
-			},
-			{
-				id: "T3",
-				title: "Three",
-				status: "ready",
-				dependsOn: [],
-				body: "",
-				filePath: "t3.md",
-			},
+			makeTicket({ id: "T1", status: "ready" }),
+			makeTicket({ id: "T2", status: "done", filePath: "t2.md" }),
+			makeTicket({ id: "T3", status: "ready", filePath: "t3.md" }),
 		];
 
 		const grouped = ticketsByStatus(tickets);
