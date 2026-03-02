@@ -78,9 +78,9 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. Default dev cred
 - **Components**: One component per file. Props via `$props()` with explicit type annotations. Events via callback props (`onselect`, `onclose`), not `createEventDispatcher`.
 - **Naming**: Components in PascalCase (`Board.svelte`). Files in kebab-case except components. Types/interfaces in PascalCase. Props and variables in camelCase.
 - **Styling**: Tailwind CSS v4 utility classes. Dark theme via CSS custom properties in `@theme`. No inline `style` attributes unless dynamic values require it.
-- **Testing**: Vitest + `@testing-library/svelte`. Run from `apps/sveltekit/board/` with `pnpm test`. Test files alongside source: `*.test.ts`.
-- **Linting**: ESLint flat config with `eslint-plugin-svelte` v3 and `typescript-eslint`. Run `pnpm lint`. Type checking via `pnpm check` (svelte-check).
-- **Package manager**: pnpm (not npm/yarn). Run `pnpm install` from `apps/sveltekit/board/`.
+- **Testing**: Vitest + `@testing-library/svelte`. Test files alongside source: `*.test.ts`. Run `pnpm --dir apps/sveltekit/board test`.
+- **Linting**: ESLint flat config with `eslint-plugin-svelte` v3 and `typescript-eslint`. Run `pnpm --dir apps/sveltekit/board lint`. Type checking via `pnpm --dir apps/sveltekit/board check` (svelte-check).
+- **Package manager**: pnpm (not npm/yarn). Run `pnpm --dir apps/sveltekit/board install` to install. Always use `pnpm --dir` from the repo root — do not `cd` into the board directory, as cwd drift breaks subsequent git commands.
 
 ## Initial Setup
 
