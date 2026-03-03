@@ -9,7 +9,8 @@ from subprocess import CalledProcessError
 
 import typer
 from common.run_command import check_command, exec_command, run_command
-from scripts.setup_agent_sandbox import PLACEFRAME_IMAGE
+
+from .setup_agent_sandbox import PLACEFRAME_IMAGE
 
 DEVICE_NAME = "main-git"
 
@@ -22,57 +23,28 @@ SHELL_COMMAND = f"coi shell --image {PLACEFRAME_IMAGE}"
 app = typer.Typer(add_completion=False)
 
 
-def detect_worktree() -> Path | None:
-    git_path = Path(".git")
-    if not git_path.exists() or git_path.is_dir():
-        return None
-    main_git = Path(run_command("git rev-parse --git-common-dir").strip()).resolve()
-    return main_git
-
-
-def compute_container_name(workspace: Path, slot: int = 1) -> str:
-    workspace_hash = hashlib.sha256(str(workspace).encode()).hexdigest()[:8]
-    return f"coi-{workspace_hash}-{slot}"
-
-
-def container_exists(name: str) -> bool:
-    return check_command(f"incus info {name}")
-
-
-def container_running(name: str) -> bool:
-    try:
-        output = run_command(f"incus info {name}")
-        return "Status: RUNNING" in output
-    except CalledProcessError:
-        return False
-
-
 def add_git_mount(container_name: str, main_git_path: Path) -> None:
-    try:
-        run_command(
-            f"incus config device add {container_name} {DEVICE_NAME} disk"
-            f" source={main_git_path} path={main_git_path} shift=true"
-        )
-    except CalledProcessError:
-        pass
-
-    repo_path = main_git_path.parent
-    try:
-        run_command(f"incus exec {container_name} -- git config --system --add safe.directory {repo_path}")
-    except CalledProcessError:
-        pass
+    check_command(
+        f"incus config device add {container_name} {DEVICE_NAME} disk"
+        f" source={main_git_path} path={main_git_path} shift=true"
+    )
+    check_command(f"incus exec {container_name} -- git config --system --add safe.directory {main_git_path.parent}")
 
 
 @app.command()
 def agent_shell() -> None:
-    main_git_path = detect_worktree()
+    git_path = Path(".git")
+    if git_path.exists() and not git_path.is_dir():
+        main_git_path: Path | None = Path(run_command("git rev-parse --git-common-dir").strip()).resolve()
+    else:
+        main_git_path = None
 
     if main_git_path is None:
         exec_command(SHELL_COMMAND)
 
-    container_name = compute_container_name(Path.cwd())
+    container_name = f"coi-{hashlib.sha256(str(Path.cwd()).encode()).hexdigest()[:8]}-1"
 
-    if container_exists(container_name):
+    if check_command(f"incus info {container_name}"):
         assert main_git_path is not None
         add_git_mount(container_name, main_git_path)
         exec_command(SHELL_COMMAND)
@@ -82,13 +54,16 @@ def agent_shell() -> None:
         def add_mount_when_ready() -> None:
             for _ in range(60):
                 time.sleep(1)
-                if container_running(container_name):
+                try:
+                    running = "Status: RUNNING" in run_command(f"incus info {container_name}")
+                except CalledProcessError:
+                    running = False
+                if running:
                     add_git_mount(container_name, main_git_path)
                     print(f"Worktree mount added: {main_git_path}")
                     return
 
-        thread = threading.Thread(target=add_mount_when_ready, daemon=True)
-        thread.start()
+        threading.Thread(target=add_mount_when_ready, daemon=True).start()
 
         process = subprocess.Popen(["coi", "shell", "--image", PLACEFRAME_IMAGE])
         signal.signal(signal.SIGINT, lambda signum, frame: process.send_signal(signum))
