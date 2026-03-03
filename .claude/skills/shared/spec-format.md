@@ -52,6 +52,11 @@ Not exhaustive — just enough to orient a reader.
 - `src/lib/components/Board.svelte` — main 5-column kanban layout
 - `src/routes/api/tickets/[id]/+server.ts` — PATCH endpoint for status changes
 
+For a backend service:
+- `src/api/routes/maps.py` — map CRUD endpoints
+- `src/api/domain/ingestion.py` — image upload and feature extraction pipeline
+- `alembic/versions/003_add_maps.py` — schema migration for maps table
+
 ## Constraints
 Optional. Bulleted list of hard constraints: performance requirements,
 compatibility, security, dependency restrictions. Omit if none are notable.

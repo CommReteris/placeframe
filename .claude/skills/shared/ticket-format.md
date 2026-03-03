@@ -112,11 +112,13 @@ A ticket is too big if it violates any of these:
 
 4. **Context capacity.** The agent must hold the ticket's Key Files, implementation, and tests in working memory without degradation. If the Key Files section lists more files than can be read and understood alongside the implementation work, the ticket is too big. (Agent success rates are 70-80% for tasks a skilled human completes in 1-2 hours, dropping below 20% for 4+ hour tasks per METR's HCAST benchmark.)
 
+Examples of too-big tickets: "Add auth and refactor the database layer" (two unrelated concerns). "Rewrite the localizer service" (unbounded scope, 1000+ lines). "Add CI for linting, tests, and Docker builds" (three independent pipelines — split into one ticket each).
+
 **When you discover a ticket is too big during planning:** stop planning, propose a decomposition to the user, create the new tickets, and update dependencies. Do not barrel ahead into a large implementation.
 
 ### Too small
 
-A change does not need a ticket if it involves **no design decisions and no review value** — the ticket ceremony (frontmatter, context, plan, done-when) exists to support decisions. Examples: renaming a variable, fixing a typo, updating a version number. Just make the change directly.
+A change does not need a ticket if it involves **no design decisions and no review value** — the ticket ceremony (frontmatter, context, plan, done-when) exists to support decisions. Examples: renaming a variable, fixing a typo, updating a version number, adding a missing import. Just make the change directly.
 
 If several too-small changes are thematically related, they can be grouped into one ticket — but only if the group itself passes the atomicity test (one sentence, one reviewable concern).
 

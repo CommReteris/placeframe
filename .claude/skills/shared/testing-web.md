@@ -32,7 +32,7 @@ it("should parse status when valid frontmatter", () => {
 
 ## Mocking
 
-Same boundaries as Python — mock external APIs, filesystem, time. Use real temp directories (`fs.mkdtempSync`) for filesystem tests, cleaned up in `afterEach`.
+Same boundaries as Python (see `testing.md` § Mocking). Use real temp directories (`fs.mkdtempSync`) for filesystem tests, cleaned up in `afterEach`.
 
 For Svelte components, use `@testing-library/svelte` `render()` and query the DOM. Prefer `getByRole`, `getByText` over `getByTestId`.
 
@@ -53,4 +53,4 @@ Playwright E2E tests live in `e2e/`. Config in `playwright.config.ts` (Chromium-
 
 ## What not to test
 
-Same as Python: auto-generated code, third-party internals, pure config, trivial property access.
+Same as Python (see `testing.md` § What not to test).

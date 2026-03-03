@@ -58,7 +58,7 @@ After each batch:
 - Update `[gap]` markers based on whether the user confirms something is a gap or explains it as intentional
 - Present the next batch (later batches can be informed by earlier answers — sometimes an answer resolves multiple questions)
 
-If the user's answers are ambiguous or incomplete, ask follow-up questions until the design decisions section can be written without `[?]` markers.
+If the user's answers are ambiguous or incomplete, ask follow-up questions until the design decisions section can be written without `[?]` markers. If the user explicitly says "I don't know" or "skip", accept it — write the decision as-is with the rationale marked `[unknown]` and move on. These become candidates for follow-up tickets in Step 6.
 
 For small features where the total question count is ≤7, a single batch is fine.
 
