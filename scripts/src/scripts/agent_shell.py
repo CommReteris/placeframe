@@ -11,7 +11,7 @@ from subprocess import CalledProcessError
 import typer
 from common.run_command import check_command, exec_command, run_command
 
-from .setup_agent_sandbox import PLACEFRAME_IMAGE, UNITY_CREDENTIALS_PATH, _parse_unity_credentials
+from .setup_agent_sandbox import PLACEFRAME_IMAGE, UNITY_CREDENTIALS_PATH, parse_unity_credentials
 
 DEVICE_NAME = "main-git"
 UNITY_EDITOR_PATH = "/opt/unity/6000.0.66f1/Editor/Unity"
@@ -59,7 +59,7 @@ def agent_shell(
         if not UNITY_CREDENTIALS_PATH.exists():
             credentials = None
         else:
-            parsed = _parse_unity_credentials(UNITY_CREDENTIALS_PATH)
+            parsed = parse_unity_credentials(UNITY_CREDENTIALS_PATH)
             serial = parsed.get("UNITY_SERIAL")
             email = parsed.get("UNITY_EMAIL")
             password = parsed.get("UNITY_PASSWORD")
@@ -79,19 +79,18 @@ def agent_shell(
     else:
         main_git_path = None
 
-    if main_git_path is None:
+    if main_git_path is None and credentials is None:
         exec_command(SHELL_COMMAND)
 
     container_name = f"coi-{hashlib.sha256(str(Path.cwd()).encode()).hexdigest()[:8]}-1"
 
     if check_command(f"incus info {container_name}"):
-        assert main_git_path is not None
-        add_git_mount(container_name, main_git_path)
+        if main_git_path is not None:
+            add_git_mount(container_name, main_git_path)
         if credentials:
             ensure_unity_activated(container_name, credentials)
         exec_command(SHELL_COMMAND)
     else:
-        assert main_git_path is not None
 
         def configure_container_when_ready() -> None:
             for _ in range(60):
@@ -101,8 +100,9 @@ def agent_shell(
                 except CalledProcessError:
                     running = False
                 if running:
-                    add_git_mount(container_name, main_git_path)
-                    print(f"Worktree mount added: {main_git_path}")
+                    if main_git_path is not None:
+                        add_git_mount(container_name, main_git_path)
+                        print(f"Worktree mount added: {main_git_path}")
                     if credentials:
                         ensure_unity_activated(container_name, credentials)
                     return

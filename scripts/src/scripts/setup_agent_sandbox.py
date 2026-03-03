@@ -48,7 +48,7 @@ PLACEFRAME_IMAGE = "coi-placeframe"
 app = typer.Typer(add_completion=False)
 
 
-def _parse_unity_credentials(path: Path) -> dict[str, str]:
+def parse_unity_credentials(path: Path) -> dict[str, str]:
     credentials: dict[str, str] = {}
     for line in path.read_text().splitlines():
         line = line.strip()
@@ -233,7 +233,7 @@ def setup_agent_sandbox(
             print('  grep DeveloperData Unity_lic.ulf | sed -E \'s/.*Value="([^"]+)".*/\\1/\' | base64 --decode')
         sys.exit(1)
 
-    credentials = _parse_unity_credentials(UNITY_CREDENTIALS_PATH)
+    credentials = parse_unity_credentials(UNITY_CREDENTIALS_PATH)
     missing = [key for key in ["UNITY_SERIAL", "UNITY_EMAIL", "UNITY_PASSWORD"] if key not in credentials]
     if missing:
         print(f"ERROR: Missing keys in {UNITY_CREDENTIALS_PATH}: {', '.join(missing)}")
