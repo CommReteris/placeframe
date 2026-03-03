@@ -1,7 +1,7 @@
 ---
 id: T72
 title: Long-running jobs in Claude Code agent sessions
-status: design-needed
+status: done
 depends_on: []
 ---
 
@@ -20,8 +20,20 @@ The Bash tool's `timeout` parameter has a maximum of 600,000ms (10 minutes). The
 
 This affects any job that takes more than ~10 minutes: native builds, large Docker image builds, full test suites, etc.
 
-## Open questions
+## Resolution
 
-1. Does `run_in_background: true` enforce the timeout, or does it run until the process exits? If it doesn't enforce, the problem is already solved — just use `run_in_background` and accept the notification whenever it arrives.
-2. If it does enforce: should we build a wrapper (e.g. a script that writes a completion marker file) so Claude can poll on user request? Or is "run it in a separate terminal" the right answer for >10min jobs?
-3. Should the COI environment provide `screen` or `tmux` for this use case?
+No code change needed. `run_in_background: true` does **not** enforce the `timeout` parameter — background tasks run until the process exits naturally, regardless of duration. The perceived limitation during T69 was caused by explicitly passing `timeout: 600000` alongside `run_in_background: true`, which imposed an unnecessary cap.
+
+Answers to open questions:
+
+1. **Does `run_in_background` enforce timeout?** No. Background tasks run until the process exits. The timeout only governs foreground (blocking) calls.
+2. **Wrapper script needed?** No. `run_in_background` already delivers a completion notification on exit (success or failure).
+3. **`screen`/`tmux` in COI?** Not needed for this use case. The only caveat is that background tasks are killed if the Claude Code session itself exits — but that's a session lifecycle issue, not a timeout issue.
+
+## Log
+
+No implementation needed. The ticket's premise was based on a misunderstanding from the T69 session where a timeout was explicitly (and unnecessarily) set on a background command, making it appear that background tasks had a 10-minute limit.
+
+## Observations
+
+No pre-existing issues noticed.
