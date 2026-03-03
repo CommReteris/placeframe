@@ -27,7 +27,8 @@ install_if_missing() {
 }
 
 if ! command -v cmake &>/dev/null || ! command -v ninja &>/dev/null || \
-   ! command -v nasm &>/dev/null || ! command -v dotnet &>/dev/null; then
+   ! command -v nasm &>/dev/null || ! command -v dotnet &>/dev/null || \
+   ! command -v zip &>/dev/null; then
     echo "Installing build dependencies..."
     apt-get update -qq
 fi
@@ -36,6 +37,9 @@ install_if_missing cmake cmake
 install_if_missing ninja ninja-build
 install_if_missing nasm nasm
 install_if_missing g++ g++
+install_if_missing zip zip
+install_if_missing unzip unzip
+install_if_missing curl curl
 
 if ! command -v dotnet &>/dev/null; then
     echo "Installing .NET SDK 8.0..."

@@ -1,5 +1,6 @@
 import re
 import sys
+import tempfile
 from pathlib import Path
 from subprocess import CalledProcessError
 
@@ -39,18 +40,33 @@ def find_unity_editor(version: str) -> Path:
     return editor_path
 
 
-def check_compilation(project_path: Path, build_target: str) -> bool:
+def build_project(project_path: Path, build_target: str, output_directory: Path) -> bool:
     version = read_editor_version(project_path)
     editor = find_unity_editor(version)
-    print(f"\nChecking {project_path.name} [{build_target}] (Unity {version})")
-    try:
-        run_command(
+
+    if build_target == "linux64":
+        output_path = output_directory / project_path.name / "linux64" / project_path.name
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        print(f"\nBuilding {project_path.name} [{build_target}] (Unity {version})")
+        print(f"  Output: {output_path}")
+        command = (
+            f"xvfb-run {editor} -batchmode -nographics"
+            f" -projectPath {project_path.resolve()}"
+            f" -buildLinux64Player {output_path}"
+            f" -logFile /dev/stdout"
+        )
+    else:
+        print(f"\nCompiling {project_path.name} [{build_target}] (Unity {version})")
+        print(f"  (compilation check only — no {build_target} toolchain available)")
+        command = (
             f"xvfb-run {editor} -batchmode -nographics -quit"
             f" -projectPath {project_path.resolve()}"
             f" -buildTarget {build_target}"
-            f" -logFile /dev/stdout",
-            stream_log=True,
+            f" -logFile /dev/stdout"
         )
+
+    try:
+        run_command(command, stream_log=True)
         print(f"  PASS: {project_path.name} [{build_target}]")
         return True
     except CalledProcessError:
@@ -59,9 +75,12 @@ def check_compilation(project_path: Path, build_target: str) -> bool:
 
 
 @app.command()
-def check_unity(
-    project: str | None = typer.Option(None, "--project", "-p", help="Check a specific project directory name."),
-    target: str | None = typer.Option(None, "--target", "-t", help="Check a specific build target (android, linux64)."),
+def build_unity(
+    project: str | None = typer.Option(None, "--project", "-p", help="Build a specific project by directory name."),
+    target: str | None = typer.Option(None, "--target", "-t", help="Build for a specific target (android, linux64)."),
+    output: Path = typer.Option(
+        Path(tempfile.gettempdir()) / "unity-builds", "--output", "-o", help="Output directory for build artifacts."
+    ),
 ) -> None:
     projects = UNITY_PROJECTS
     if project:
@@ -83,19 +102,20 @@ def check_unity(
             print(f"WARNING: Project not found: {project_path}")
             continue
         for build_target in targets:
-            passed = check_compilation(project_path, build_target)
+            passed = build_project(project_path, build_target, output)
             results.append((project_path.name, build_target, passed))
 
     print("\nResults:")
     for project_name, build_target, passed in results:
         status = "PASS" if passed else "FAIL"
-        print(f"  {status}: {project_name} [{build_target}]")
+        mode = "build" if build_target == "linux64" else "compile"
+        print(f"  {status}: {project_name} [{build_target}] ({mode})")
 
     failures = [result for result in results if not result[2]]
     if failures:
-        print(f"\n{len(failures)} check(s) failed.")
+        print(f"\n{len(failures)} build(s) failed.")
         sys.exit(1)
-    print(f"\nAll {len(results)} check(s) passed.")
+    print(f"\nAll {len(results)} build(s) passed.")
 
 
 def main() -> None:
