@@ -1,7 +1,7 @@
 ---
 id: T69
 title: Build Cesium for Unity native plugin for Linux
-status: design-needed
+status: plan-needed
 depends_on: []
 ---
 
@@ -19,17 +19,19 @@ There is no official Linux support and no indication it's on the roadmap (GitHub
 
 Research report: `agent/research/cesium-unity-native-linux.md`
 
-## Open questions
+## Design decisions
 
-1. **Artifact hosting**: The build produces `.so` files (~50-100 MB). Options: git URL package, local file path in repo, local tarball, or self-hosted Verdaccio registry. The other platforms use Cesium's hosted UPM registry. What's the right approach for one custom package?
-2. **Augment vs. replace**: Building for Linux produces a superset of the official package (existing platform binaries + Linux `.so` + Linux-guarded generated C#). Should this replace `com.cesium.unity` in the manifest, or supplement it?
-3. **Build location**: Should the `.so` be baked into the COI image at image build time (like the Unity editor), or built separately and stored somewhere else?
-4. **Play Mode testing**: The bar is Play Mode, not just compilation. Cesium-native has no GPU dependency (it's a data processing library), but Unity MonoBehaviours touching the rendering pipeline might not handle the Null Graphics Device gracefully. Is "loads without crashing" sufficient, or do we need specific Cesium functionality working?
-5. **Version tracking**: When Cesium releases a new version, how do we rebuild? Manual process, or automated?
+1. **Artifact hosting**: Build manually once, commit the forked package to the repo as a local file path dependency (`"file:../../packages/cesium-unity-linux"`). Follow-up ticket to move the build to CI and publish to a scoped registry (same one being set up for Placeframe UPM packages).
+2. **Augment vs. replace**: Fork of the official `com.cesium.unity` package — same name, superset contents. Adds Linux `.so` binaries and `#if UNITY_EDITOR_LINUX` generated C# alongside the existing Win/Mac/Android/iOS binaries. Outernet.Client's manifest points at the local fork instead of Cesium's registry.
+3. **Build location**: Built manually once outside the repo. The resulting package (including `.so`) is committed to the repo temporarily. Follow-up ticket moves the build to CI and the artifact to a registry.
+4. **Play Mode bar**: "Loads without crashing" is sufficient. No need for specific Cesium geospatial functionality to work.
+5. **Version tracking**: Manual for now. Follow-up ticket to automate via CI.
 
 ## Done when
 
 - [ ] Outernet.Client passes `uv run check-unity` for both `android` and `linux64` targets
-- [ ] Cesium native `.so` is hosted in a persistent, reproducible location
-- [ ] Build process is documented (or scripted) for future version bumps
+- [ ] Forked `com.cesium.unity` package committed to repo with Linux binaries
+- [ ] Outernet.Client manifest points at local fork
+- [ ] Build process documented for future version bumps
+- [ ] Follow-up ticket exists for CI build + registry hosting
 - [ ] Play Mode can be entered without crashes (stretch goal, may surface separate blockers)

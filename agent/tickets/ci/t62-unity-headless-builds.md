@@ -86,4 +86,5 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 
 - `basedpyright` is not in the dev dependency group, so `uv run basedpyright` fails in the sandbox. Tracked as T63.
 - Unity's `services-config.json` lives at `/usr/share/unity3d/config/services-config.json` on Linux (confirmed via strace). The `enableEntitlementLicensing` key is a Licensing Server setting — the editor's licensing client reads the file but ignores that key. Not a viable workaround for the headless entitlement issue.
+- `uv run check-unity` with linux64 target causes Unity to auto-add `com.unity.toolchain.linux-x86_64` to project manifests and lock files. This is a Unity side effect, not a bug — the changes are additive and should be committed.
 - Pre-existing format drift in `packages/python/common/src/common/run_command.py`, `packages/python/common/src/common/stream_tar.py`, `scripts/src/scripts/build.py`, `scripts/src/scripts/generate_datamodels.py` — all flagged by `ruff format --check` but not introduced by this branch.
