@@ -48,7 +48,9 @@ Bake Unity 6000.0.66f1 (the version all four projects currently use) into the CO
 
 Clean implementation, no issues. Basedpyright not available in sandbox (tracked as T63), so type checking was done via `npx basedpyright` — all errors are pre-existing import resolution failures, not new issues.
 
-**Reopened** — `xvfb-run: error: Xvfb failed to start` during `coi build custom` (image build). Xvfb installs fine (line 28) but can't start inside the Incus build container — likely missing `/tmp/.X11-unix`, security restrictions, or no `/dev/shm`. The unityhub postinst script already ran `unityhub` successfully without Xvfb (output shows `All Unity Editors will be installed to /opt/unity`), so `--headless` may be sufficient without `xvfb-run`. Fix options: (1) drop `xvfb-run` and rely on `--headless` alone, (2) create `/tmp/.X11-unix` and ensure `xauth` is present before the xvfb-run calls.
+**Reopened (1)** — `xvfb-run: error: Xvfb failed to start` during `coi build custom` (image build). Fixed by dropping `xvfb-run` and relying on `--headless` alone (750fcc92).
+
+**Reopened (2)** — `unityhub --no-sandbox --headless install-path --set /opt/unity` segfaults (exit 139) during `coi build custom`. Crashpad error precedes: `elf_dynamic_array_reader.h:64: tag not found`. The same commands worked when run interactively in a fully launched COI container — the difference is the COI build container, which is a temporary container with likely more restricted environment (missing `/dev/shm`, tighter seccomp/AppArmor, missing pseudo-filesystems that Electron/Chromium needs). Unity Hub is an Electron app, so it's sensitive to these restrictions even in `--headless --no-sandbox` mode. Logs at `setup-agent-sandbox.log`. Fix attempt: set `ELECTRON_DISABLE_CRASHPAD=1` on both `unityhub` calls in the build script to disable the crashpad crash reporter that's segfaulting.
 
 ## Observations
 
