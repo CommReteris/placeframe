@@ -21,20 +21,25 @@ Two editor versions are needed:
 - **Unity 2022.3 LTS** — AndroidMobile, MapRegistrationTool, MakeItSing (downgrade from Unity 6 pending)
 - **Unity 6 LTS (6000.0.66f1)** — legacy/Outernet.Client
 
-## Key decisions needed
+## Design decisions
 
-1. **Image vs volume**: install editors in `coi-placeframe-build.sh` (baked into image, ~15-20 GB) or into a persistent Incus volume (smaller image, first-launch delay)?
-2. **License file management**: where to store the `.ulf` — baked into image, mounted at runtime, or fetched from a secret store?
-3. **Compilation wrapper**: standalone script, uv command, or skill?
-4. **Unity 2022.3 specific version**: which 2022.3.XXf1 patch to target?
+1. **Image vs volume** → bake into image. Install editors in `coi-placeframe-build.sh` (~15-20 GB). Slower image rebuild on Unity version bumps, but fast container launch and no first-run surprises.
+2. **License file management** → Incus profile mount. `setup_agent_sandbox.py` locates `~/.local/share/unity3d/Unity/Unity_lic.ulf` on the host and adds a read-only profile disk device mounting it into the container. Errors out if the `.ulf` is missing. Same pattern as git identity — host credential material lives in the profile, not the image. Auto-updates if the user re-activates locally.
+3. **Compilation wrapper**: TBD (standalone script, uv command, or skill — decide during planning).
+4. **Unity 2022.3 specific version**: TBD (pick latest 2022.3.XXf1 patch during planning).
+
+## Key risks
+
+- **`.ulf` fingerprint mismatch**: Unity Personal `.ulf` contains a machine fingerprint. In practice, GameCI relies on this working across different CI machines and it has for years, but it's an undocumented tolerance. Incus system containers share the host kernel and CPU identity, so risk is lower than Docker. **Smoke-test this early** before investing in the full installation.
 
 ## Approach (high level)
 
-1. Extend `agent/coi-placeframe-build.sh` to install xvfb, X11/Mesa system dependencies, and Unity Hub CLI.
-2. Install both editor versions with `android`, `android-sdk-ndk-tools`, `android-open-jdk`, and `linux-il2cpp` modules.
-3. Copy a locally-activated Personal `.ulf` license file into the container.
-4. Add a compilation check wrapper that runs `xvfb-run Unity -batchmode -nographics -quit -projectPath <path> -buildTarget <target>` and reports success/failure.
-5. Verify all four projects compile for both Android and Linux Standalone targets.
+1. Extend `setup_agent_sandbox.py` to find the host `.ulf` and add an Incus profile disk device mounting it read-only at the container's Unity license path. Error if not found.
+2. Extend `agent/coi-placeframe-build.sh` to install xvfb, X11/Mesa system dependencies, and Unity Hub CLI.
+3. Install both editor versions with `android`, `android-sdk-ndk-tools`, `android-open-jdk`, and `linux-il2cpp` modules.
+4. Smoke-test: verify Unity launches in batchmode and accepts the mounted `.ulf` license.
+5. Add a compilation check wrapper that runs `xvfb-run Unity -batchmode -nographics -quit -projectPath <path> -buildTarget <target>` and reports success/failure.
+6. Verify all four projects compile for both Android and Linux Standalone targets.
 
 ## Done when
 
