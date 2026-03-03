@@ -34,18 +34,20 @@ jobs:
             project-name: Outernet.Client
             platform: linux64
             module: linux-il2cpp
-          - project: legacy/Outernet.Client
-            project-name: Outernet.Client
-            platform: win64
-            module: windows-mono
+          # win64 builds disabled — IL2CPP not available on Linux cross-compilation.
+          # T75 tracks switching to dedicated Windows runners.
+          # - project: legacy/Outernet.Client
+          #   project-name: Outernet.Client
+          #   platform: win64
+          #   module: windows-mono
           - project: apps/MapRegistrationTool
             project-name: MapRegistrationTool
             platform: linux64
             module: linux-il2cpp
-          - project: apps/MapRegistrationTool
-            project-name: MapRegistrationTool
-            platform: win64
-            module: windows-mono
+          # - project: apps/MapRegistrationTool
+          #   project-name: MapRegistrationTool
+          #   platform: win64
+          #   module: windows-mono
           - project: apps/AndroidMobile
             project-name: AndroidMobile
             platform: android-mobile
