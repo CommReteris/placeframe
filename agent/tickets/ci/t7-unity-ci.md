@@ -1,8 +1,9 @@
 ---
 id: T7
 title: Unity CI workflow
-status: plan-needed
+status: in-review
 depends_on: [T4]
+plan: t7-plan.md
 ---
 
 # T7: Unity CI workflow
@@ -53,6 +54,10 @@ Foundation work is complete:
 8. **Windows runner for Windows standalone.** Linux runners can't produce Windows builds. CI uses a Windows runner (`windows-latest`) for `win64` targets.
 9. **One job per build, fully parallel.** All 7 builds run as separate parallel jobs. Each job restores its Library cache independently. This gives the best wall-clock time and per-build status granularity. Library cache keys are scoped per project (the cache is platform-independent — it's asset import results).
 
+## Approach
+
+Rewrite `build_unity.py` with a full platform enum (`android-mobile`, `magicleap`, `linux64`, `win64`) and an execute-method dispatch table that maps (project, platform) to the fully qualified C# build method. All 7 builds run on Linux using GameCI Docker containers — win64 cross-compiles via the `windows-mono` module (T75 tracks switching to dedicated Windows runners later). License activation uses direct Unity CLI serial activation inside the container, not the `game-ci/unity-activate` action. A new `BuildScript.cs` for AndroidMobile follows the legacy Outernet.Client pattern.
+
 ## Depends on
 
 T4 (branch-based builds) — establishes multi-branch triggers and `.env.lock` commit strategy that T7's workflow must follow.
@@ -68,3 +73,12 @@ T4 (branch-based builds) — establishes multi-branch triggers and `.env.lock` c
 - Full build matrix passes on push to `main`
 - License activation works reliably
 - Library cache reduces subsequent build times
+
+## Log
+
+Clean implementation, no issues. The plan mapped directly to the code. One deviation from design decision 8: win64 builds cross-compile from Linux via GameCI's `windows-mono` module instead of using Windows runners (T75 tracks the switch). License activation uses direct Unity CLI (`unity-editor -serial ...`) instead of `game-ci/unity-activate` action (which doesn't work inside container jobs).
+
+## Observations
+
+- `scripts/src/scripts/build.py` and `scripts/src/scripts/generate_datamodels.py` have pre-existing formatting violations (`ruff format --check` flags them) — not introduced by this branch.
+- Pre-existing lint errors in `packages/generated/python/` (import sorting, unused imports) — auto-generated code, expected.
