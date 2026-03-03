@@ -13,7 +13,7 @@ Replace the Linux cross-compilation approach for win64 Unity builds with dedicat
 
 ## Context
 
-T7 implements the Unity CI workflow with all 7 builds running on Linux using GameCI containers. The two win64 builds (Outernet.Client, MapRegistrationTool) use the `windows-mono` module for cross-compilation, which restricts them to the Mono scripting backend. Switching to Windows runners enables IL2CPP builds and native toolchain access (Visual Studio, Windows SDK).
+T7 implements the Unity CI workflow with all 7 builds running on Linux using GameCI containers. The two win64 builds (Outernet.Client, MapRegistrationTool) were originally configured with the `windows-mono` module for cross-compilation, but this fails because the projects use IL2CPP as their scripting backend. Win64 matrix entries are commented out in `unity.yml` until this ticket is resolved. Switching to Windows runners enables IL2CPP builds and native toolchain access (Visual Studio, Windows SDK).
 
 ## Key files
 

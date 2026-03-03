@@ -27,11 +27,11 @@ Foundation work is complete:
 
 | Project | android-mobile | magicleap | linux64 | win64 |
 |---|---|---|---|---|
-| **Outernet.Client** | yes | yes | yes | yes |
-| **MapRegistrationTool** | - | - | yes | yes |
+| **Outernet.Client** | yes | yes | yes | T75 |
+| **MapRegistrationTool** | - | - | yes | T75 |
 | **AndroidMobile** | yes | - | - | - |
 
-7 total builds across 3 projects.
+5 active builds (win64 disabled pending T75).
 
 ## Key files
 
@@ -104,6 +104,15 @@ Implementation is code-complete. All "verifiable now" criteria pass locally. Rem
 Clean implementation, no issues. The plan mapped directly to the code. One deviation from design decision 8: win64 builds cross-compile from Linux via GameCI's `windows-mono` module instead of using Windows runners (T75 tracks the switch). License activation uses direct Unity CLI (`unity-editor -serial ...`) instead of `game-ci/unity-activate` action (which doesn't work inside container jobs).
 
 GameCI image tags corrected from `ubuntu-6000.0.66f1-{module}-3.1.0` to `6000.0.66f1-{module}-3` after verifying against Docker Hub API.
+
+CI iteration (runs 22644797672–22647576309):
+- `UNITY_EDITOR` env var semantics changed from base-directory to direct command path; set to `unity-editor` in workflow
+- NuGet restore added via `NuGetForUnity.Cli` dotnet local tool manifest (`.config/dotnet-tools.json` already existed for CSharpier)
+- MapRegistrationTool Cesium manifest fixed — was still on registry, not local fork (T69 reopened)
+- Unity build noise gitignored (PerformanceTestRunInfo, XR sim settings, native~ dirs)
+- AndroidMobile `BuildScript.cs` missing `using UnityEditor.Build` and `using UnityEngine.Rendering` — caught by CI, not locally (no C# static analysis without Unity project open; workon skill updated to include Unity batchmode compilation check)
+- Win64 builds fail with "IL2CPP not installed" — expected, GameCI linux containers only have Mono. Win64 matrix entries commented out pending T75.
+- Remaining 5 builds (3 android, 1 magicleap, 2 linux64) pending verification on next push.
 
 ## Observations
 
