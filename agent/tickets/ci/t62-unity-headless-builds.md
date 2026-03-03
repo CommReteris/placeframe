@@ -78,7 +78,12 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 
 **Switched to serial activation** — Following GameCI's approach (PR #83): extract serial from ULF `DeveloperData` field, activate with `-serial -username -password` at runtime. Credentials stored in `~/.config/unity3d/unity-credentials` on the host, read by `agent_shell.py`, passed via `incus exec` (host PID namespace — invisible to Claude Code inside the container). `setup_agent_sandbox.py` auto-extracts serial from ULF and validates the credentials file. Old `unity-license` profile device removed. Pending: smoke-test of the actual serial activation (requires host-side re-run of `setup-agent-sandbox` and `agent-shell`).
 
+**Basedpyright fix** — `_parse_unity_credentials` used private prefix but was imported cross-module by `agent_shell.py`. Renamed to `parse_unity_credentials`. All three T62 files now pass basedpyright with 0 errors.
+
+**Activation never runs from main repo** — `agent_shell.py` validated credentials at the top (blocking entry if missing), but the actual `ensure_unity_activated()` call was only reachable from the worktree code path. When `.git` is a directory (not a worktree file), `main_git_path` is `None` and `exec_command(SHELL_COMMAND)` replaced the process before reaching any activation code. The two worktree paths (existing container, new container) both called `ensure_unity_activated`, but the non-worktree path short-circuited. **Fix:** changed the early `exec_command` guard from `main_git_path is None` to `main_git_path is None and credentials is None` — only skip configuration when there's truly nothing to do. The container-exists and new-container branches now conditionally handle git mount and activation independently.
+
 ## Observations
 
 - `basedpyright` is not in the dev dependency group, so `uv run basedpyright` fails in the sandbox. Tracked as T63.
 - Unity's `services-config.json` lives at `/usr/share/unity3d/config/services-config.json` on Linux (confirmed via strace). The `enableEntitlementLicensing` key is a Licensing Server setting — the editor's licensing client reads the file but ignores that key. Not a viable workaround for the headless entitlement issue.
+- Pre-existing format drift in `packages/python/common/src/common/run_command.py`, `packages/python/common/src/common/stream_tar.py`, `scripts/src/scripts/build.py`, `scripts/src/scripts/generate_datamodels.py` — all flagged by `ruff format --check` but not introduced by this branch.
