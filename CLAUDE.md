@@ -97,7 +97,7 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. Default dev cred
 
 ## Claude Code Environment Notes
 
-When running in a containerized Claude Code environment (no GPU, no ngrok):
+You are running inside an Incus system container managed by [Code on Incus (COI)](https://github.com/mensfeld/code-on-incus), launched on the host via `uv run agent-shell` (`scripts/src/scripts/agent_shell.py`). The host was provisioned with `uv run setup-agent-sandbox` (`scripts/src/scripts/setup_agent_sandbox.py`), which installs Incus, COI, configures firewall/networking, and builds the `coi-placeframe` image. The image build script is `agent/coi-placeframe-build.sh` (installs uv, node, pnpm, playwright). This environment has no GPU and no ngrok.
 
 1. **Install prerequisites**: `uv` may not be pre-installed. Install with `curl -LsSf https://astral.sh/uv/install.sh | sh` and ensure `~/.local/bin` is on PATH.
 1. **Venv isolation**: The container's venv lives outside the mounted workspace at `$UV_PROJECT_ENVIRONMENT` (`/home/code/.venvs/placeframe`) so it doesn't overwrite the host's `.venv`. This is set via the Incus default profile (configured by `uv run setup-agent-sandbox`). If not set, export it manually: `export UV_PROJECT_ENVIRONMENT=/home/code/.venvs/placeframe`. Run `uv sync --all-packages` to create it.
