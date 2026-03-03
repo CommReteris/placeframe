@@ -40,6 +40,7 @@ install_if_missing g++ g++
 install_if_missing zip zip
 install_if_missing unzip unzip
 install_if_missing curl curl
+install_if_missing pkg-config pkg-config
 
 if ! command -v dotnet &>/dev/null; then
     echo "Installing .NET SDK 8.0..."
