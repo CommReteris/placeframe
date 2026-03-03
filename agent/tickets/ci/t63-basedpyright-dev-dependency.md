@@ -1,7 +1,7 @@
 ---
 id: T63
 title: Add basedpyright to dev dependencies
-status: ready
+status: in-review
 depends_on: []
 ---
 
@@ -27,3 +27,11 @@ Add `basedpyright` to the dev dependency group. Run `uv sync --all-packages` to 
 
 - [ ] `basedpyright` listed in dev dependencies in `pyproject.toml`
 - [ ] `uv run basedpyright` succeeds (may report type errors, but the command itself runs)
+
+## Log
+
+Clean implementation, no issues.
+
+## Observations
+
+No pre-existing issues noticed.
