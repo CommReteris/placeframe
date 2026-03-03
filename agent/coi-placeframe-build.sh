@@ -42,6 +42,7 @@ apt-get update
 apt-get install -y unityhub
 
 # Unity 6000.0.66f1 with Android and Linux IL2CPP modules
+mkdir -p /opt/unity
 xvfb-run unityhub --no-sandbox --headless install-path --set /opt/unity
 xvfb-run unityhub --no-sandbox --headless install \
   --version 6000.0.66f1 \
