@@ -2,7 +2,7 @@
 id: T70
 title: Automate Cesium native Linux build and publish to UPM registry
 status: blocked
-depends_on: [T69]
+depends_on: [T69, T71]
 ---
 
 # T70: Automate Cesium native Linux build and publish to UPM registry
