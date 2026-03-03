@@ -36,6 +36,10 @@ Research report: `agent/research/cesium-unity-native-linux.md`
 
 An idempotent build script follows the [official Cesium developer setup](https://cesium.com/learn/cesium-unity/ref-doc/developer-setup.html): clone `cesium-unity-samples` (provides a complete Unity project with all dependencies), clone `cesium-unity` into its `Packages/`, publish Reinterop, open in Unity on Linux (triggers Reinterop code generation), then build native `.so` files with cmake. The build output is assembled into a fork package at `packages/unity/com.cesium.unity/` with Linux `.so` binaries. Outernet.Client manifest changes from Cesium registry to local `file:` path.
 
+## Next step
+
+Write `scripts/build-cesium-native-linux.sh` following the official developer setup (clone `cesium-unity-samples`, not a minimal project). The previous script was deleted — it used the minimal-project approach that caused incomplete code generation. See plan Step 1 for the new sequence.
+
 ## Done when
 
 - [ ] Outernet.Client passes `uv run build-unity` for `linux64` (standalone player build) and `android` (compilation check)
