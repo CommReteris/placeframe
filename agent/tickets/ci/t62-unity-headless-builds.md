@@ -70,6 +70,8 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 
 **Reopened (5)** — `mv: cannot stat '.../SDK/cmake/cmake': No such file or directory` during `coi build custom`. The `cmake-3.22.1-linux.zip` from Google extracts flat (`bin/`, `share/`) with no parent directory. The build script assumed it extracted into a `cmake/` subdirectory and tried to rename that to `3.22.1`. **Fix:** extract directly into the `3.22.1` target directory, eliminating the rename.
 
+**Build complete** — `coi build custom` succeeded. Unity 6000.0.66f1 editor and all modules (Linux IL2CPP, Android support, OpenJDK 17, NDK r27c, SDK build-tools/platform-tools/platforms/cmdline-tools/CMake) verified present at `/opt/unity/6000.0.66f1/`. Five reopens to get here (xvfb, Hub segfault, Hub segfault redux, OpenJDK URL, CMake extraction). Next blocker: ULF license file not mounted — `setup_agent_sandbox.py` adds the Incus profile disk device, but the host needs `~/.local/share/unity3d/Unity/Unity_lic.ulf` present and `uv run setup-agent-sandbox` re-run. After that: smoke-test batchmode compilation, implement `uv run check-unity`, and add Unity 2022.3 LTS.
+
 ## Observations
 
 - `basedpyright` is not in the dev dependency group, so `uv run basedpyright` fails in the sandbox. Tracked as T63.
