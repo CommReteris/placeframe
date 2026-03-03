@@ -68,6 +68,8 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 
 **Reopened (4)** — `curl: (22) The requested URL returned error: 404` during OpenJDK download in `coi-placeframe-build.sh`. The build script constructs the URL as `$CDN/open-jdk/open-jdk-linux-x64/jdk17.0.9-9_...zip` where `CDN=https://download.unity3d.com/download_unity/$CHANGESET`. This expands to `download_unity/e7adf66625be/open-jdk/...` — but Unity hosts OpenJDK at a **version-independent** path without the changeset prefix: `download_unity/open-jdk/open-jdk-linux-x64/...`. Confirmed via HEAD requests: the changeset-prefixed URL returns 404, the root-level URL returns 200. The Unity release API (`services.api.unity.com/unity/editor/release/v1/releases`) confirms the correct URL has no changeset prefix. **Fix:** use the absolute URL `https://download.unity3d.com/download_unity/open-jdk/open-jdk-linux-x64/jdk17.0.9-9_8d1cbcce56285f3146cf7761353a643fe573b39e45bd94f35590dca39277f667.zip` instead of `$CDN/open-jdk/...`. The `.ini` manifest doesn't list the JDK at all — it's only discoverable via the release API.
 
+**Reopened (5)** — `mv: cannot stat '.../SDK/cmake/cmake': No such file or directory` during `coi build custom`. The `cmake-3.22.1-linux.zip` from Google extracts flat (`bin/`, `share/`) with no parent directory. The build script assumed it extracted into a `cmake/` subdirectory and tried to rename that to `3.22.1`. **Fix:** extract directly into the `3.22.1` target directory, eliminating the rename.
+
 ## Observations
 
 - `basedpyright` is not in the dev dependency group, so `uv run basedpyright` fails in the sandbox. Tracked as T63.
