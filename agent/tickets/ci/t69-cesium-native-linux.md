@@ -1,7 +1,7 @@
 ---
 id: T69
 title: Build Cesium for Unity native plugin for Linux
-status: in-progress
+status: in-review
 depends_on: []
 plan: t69-plan.md
 ---
@@ -37,15 +37,27 @@ Research report: `agent/research/cesium-unity-native-linux.md`
 
 An idempotent build script follows the [official Cesium developer setup](https://cesium.com/learn/cesium-unity/ref-doc/developer-setup.html): clone `cesium-unity-samples` (provides a complete Unity project with all dependencies), clone `cesium-unity` into its `Packages/`, publish Reinterop, open in Unity on Linux (triggers Reinterop code generation), then build native `.so` files with cmake. The build output is assembled into a fork package at `packages/unity/com.cesium.unity/` with Linux `.so` binaries. Outernet.Client manifest changes from Cesium registry to local `file:` path.
 
-## Next step
-
-Cesium fork package assembled and committed. Outernet.Client manifest updated. The `uv run build-unity --target linux64` build needs `AUTHORING_TOOLS_ENABLED` added to the Standalone scripting define symbols in `ProjectSettings/ProjectSettings.asset` — currently only `USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS` are set. Without it, no `Platform` class exists for standalone Linux (all implementations are behind preprocessor guards).
-
 ## Done when
 
-- [ ] Outernet.Client passes `uv run build-unity` for `linux64` (needs `AUTHORING_TOOLS_ENABLED` in Standalone defines) and `android` (compilation check)
-- [ ] Forked `com.cesium.unity` package committed to repo with Linux binaries
-- [ ] Outernet.Client manifest points at local fork
-- [ ] Build process documented for future version bumps
-- [ ] Follow-up ticket exists for CI build + registry hosting
+- [x] Outernet.Client passes `uv run build-unity` for `linux64` — build succeeds (`Build Finished, Result: Success`), but Unity hangs on exit (T73)
+- [ ] Outernet.Client passes `uv run build-unity` for `android` (compilation check) — not yet tested this session
+- [x] Forked `com.cesium.unity` package committed to repo with Linux binaries
+- [x] Outernet.Client manifest points at local fork
+- [x] Build process documented for future version bumps (build script + plan + design decisions)
+- [x] Follow-up ticket exists for CI build + registry hosting (T70)
 - [ ] Play Mode can be entered without crashes (stretch goal, may surface separate blockers)
+
+## Log
+
+- v1.15.4 failed to compile: cesium-native v0.45.0 added `BoundingCylinderRegion` to the `BoundingVolume` variant but `CalculateECEFCameraPosition` visitor wasn't updated. Downgraded to v1.15.3 (zero code changes between the two versions). Compiled cleanly.
+- First build attempt used v1.15.4 with the previous script's minimal-project approach. Rewrote to use `cesium-unity-samples` per official developer setup. Code generation succeeded on first try.
+- `.so` files were 391-408 MB unstripped (RelWithDebInfo). Stripping reduced to 28-34 MB (~10x). Added strip step to build script.
+- `NodeBatchCreate` constructor call in `Utility.cs` was broken — `linkType`/`labelType` became required params but the call site used object initializer syntax. Pre-existing bug, fixed.
+- `Platform` class missing for standalone Linux — all implementations behind preprocessor guards with no Linux standalone match. Fixed by adding `AUTHORING_TOOLS_ENABLED` to Standalone scripting defines.
+- `HandsSampleProjectValidation` (imported XR Interaction Toolkit sample) caused infinite post-build hang: registered a `delayCall` to open Project Settings UI, which triggered MagicLeap's settings provider to enumerate GUI styles in batchmode, looping forever. Fixed by deleting unused `Assets/Samples/` directory.
+- Unity still hangs after successful build even without the samples loop — stops after `TrimDiskCacheJob`, never exits. Filed as T73.
+
+## Observations
+
+- `Assets/Samples/` contained imported UPM samples (XR Hands HandVisualizer, XR Interaction Toolkit Starter Assets + Hands Demo) that nothing referenced — deleted.
+- `legacy/Outernet.Client/Assets/Samples.meta` left behind after deleting Samples/ — Unity recreates the empty directory from the orphaned `.meta` file on next open. The `.meta` should also be deleted.
