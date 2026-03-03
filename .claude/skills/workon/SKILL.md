@@ -36,7 +36,7 @@ The plan captures **strategic decisions** — what to build, which approach, whi
 
 **Sizing check.** After exploring but before writing the plan, evaluate the ticket against the sizing heuristics in `ticket-format.md`. If the scope turns out to be larger than the ticket anticipated — the Key Files list is long, the approach requires changes across unrelated subsystems, or the implementation would exceed ~400 lines of meaningful change — stop planning and flag this to the user. Propose a decomposition into smaller tickets. Do not write a plan for an oversized ticket.
 
-Before calling ExitPlanMode:
+Immediately after ExitPlanMode:
 
 1. Copy the session plan file verbatim to `agent/plans/t{N}-plan.md`. This is the canonical copy — the session plan file is ephemeral and will be lost. Do not summarize, condense, or rewrite; the repo file must be identical to the session file. The plan should include:
    - **Context**: why this change is needed (1-2 sentences, not a copy of the ticket Goal)
@@ -46,8 +46,9 @@ Before calling ExitPlanMode:
 2. Add a brief summary to the ticket's `## Approach` section (2-5 sentences describing the strategy — this is a summary, not the plan itself).
 3. Add `plan: t{N}-plan.md` to the ticket's frontmatter.
 4. Update the ticket's frontmatter status to `ready`.
+5. If any design decisions were made during planning (via AskUserQuestion or user discussion), append them to the ticket's `## Design decisions` section. These are durable choices that narrow the solution space — not implementation details. If no Design decisions section exists, create one.
 
-After ExitPlanMode, proceed to step 3b.
+Proceed to step 3b.
 
 ### 3b. Warm up from plan (status: `ready`, plan exists)
 
