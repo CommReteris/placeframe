@@ -1,7 +1,7 @@
 ---
 id: T62
 title: Unity headless batch builds in COI container
-status: in-review
+status: ready
 depends_on: []
 plan: t62-plan.md
 ---
@@ -47,6 +47,8 @@ Bake Unity 6000.0.66f1 (the version all four projects currently use) into the CO
 ## Log
 
 Clean implementation, no issues. Basedpyright not available in sandbox (tracked as T63), so type checking was done via `npx basedpyright` — all errors are pre-existing import resolution failures, not new issues.
+
+**Reopened** — `xvfb-run: error: Xvfb failed to start` during `coi build custom` (image build). Xvfb installs fine (line 28) but can't start inside the Incus build container — likely missing `/tmp/.X11-unix`, security restrictions, or no `/dev/shm`. The unityhub postinst script already ran `unityhub` successfully without Xvfb (output shows `All Unity Editors will be installed to /opt/unity`), so `--headless` may be sufficient without `xvfb-run`. Fix options: (1) drop `xvfb-run` and rely on `--headless` alone, (2) create `/tmp/.X11-unix` and ensure `xauth` is present before the xvfb-run calls.
 
 ## Observations
 
