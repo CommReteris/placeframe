@@ -75,6 +75,11 @@ jobs:
           restore-keys: |
             unity-library-${{ matrix.project-name }}-
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
       - name: Restore NuGet Packages
         run: |
           dotnet tool install --global NuGetForUnity.Cli
