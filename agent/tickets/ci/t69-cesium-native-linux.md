@@ -29,11 +29,12 @@ Research report: `agent/research/cesium-unity-native-linux.md`
 5. **Version tracking**: Manual for now. Follow-up ticket to automate via CI.
 6. **Fork scope**: C# code + Linux `.so` files only (~100-150MB). No other platform binaries (saves ~1.3GB). All original C# platform guards preserved so compilation works everywhere; other platforms lose runtime/Play Mode from this fork but can switch back to the official registry.
 7. **Build automation**: Native `.so` files built via an idempotent shell script committed to the repo. Script installs deps, clones source, and builds regardless of container starting state — serves as both build tool and documentation.
-8. **C# guard generation**: Reinterop source generator handles Linux C# guard generation automatically when opened in Unity on Linux — no manual patching needed. Following the [community Linux guide](https://github.com/JOHNI1/CesiumSetupLinuxGuide) build process.
+8. **C# guard generation**: Reinterop source generator handles Linux C# guard generation automatically when opened in Unity on Linux — no manual patching needed.
+9. **Build process**: Follow the [official Cesium developer setup](https://cesium.com/learn/cesium-unity/ref-doc/developer-setup.html), not the community Linux guide. Clone `cesium-unity-samples` as the Unity project (has all dependencies pre-configured), clone `cesium-unity` into its `Packages/`, publish Reinterop, open in Unity, cmake build. The community guide's extra steps (Reinterop.csproj patching, TilesetJsonLoader.cpp patching) are workarounds for older versions/specific environments and are not needed.
 
 ## Approach
 
-An idempotent build script follows the community Linux guide: clone cesium-unity, open in Unity on Linux (triggers Reinterop to generate C# with Linux guards + C++ interop code), build native `.so` files with cmake/vcpkg. The build output is assembled into a fork package at `packages/unity/com.cesium.unity/` — C# from the official cache augmented with Linux-generated C# and `.so` binaries, no other platform binaries (~100-150MB vs 1.4GB). Outernet.Client manifest changes from Cesium registry to local `file:` path.
+An idempotent build script follows the [official Cesium developer setup](https://cesium.com/learn/cesium-unity/ref-doc/developer-setup.html): clone `cesium-unity-samples` (provides a complete Unity project with all dependencies), clone `cesium-unity` into its `Packages/`, publish Reinterop, open in Unity on Linux (triggers Reinterop code generation), then build native `.so` files with cmake. The build output is assembled into a fork package at `packages/unity/com.cesium.unity/` with Linux `.so` binaries. Outernet.Client manifest changes from Cesium registry to local `file:` path.
 
 ## Done when
 

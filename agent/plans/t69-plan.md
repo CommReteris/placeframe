@@ -6,29 +6,36 @@
 
 ## Approach
 
-A single idempotent build script follows the [community Linux guide](https://github.com/JOHNI1/CesiumSetupLinuxGuide) to build the entire package from source. Opening the cesium-unity project in Unity on Linux triggers the Reinterop source generator, which automatically produces both the C# interop code (with `#if UNITY_EDITOR_LINUX` guards) and the C++ interop code. The native C++ library is then built with cmake/vcpkg. The build output — Linux C# code, `.so` binaries, and updated asmdef — is assembled into a fork package committed to the repo.
+Follow the [official Cesium developer setup](https://cesium.com/learn/cesium-unity/ref-doc/developer-setup.html) rather than the community Linux guide. The official path uses `cesium-unity-samples` as the Unity project, which has all dependencies pre-configured. This avoids the incomplete code generation caused by a minimal Unity project missing required modules.
 
-No manual C# patching is needed. The Reinterop source generator handles Linux guard generation as part of the normal build process.
+The [community Linux guide](https://github.com/JOHNI1/CesiumSetupLinuxGuide) (v1.15.3, Unity 2022.3) adds extra steps — Reinterop.csproj patching, TilesetJsonLoader.cpp patching — that are workarounds for older versions and specific environments. These are not needed when following the official developer setup with v1.15.4 and Unity 6.
 
-### Step 1: Write the idempotent build script — DONE
+### Step 1: Rewrite the build script
 
-**File**: `scripts/build-cesium-native-linux.sh` (committed)
+**File**: `scripts/build-cesium-native-linux.sh`
 
-Idempotent bash script. Each step checks whether it's already done before executing. Build deps: cmake, ninja, nasm, g++, zip, unzip, curl, pkg-config, dotnet-sdk-8.0. Creates a minimal Unity project, clones cesium-unity into its Packages/, runs Reinterop, opens Unity for code generation, builds Runtime + Editor .so with cmake/vcpkg.
+Rewrite to follow the official developer setup:
 
-**Current blocker**: The Unity batchmode code generation step (step 4) produces incomplete C++ headers. `DotNet/System/Action1.h` (generic `Action<T>`) is missing, causing the cmake build to fail. The non-generic types generated correctly. Needs investigation — likely the minimal Unity project doesn't resolve all Cesium package dependencies, so Reinterop can't fully generate the interop code for types it can't see.
+1. Install build dependencies (cmake, ninja, nasm, g++, dotnet-sdk-8.0, pkg-config)
+2. Clone `cesium-unity-samples` as the Unity project (has all deps configured)
+3. Clone `cesium-unity` v1.15.4 into `Packages/com.cesium.unity/`
+4. Add `LinuxStandalone64` to `CesiumRuntime.asmdef`
+5. `dotnet publish Reinterop~ -o .` (build the Roslyn source generator)
+6. Open Unity to trigger Reinterop code generation (produces C++ interop headers)
+7. `cmake -B build -S . -DCMAKE_BUILD_TYPE=RelWithDebInfo` then `cmake --build build --target install` from `native~/`
+
+The official guide does not specify a vcpkg triplet — the CMakeLists.txt may auto-detect. If Linux auto-detection fails, create `native~/vcpkg/triplets/x64-linux-unity.cmake` as a fallback.
 
 ### Step 2: Assemble the fork package
 
 After the build script completes, assemble the fork package at `packages/unity/com.cesium.unity/`:
 
-- Copy the non-binary files from the official cached package (C# source, .meta, .asmdef, package.json, Tests/) — these provide the existing platform support
-- Copy the Linux-generated C# files from the build output (the Reinterop-generated files with `#if UNITY_EDITOR_LINUX` / `#if UNITY_STANDALONE_LINUX` guards) — these replace the official generated files with a superset that includes Linux
+- Copy the C# source, .meta files, .asmdef, package.json from the build clone
 - Copy the Linux `.so` files from the build output
+- Include the built `Reinterop.dll` (source generator, generates platform-specific C# at compile time)
 - Update `CesiumRuntime.asmdef` to include `LinuxStandalone64`
 - Update `package.json` version to `1.15.4-linux.1`
 - No other platform native binaries (saves ~1.3GB)
-- `.meta` files for the `.so` binaries are generated automatically by Unity on first import
 
 ### Step 3: Update Outernet.Client manifest
 
@@ -38,29 +45,32 @@ In `legacy/Outernet.Client/Packages/manifest.json`:
 
 ### Step 4: Add .gitattributes entry
 
-Add `packages/unity/com.cesium.unity/**/*.so binary` to `.gitattributes` to prevent line-ending conversion.
+Add `packages/unity/com.cesium.unity/**/*.so binary` to `.gitattributes` to prevent line-ending conversion. (Already done.)
 
 ## Key files
 
 | File | Action |
 |---|---|
-| `scripts/build-cesium-native-linux.sh` | Create (~150 lines, idempotent build script) |
-| `packages/unity/com.cesium.unity/` | Create (fork directory: C# from cache + Linux C# and .so from build) |
+| `scripts/build-cesium-native-linux.sh` | Rewrite (follow official dev setup with cesium-unity-samples) |
+| `packages/unity/com.cesium.unity/` | Create (fork directory: C# + Linux .so from build) |
 | `packages/unity/com.cesium.unity/Runtime/CesiumRuntime.asmdef` | Modify (add LinuxStandalone64) |
 | `packages/unity/com.cesium.unity/package.json` | Modify (version + displayName) |
 | `legacy/Outernet.Client/Packages/manifest.json` | Modify (file: path) |
-| `.gitattributes` | Modify (binary marker for .so) |
+| `.gitattributes` | Modify (binary marker for .so) — already done |
 
 ## Risks
 
-1. **Unity code generation incomplete** — ~~Opening cesium-unity in Unity on Linux will produce DllNotFoundException~~ **MATERIALIZED**: The Unity batchmode step generated C++ headers for some types but not generic types (e.g. `Action1.h` missing for `Action<T>`). The non-generic `Action.h` was generated. Root cause TBD — possibly the minimal Unity project didn't resolve Cesium's transitive dependencies (`com.unity.mathematics`, `com.unity.shadergraph`, etc.), preventing Reinterop from seeing all types it needs to generate interop code for.
-2. **TilesetJsonLoader.cpp patch** — The v1.15.3 community guide mentions a patch. May or may not be needed for v1.15.4. Build script attempts clean build first, applies patch only if needed.
-3. **vcpkg build time** — First run: 30-60 minutes for dependency compilation. Script is idempotent so subsequent runs are fast.
-4. **Binary size** — Linux .so files ~50-65MB. Committed temporarily; T70 moves to CI + registry.
+1. **vcpkg triplet auto-detection** — The official guide doesn't specify a triplet. If cmake fails to auto-detect Linux, we need to create the `x64-linux-unity.cmake` triplet. Keep it as a fallback step in the script.
+2. **vcpkg build time** — First run: 30-60 minutes for dependency compilation. Script is idempotent so subsequent runs are fast.
+3. **Binary size** — Linux .so files ~50-65MB. Committed temporarily; T70 moves to CI + registry.
+
+## Previous blocker (resolved)
+
+The original build script used a minimal empty Unity project. This caused incomplete Reinterop code generation because cesium-unity's dependencies (`com.unity.modules.unitywebrequest`, etc.) couldn't resolve. Adding the missing modules to the manifest fixed code generation, but the root fix is to use `cesium-unity-samples` which has everything pre-configured — matching both the official docs and the user's successful manual build experience.
 
 ## Verification
 
-1. `uv run build-unity --project Outernet.Client --target linux64` — must pass (actual standalone player build, exercises .so linkage)
-2. `uv run build-unity --project Outernet.Client --target android` — must still pass (compilation check only, no Android toolchain available)
+1. `uv run build-unity --project Outernet.Client --target linux64` — must pass (standalone player build)
+2. `uv run build-unity --project Outernet.Client --target android` — must still pass (compilation check)
 3. Verify fork package has Linux .so files at expected paths
-4. Spot-check generated C# files for `#if UNITY_EDITOR_LINUX` guards (produced by Reinterop, not manual patching)
+4. Spot-check generated C# for `#if UNITY_EDITOR_LINUX` guards (produced by Reinterop at compile time)
