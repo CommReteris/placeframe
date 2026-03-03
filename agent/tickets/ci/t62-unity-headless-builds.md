@@ -14,7 +14,9 @@ Enable compilation verification for the four Unity projects (AndroidMobile, MapR
 
 ## Context
 
-Research report: `agent/research/unity-headless-batch-builds.md`
+Research reports:
+- `agent/research/unity-headless-batch-builds.md` (original feasibility research)
+- `agent/research/unity-hub-segfault-in-coi-build.md` (segfault root cause + direct download approach)
 
 Claude Code currently cannot verify that Unity C# code compiles. When editing generated API clients or Placeframe packages consumed by the Unity projects, there is no feedback loop — breakage is only discovered when a human opens the project in the Unity Editor.
 
@@ -34,7 +36,15 @@ Two editor versions are needed:
 
 ## Approach
 
-Bake Unity 6000.0.66f1 (the version all four projects currently use) into the COI image via `coi-placeframe-build.sh`. Mount the host `.ulf` license via an Incus profile disk device added by `setup_agent_sandbox.py`. Provide `uv run check-unity` to run compilation checks — it reads each project's `ProjectVersion.txt` at runtime, so when the 2022.3 downgrade happens, only the image needs a second editor install. See `agent/plans/t62-plan.md` for full detail.
+**Revised**: bypass Unity Hub in the build script entirely. Download the editor and modules via direct URLs from Unity's CDN, avoiding the Electron dependency that segfaults in the COI build container. Unity publishes a per-version `.ini` manifest at `https://download.unity3d.com/download_unity/{changeset}/unity-{version}-linux.ini` with all download URLs and checksums.
+
+Key downloads for 6000.0.66f1 (changeset `e7adf66625be`):
+- Editor: `LinuxEditorInstaller/Unity.tar.xz` (4.5 GB, tar.xz)
+- Linux IL2CPP: `LinuxEditorTargetInstaller/UnitySetup-Linux-IL2CPP-Support-for-Editor-6000.0.66f1.tar.xz` (66 MB, tar.xz)
+- Android support: `MacEditorTargetInstaller/UnitySetup-Android-Support-for-Editor-6000.0.66f1.pkg` (675 MB, needs `7z`/`cpio` extraction — no Linux-native `.tar.xz` available)
+- Android SDK/NDK/JDK: individual downloads from Google + Unity CDN (see research report)
+
+Mount the host `.ulf` license via an Incus profile disk device added by `setup_agent_sandbox.py`. Provide `uv run check-unity` to run compilation checks. See `agent/plans/t62-plan.md` for original plan; approach updated per `agent/research/unity-hub-segfault-in-coi-build.md`.
 
 ## Done when
 
@@ -52,10 +62,7 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 
 **Reopened (2)** — `unityhub --no-sandbox --headless install-path --set /opt/unity` segfaults (exit 139) during `coi build custom`. Crashpad error precedes: `elf_dynamic_array_reader.h:64: tag not found`. The same commands worked when run interactively in a fully launched COI container — the difference is the COI build container, which is a temporary container with likely more restricted environment (missing `/dev/shm`, tighter seccomp/AppArmor, missing pseudo-filesystems that Electron/Chromium needs). Unity Hub is an Electron app, so it's sensitive to these restrictions even in `--headless --no-sandbox` mode.
 
-**Reopened (3)** — `ELECTRON_DISABLE_CRASHPAD=1` fix (fc511baf) did not resolve the segfault. Logs at `setup-agent-sandbox.log` from second `--rebuild` attempt confirm the crashpad error line still appears and the segfault still occurs on the same `unityhub install-path --set` call. The env var only controls the crash *reporter*, not the underlying Chromium subsystem that's segfaulting. The real issue is that Electron/Chromium probes ELF dynamic arrays at startup and hits a code path that dereferences invalid memory in the restricted build container. Possible next approaches:
-- Bypass Unity Hub entirely: download the editor tarball via direct URL (avoids the Electron dependency in the build container altogether).
-- Investigate what the COI build container is missing vs a running container (`/dev/shm`, `/proc` entries, seccomp profile) and pass flags to `coi build custom` to relax restrictions.
-- Use `xvfb-run` + a virtual display (Reopened 1 showed Xvfb itself failed to start — may also be a build-container restriction).
+**Reopened (3)** — `ELECTRON_DISABLE_CRASHPAD=1` fix (fc511baf) did not resolve the segfault. Research (`agent/research/unity-hub-segfault-in-coi-build.md`) identified the root cause: Chromium's GPU process crashes in the containerized environment, Crashpad's ptrace broker tries to snapshot the crash but fails due to Yama ptrace_scope restrictions in the container's PID namespace, producing a secondary segfault. The `ELECTRON_DISABLE_CRASHPAD=1` env var is undocumented and may not be respected by Unity Hub 3.16.3's Electron build. COI source code review confirmed the build container and running container have **identical security configs** — the "works in running container" observation suggests the issue is timing (services not fully initialized) rather than missing capabilities. **Decision: abandon Unity Hub in the build script. Switch to direct downloads from Unity's CDN.** The `.ini` manifest at `download.unity3d.com` provides all URLs and checksums. Editor and Linux modules are `.tar.xz`; Android module requires `.pkg` extraction via `7z`/`cpio`.
 
 ## Observations
 
