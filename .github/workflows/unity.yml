@@ -82,8 +82,8 @@ jobs:
 
       - name: Restore NuGet Packages
         run: |
-          dotnet tool install --global NuGetForUnity.Cli
-          "$HOME/.dotnet/tools/nugetforunity" restore ${{ matrix.project }}
+          dotnet tool restore
+          dotnet nugetforunity restore ${{ matrix.project }}
 
       - name: Setup UV
         uses: astral-sh/setup-uv@v5
