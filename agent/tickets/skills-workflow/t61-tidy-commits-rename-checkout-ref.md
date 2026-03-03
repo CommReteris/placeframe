@@ -1,7 +1,7 @@
 ---
 id: T61
 title: Add rename and checkout_ref fields to tidy-commits wrapper
-status: design-needed
+status: plan-needed
 depends_on: []
 ---
 
@@ -33,7 +33,9 @@ The commit hashes used in `checkout_ref` come from the analysis phase (step 2), 
 
 **Wrapper changes** (`tidy_commits_wrapper.py`):
 - Add `rename: dict[str, str]` and `checkout_ref: dict[str, list[str]]` to the `Commit` model with empty defaults. Update the `has_file_operations` validator to accept them.
-- In `execute_plan`, process `rename` via `git mv` (mkdir parents first) and `checkout_ref` via `git show <ref>:<path>` written to disk then `git add`.
+- `rename` implicitly checks out the old path from backup before `git mv` (the source file doesn't exist on the temp branch otherwise). This makes it fully self-contained — one field replaces `checkout`+`delete` pairs.
+- `checkout_ref` uses `git checkout <ref> -- <path>` (auto-stages, handles binaries), not `git show`. Matches the existing `checkout` pattern.
+- Operation ordering in `execute_plan`: `checkout` → `checkout_ref` → `rename` → `delete` → `content`. Rename after checkout allows combining both in one commit; `checkout_ref` alongside `checkout` since they're semantically similar.
 
 **Skill prompt changes** (`SKILL.md`):
 - Add `rename` and `checkout_ref` to the JSON schema example.

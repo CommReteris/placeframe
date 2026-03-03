@@ -21,7 +21,7 @@ If the ticket's frontmatter has a `plan` field, also read the referenced plan fi
 ## 3. Check status and act
 
 - **`blocked`** — Show the blocking reason from the ticket body. Ask if the user wants to unblock (change status and proceed) or pick a different ticket.
-- **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the frontmatter status to `plan-needed`. Proceed to step 3a.
+- **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the ticket's `## Approach` section with the resolved design decisions (so they survive session boundaries), then update the frontmatter status to `plan-needed`. Proceed to step 3a.
 - **`plan-needed`** — If the ticket already has a `plan` field (i.e. it was moved back to `plan-needed` for revision), go to step 3c (revise plan). Otherwise go to step 3a (create plan).
 - **`ready`** — Go to step 3b (warm up from plan) if the ticket has a `plan` field. Otherwise go directly to step 4 (implement).
 - **`in-review`** — Inform the user the ticket is awaiting their review. Ask if they want to move it to `done` (accept) or back to an earlier status (rework needed).
