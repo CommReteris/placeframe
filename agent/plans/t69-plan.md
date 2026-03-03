@@ -10,23 +10,13 @@ A single idempotent build script follows the [community Linux guide](https://git
 
 No manual C# patching is needed. The Reinterop source generator handles Linux guard generation as part of the normal build process.
 
-### Step 1: Write the idempotent build script
+### Step 1: Write the idempotent build script — DONE
 
-**File**: `scripts/build-cesium-native-linux.sh`
+**File**: `scripts/build-cesium-native-linux.sh` (committed)
 
-An idempotent bash script that works from any container state. Each step checks whether it's already done before executing:
+Idempotent bash script. Each step checks whether it's already done before executing. Build deps: cmake, ninja, nasm, g++, zip, unzip, curl, pkg-config, dotnet-sdk-8.0. Creates a minimal Unity project, clones cesium-unity into its Packages/, runs Reinterop, opens Unity for code generation, builds Runtime + Editor .so with cmake/vcpkg.
 
-1. **Install build dependencies** — `cmake`, `ninja-build`, `nasm`, `dotnet-sdk-8.0` (Microsoft APT repo), `g++` — each checked via `command -v` before installing
-2. **Clone cesium-unity** to `$BUILD_DIR/cesium-unity` at tag `v1.15.4` with `--recurse-submodules` — skipped if directory exists
-3. **Publish Reinterop** — `dotnet publish Reinterop~ -o .` — produces the Roslyn source generator DLL
-4. **Open in Unity on Linux** — `xvfb-run /opt/unity/.../Unity -batchmode -nographics -quit -projectPath $BUILD_DIR/cesium-unity` — triggers Reinterop to generate both C# (with Linux guards) and C++ interop code. Expect DllNotFoundException warnings (no native library yet) but code generation still completes.
-5. **Update CesiumRuntime.asmdef** — add `"LinuxStandalone64"` to `includePlatforms`
-6. **Apply patches** — TilesetJsonLoader.cpp patch if needed (community guide mentions this for v1.15.3)
-7. **Build Runtime .so** — `cmake` + `cmake --build` with `-DEDITOR=OFF`, vcpkg triplet `x64-linux-unity`
-8. **Build Editor .so** — same with `-DEDITOR=ON`
-9. **Copy outputs** — `.so` files and the generated C# files (with Linux guards) to a specified output directory
-
-Script takes `BUILD_DIR` and `OUTPUT_DIR` as arguments with sensible defaults.
+**Current blocker**: The Unity batchmode code generation step (step 4) produces incomplete C++ headers. `DotNet/System/Action1.h` (generic `Action<T>`) is missing, causing the cmake build to fail. The non-generic types generated correctly. Needs investigation — likely the minimal Unity project doesn't resolve all Cesium package dependencies, so Reinterop can't fully generate the interop code for types it can't see.
 
 ### Step 2: Assemble the fork package
 
@@ -63,7 +53,7 @@ Add `packages/unity/com.cesium.unity/**/*.so binary` to `.gitattributes` to prev
 
 ## Risks
 
-1. **Unity compilation warnings during code generation** — Opening cesium-unity in Unity on Linux will produce DllNotFoundException since no native library exists yet. Per the community guide, this is expected — Reinterop still generates the code. If compilation fails hard (preventing code generation), the asmdef may need updating before the Unity step.
+1. **Unity code generation incomplete** — ~~Opening cesium-unity in Unity on Linux will produce DllNotFoundException~~ **MATERIALIZED**: The Unity batchmode step generated C++ headers for some types but not generic types (e.g. `Action1.h` missing for `Action<T>`). The non-generic `Action.h` was generated. Root cause TBD — possibly the minimal Unity project didn't resolve Cesium's transitive dependencies (`com.unity.mathematics`, `com.unity.shadergraph`, etc.), preventing Reinterop from seeing all types it needs to generate interop code for.
 2. **TilesetJsonLoader.cpp patch** — The v1.15.3 community guide mentions a patch. May or may not be needed for v1.15.4. Build script attempts clean build first, applies patch only if needed.
 3. **vcpkg build time** — First run: 30-60 minutes for dependency compilation. Script is idempotent so subsequent runs are fast.
 4. **Binary size** — Linux .so files ~50-65MB. Committed temporarily; T70 moves to CI + registry.
