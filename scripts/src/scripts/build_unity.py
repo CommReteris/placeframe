@@ -40,21 +40,20 @@ def read_editor_version(project_path: Path) -> str:
     sys.exit(1)
 
 
-def find_unity_editor(version: str) -> Path:
+def find_unity_editor(version: str) -> str:
     unity_editor_override = os.environ.get("UNITY_EDITOR")
     if unity_editor_override:
-        editor_path = Path(unity_editor_override) / "Editor" / "Unity"
-    else:
-        editor_path = DEFAULT_UNITY_PATH / version / "Editor" / "Unity"
+        return unity_editor_override
+    editor_path = DEFAULT_UNITY_PATH / version / "Editor" / "Unity"
     if not editor_path.exists():
         print(f"ERROR: Unity editor not found at {editor_path}")
-        print("Set UNITY_EDITOR env var or rebuild the COI image: uv run setup-agent-sandbox --rebuild")
+        print("Set UNITY_EDITOR env var to the editor command or rebuild the COI image: uv run setup-agent-sandbox --rebuild")
         sys.exit(1)
-    return editor_path
+    return str(editor_path)
 
 
 def build_project(
-    project_path: Path, platform: str, output_directory: Path, editor: Path, execute_method: str | None = None
+    project_path: Path, platform: str, output_directory: Path, editor: str, execute_method: str | None = None
 ) -> bool:
     print(f"\nBuilding {project_path.name} [{platform}]")
 

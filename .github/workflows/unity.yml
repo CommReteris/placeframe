@@ -81,6 +81,8 @@ jobs:
           enable-cache: true
 
       - name: Build
+        env:
+          UNITY_EDITOR: unity-editor
         run: uv run build-unity --project ${{ matrix.project-name }} --platform ${{ matrix.platform }}
 
       - name: Upload Build Artifacts
