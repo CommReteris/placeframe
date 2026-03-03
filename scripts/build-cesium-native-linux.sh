@@ -173,6 +173,14 @@ fi
 
 cd ..
 
+# ── Strip debug symbols (RelWithDebInfo → ~10x smaller) ─────────────
+
+echo ""
+echo "Stripping debug symbols..."
+strip Editor/libCesiumForUnityNative-Editor.so \
+      Editor/libCesiumForUnityNative-Runtime.so \
+      Plugins/Standalone/libCesiumForUnityNative-Runtime.so
+
 echo ""
 echo "=== Build complete ==="
 echo "Package directory: $CESIUM_PKG"
