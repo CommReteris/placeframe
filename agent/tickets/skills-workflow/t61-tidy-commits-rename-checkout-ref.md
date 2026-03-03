@@ -1,7 +1,7 @@
 ---
 id: T61
 title: Add rename and checkout_ref fields to tidy-commits wrapper
-status: ready
+status: in-review
 depends_on: []
 plan: t61-plan.md
 ---
@@ -50,3 +50,11 @@ The commit hashes used in `checkout_ref` come from the analysis phase (step 2), 
 - Wrapper handles `checkout_ref` field via `git checkout` from arbitrary refs
 - Skill prompt documents both fields with preference guidance in schema, field reference, and rules sections
 - Existing `checkout`, `delete`, and `content` fields continue to work unchanged
+
+## Log
+
+Clean implementation, no issues.
+
+## Observations
+
+No pre-existing issues noticed.

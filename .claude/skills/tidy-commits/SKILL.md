@@ -41,6 +41,8 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
          "message": "Subject line\n\n- Body bullet",
          "author": "Full Name <email@example.com>",
          "checkout": ["path/to/file"],
+         "checkout_ref": { "abc123": ["path/to/file_at_that_commit"] },
+         "rename": { "old/path/file.md": "new/path/file.md" },
          "delete": ["path/to/old_file"],
          "content": { "path/to/partial_file": "full intermediate content" }
        }
@@ -52,18 +54,21 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
    - `committer`: Sets `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` for all commits. Use the most common author from the branch.
    - `message`: Full commit message. Use `\n` for newlines (it's JSON).
    - `author`: Per-commit `--author` flag. When a new commit maps to a single original, use that commit's author. When merging multiple, use the earliest.
-   - `checkout`: Files to `git checkout $BACKUP -- <files>`. Auto-staged by git. This covers 95% of cases. **Every path must exist in the backup** — verify with the file analysis from step 2.
-   - `delete`: Files to `git rm`. Use for deletions and the old-path side of renames.
-   - `content`: Dict of filepath → literal file content string. Use for partial file splits where a file's changes need to appear in different commits (see step 5). The wrapper writes the content and runs `git add`.
-   - Each commit must have at least one of `checkout`, `delete`, or `content`.
+   - `checkout`: Files to `git checkout $BACKUP -- <files>`. Auto-staged by git. This covers most cases. **Every path must exist in the backup** — verify with the file analysis from step 2.
+   - `checkout_ref`: Dict of commit ref → list of file paths. Runs `git checkout <ref> -- <files>` for each ref. Use when a file's desired intermediate state matches a prior commit on the branch — avoids embedding full file content in the plan. The commit hashes come from the `git log` analysis in step 2.
+   - `rename`: Dict of old path → new path. Implicitly checks out the old path from the backup, creates parent directories, then runs `git mv`. Prefer over `checkout`+`delete` pairs for pure renames (same content, different path). Fall back to `checkout`+`delete` only when the rename also involves content changes.
+   - `delete`: Files to `git rm`. Use for deletions.
+   - `content`: Dict of filepath → literal file content string. Use for partial file splits where a file's changes need to appear in different commits (see step 5). The wrapper writes the content and runs `git add`. Prefer `checkout_ref` when the desired state matches a prior commit.
+   - Each commit must have at least one of `checkout`, `checkout_ref`, `rename`, `delete`, or `content`.
 
    - **Do NOT include `tidy-commits.json` in any of the new commits.** It's a temporary artifact, not project code.
 
 5. **Handle partial file splits (if needed):**
-   - Sometimes a single file has changes belonging to different logical commits. Use the `content` field for this.
-   - For the earlier commit(s), set `content` to the file's intermediate state (the full file content as it should exist at that point in history).
+   - Sometimes a single file has changes belonging to different logical commits.
+   - **Prefer `checkout_ref`** when the desired intermediate state matches a prior commit on the branch. Use the commit hash from your `git log` analysis: `"checkout_ref": {"<hash>": ["config.py"]}`.
+   - Fall back to `content` when the intermediate state doesn't correspond to any single commit (e.g. a hand-crafted blend of changes).
    - For the final commit that includes the file's ultimate state, use `checkout` to pull the final version from the backup.
-   - Example: if `config.py` has both a refactor change and a feature change, the refactor commit uses `"content": {"config.py": "...refactored version..."}` and the feature commit uses `"checkout": ["config.py"]`.
+   - Example: if `config.py` has both a refactor change and a feature change, and the refactor was introduced in commit `abc123`, the refactor commit uses `"checkout_ref": {"abc123": ["config.py"]}` and the feature commit uses `"checkout": ["config.py"]`.
 
 6. **Run the wrapper** immediately after writing the plan: `uv run tidy-commits-wrapper`. Then report the result.
 
@@ -74,4 +79,4 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
 - NEVER delete backup branches. The wrapper auto-numbers them (`-backup`, `-backup-2`, etc.) when previous backups exist.
 - NEVER modify commits on main.
 - If the branch has only 1 commit already, ask the user if they still want to proceed.
-- **File renames**: When original commits renamed files (e.g., `a.md` → `b.md`), use `delete` for the old filename in the same commit that checks out the new filename. Check `git diff <base>..HEAD --stat` for renames.
+- **File renames**: Prefer the `rename` field for pure renames (same content, different path). Fall back to `checkout`+`delete` only when the rename also involves content changes. Check `git diff <base>..HEAD --stat` for renames.
