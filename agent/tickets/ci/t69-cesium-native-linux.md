@@ -39,11 +39,11 @@ An idempotent build script follows the [official Cesium developer setup](https:/
 
 ## Next step
 
-Build script written (`scripts/build-cesium-native-linux.sh`), building v1.15.3. Waiting for cmake compilation to complete, then assemble the fork package and update Outernet.Client manifest.
+Cesium fork package assembled and committed. Outernet.Client manifest updated. The `uv run build-unity --target linux64` build needs `AUTHORING_TOOLS_ENABLED` added to the Standalone scripting define symbols in `ProjectSettings/ProjectSettings.asset` — currently only `USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS` are set. Without it, no `Platform` class exists for standalone Linux (all implementations are behind preprocessor guards).
 
 ## Done when
 
-- [ ] Outernet.Client passes `uv run build-unity` for `linux64` (standalone player build) and `android` (compilation check)
+- [ ] Outernet.Client passes `uv run build-unity` for `linux64` (needs `AUTHORING_TOOLS_ENABLED` in Standalone defines) and `android` (compilation check)
 - [ ] Forked `com.cesium.unity` package committed to repo with Linux binaries
 - [ ] Outernet.Client manifest points at local fork
 - [ ] Build process documented for future version bumps
