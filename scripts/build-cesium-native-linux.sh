@@ -7,7 +7,7 @@ set -euo pipefail
 # Idempotent: safe to run from any starting state.
 
 BUILD_DIR="${1:-/tmp/cesium-build}"
-CESIUM_VERSION="${CESIUM_VERSION:-v1.15.4}"
+CESIUM_VERSION="${CESIUM_VERSION:-v1.15.3}"
 UNITY_VERSION="${UNITY_VERSION:-6000.0.66f1}"
 UNITY_EDITOR="/opt/unity/${UNITY_VERSION}/Editor/Unity"
 
