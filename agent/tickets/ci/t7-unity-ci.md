@@ -1,7 +1,7 @@
 ---
 id: T7
 title: Unity CI workflow
-status: design-needed
+status: plan-needed
 depends_on: [T4]
 ---
 
@@ -11,7 +11,7 @@ See `ci-background.md` for shared CI context.
 
 ## Goal
 
-Automated Unity compilation checks and player builds in CI for the full build matrix, running on every push to `main` and `dev` and on PRs targeting those branches.
+Automated Unity builds in CI for the full build matrix, running on every push to `main` and `dev` and on PRs targeting those branches.
 
 ## Context
 
@@ -24,30 +24,19 @@ Foundation work is complete:
 
 ### Build matrix
 
-| Project | Android Mobile | Magic Leap 2 | Linux Standalone | Windows Standalone |
+| Project | android-mobile | magicleap | linux64 | win64 |
 |---|---|---|---|---|
 | **Outernet.Client** | yes | yes | yes | yes |
 | **MapRegistrationTool** | - | - | yes | yes |
 | **AndroidMobile** | yes | - | - | - |
 
-- **Standalone builds** (Linux + Windows) must have `AUTHORING_TOOLS_ENABLED` in scripting defines. This is already set in Outernet.Client's `ProjectSettings.asset` for the Standalone platform. MapRegistrationTool will need the same.
-- **Android Mobile** and **Magic Leap 2** must NOT have `AUTHORING_TOOLS_ENABLED`.
-- **Android vs Magic Leap 2** are both `BuildTarget.Android` but require different XR loaders, graphics APIs, architectures, texture compression, and render pipeline assets. Existing `BuildScript.cs` files handle this via `ConfigureForMagicLeap()` and `ConfigureForAndroidMobile()` methods (see `legacy/Outernet.Client/Assets/OuternetClient/Editor/BuildScript.cs`).
-
-### Platform configuration challenge
-
-The current `build_unity.py` passes `-buildTarget android` or `-buildLinux64Player` but has no concept of sub-platforms (Android Mobile vs Magic Leap 2) or Windows standalone. For the full matrix, it needs to either:
-- Call `-executeMethod Outernet.Client.Build.ConfigureForMagicLeap` (or `ConfigureForAndroidMobile`) before building, using the existing C# BuildScript methods
-- Or replicate the configuration logic in the Python build script (fragile, duplicates C# code)
-
-The `-executeMethod` approach is cleaner — it reuses the existing C# configuration and keeps platform-specific knowledge in Unity where it belongs.
-
-Windows standalone builds require a Windows runner or cross-compilation support. Linux CI can only produce Linux standalone and Android builds natively.
+7 total builds across 3 projects.
 
 ## Key files
 
-- `scripts/src/scripts/build_unity.py` — build script (needs sub-platform + Windows support)
-- `legacy/Outernet.Client/Assets/OuternetClient/Editor/BuildScript.cs` — Android/ML2 platform configuration
+- `scripts/src/scripts/build_unity.py` — build script (needs platform enum, `-executeMethod` support, Windows)
+- `legacy/Outernet.Client/Assets/OuternetClient/Editor/BuildScript.cs` — Android/ML2 configure+build methods
+- `apps/AndroidMobile/` — needs a `BuildScript.cs` added (currently has none)
 - `agent/coi-placeframe-build.sh` — Unity installation reference
 - `.github/workflows/build.yml` — existing Docker build workflow (patterns)
 - `packages/generated/csharp/` — generated C# API client consumed by Unity
@@ -57,13 +46,12 @@ Windows standalone builds require a Windows runner or cross-compilation support.
 1. **GameCI hybrid approach.** Use GameCI's Docker images (`unityci/editor`) for the pre-built Unity environment. Use GameCI's activation action (`game-ci/unity-activate`) for license management. Call `uv run build-unity` for actual build logic (keeps it in Python, portable, tested locally). Don't use `game-ci/unity-builder` — our build script handles the Unity CLI.
 2. **License: serial-based activation** via GameCI's activation action, credentials in GitHub Secrets. ULF copy doesn't work with Unity 6 headless (learned in T62).
 3. **C# API client: assume committed is current.** Enforces that developers regenerate before pushing. No need to run the API service in Unity CI.
-4. **Trigger strategy: pushes to `main` and `dev`, PRs targeting both.** This requires T4 (branch-based builds) to land first — T4 establishes the multi-branch CI pattern.
-
-## Open questions
-
-1. **Windows standalone builds.** Linux runners can't produce Windows standalone. Options: (a) Windows runner for Windows builds, (b) skip Windows standalone in CI and only verify Linux standalone (standalone code paths are identical, only the binary differs), (c) cross-compile from Linux (Unity supports this for Mono backend but not IL2CPP). What's the right trade-off?
-2. **Sub-platform support in build_unity.py.** The script needs a `--platform` or `--variant` flag to distinguish Android Mobile from Magic Leap 2. Should this use `-executeMethod` to call the existing C# configure methods, or should the Python script set scripting defines directly via CLI flags?
-3. **Matrix parallelism.** 9 total builds (4 + 2 + 1 projects x platforms, minus combos that don't apply). Run as parallel jobs? Sequential steps? Each GameCI editor image pull is ~15GB.
+4. **Trigger strategy: pushes to `main` and `dev`, PRs targeting both.** T4 establishes the multi-branch CI pattern.
+5. **Platform enum in `build_unity.py`.** The script defines a flat enumeration of platforms: `android-mobile`, `magicleap`, `linux64`, `win64`. The `--platform` parameter is the only input — the script does the right thing for each platform (CLI flags for standalone, `-executeMethod` for Android sub-platforms). No separate `--target` / `--variant` split.
+6. **`-executeMethod` for Android sub-platforms.** Android Mobile and Magic Leap 2 are both `BuildTarget.Android` but need different XR loaders, graphics APIs, architectures, texture compression, and scripting defines. The existing C# `BuildScript.cs` methods (`ConfigureForMagicLeap()` + `BuildForMagicLeap()`, etc.) handle this. The Python script calls them via `-executeMethod`. A `BuildScript.cs` must be added to the AndroidMobile app (currently has none).
+7. **Standalone builds use `AUTHORING_TOOLS_ENABLED`.** Already set in Outernet.Client's `ProjectSettings.asset` for Standalone. MapRegistrationTool will need the same.
+8. **Windows runner for Windows standalone.** Linux runners can't produce Windows builds. CI uses a Windows runner (`windows-latest`) for `win64` targets.
+9. **One job per build, fully parallel.** All 7 builds run as separate parallel jobs. Each job restores its Library cache independently. This gives the best wall-clock time and per-build status granularity. Library cache keys are scoped per project (the cache is platform-independent — it's asset import results).
 
 ## Depends on
 
@@ -73,7 +61,8 @@ T4 (branch-based builds) — establishes multi-branch triggers and `.env.lock` c
 
 **Verifiable now (no special infra):**
 - Workflow file `.github/workflows/unity.yml` exists and is syntactically valid
-- `build_unity.py` supports the full build matrix (sub-platforms, Windows)
+- `build_unity.py` supports the full platform enum (`android-mobile`, `magicleap`, `linux64`, `win64`)
+- `BuildScript.cs` exists in AndroidMobile app
 
 **Requires GitHub Actions (verify manually):**
 - Full build matrix passes on push to `main`
