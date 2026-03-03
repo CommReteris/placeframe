@@ -189,6 +189,9 @@ def setup_agent_sandbox(
             print(f"  - {path}")
         print("The COI image includes Unity, so a license is required.")
         print("Activate Unity Personal locally (Unity Hub -> Preferences -> Licenses) and re-run.")
+        print("NOTE: Unity Hub may show an activated license without writing the .ulf file to disk.")
+        print("If already activated, go to Manage Licenses -> Add -> 'Get a free personal license'")
+        print("to force the file to be created, then re-run this script.")
         sys.exit(1)
     container_license_path = "/root/.local/share/unity3d/Unity/Unity_lic.ulf"
     if "unity-license:" not in run_command("incus profile device show default"):
