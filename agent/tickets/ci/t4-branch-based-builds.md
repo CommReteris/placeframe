@@ -1,7 +1,7 @@
 ---
 id: T4
 title: Branch-based builds and .env.lock strategy
-status: ready
+status: in-progress
 depends_on: []
 ---
 

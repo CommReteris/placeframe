@@ -63,6 +63,16 @@ All three scripts live in `scripts/src/scripts/`.
 
 All API endpoints require an OAuth2 Bearer token from Keycloak. Default dev credentials: `user` / `password` (configured in `docker/keycloak/realm-export/placeframe.json`).
 
+## CI/CD
+
+Docker image builds run in `.github/workflows/build.yml`. Build logic lives in `scripts/src/scripts/build.py` — the workflow YAML is a thin wrapper.
+
+- **Triggers**: pushes to long-running branches (`main`, `dev`) and PRs targeting them. `paths-ignore: [".env.lock"]` prevents loops.
+- **Lock file flow**: CI builds images, then commits `.env.lock` (pinned image digests) directly to the branch. No lock PR — the old `peter-evans/create-pull-request` approach is gone.
+- **Branch protection** (configured in GitHub repo settings, not in code): require PRs, require status checks (`build-and-lock`), and **require branches to be up to date before merging**. The "up to date" requirement is the key mechanism — it ensures PRs are rebased before merge, so `.env.lock` is already correct when the PR lands.
+- **Developer setup**: run `git config merge.ours.driver true` once per clone. This enables the `merge=ours` strategy in `.gitattributes` for `.env.lock`, which is a safety net for local command-line merges.
+- **Adding a new long-running branch**: update `branches` lists in `build.yml` (3 places: `push.branches`, `pull_request.branches`, and the `contains()` check in the commit step's `if` condition).
+
 ## Code Conventions
 
 - **Python 3.13+**, line length 120, Ruff for linting/formatting, BasedPyright in strict mode.
