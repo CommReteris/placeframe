@@ -1,7 +1,7 @@
 ---
 id: T4
 title: Branch-based builds and .env.lock strategy
-status: in-progress
+status: in-review
 depends_on: []
 ---
 
@@ -140,3 +140,16 @@ After merging to `main`:
 - `.gitattributes` created with `merge=ours` for `.env.lock`
 - CI commits `.env.lock` directly on push to `main`
 - Branch protection configured (manual step documented)
+
+## Log
+
+Clean implementation, no issues. The ticket had exact code snippets for every change — implementation was a direct transcription.
+
+Post-merge manual steps remain:
+1. Create `dev` branch from `main` (if it doesn't exist)
+2. Configure branch protection for `main` and `dev` in GitHub repo settings
+3. Delete `bot/update-lock` remote branch: `git push origin --delete bot/update-lock`
+
+## Observations
+
+No pre-existing issues noticed.
