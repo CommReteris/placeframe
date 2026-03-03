@@ -1,7 +1,7 @@
 ---
 id: T7
 title: Unity CI workflow
-status: in-review
+status: in-progress
 depends_on: [T4]
 plan: t7-plan.md
 ---
@@ -74,9 +74,36 @@ T4 (branch-based builds) — establishes multi-branch triggers and `.env.lock` c
 - License activation works reliably
 - Library cache reduces subsequent build times
 
+## CI iteration
+
+Implementation is code-complete. All "verifiable now" criteria pass locally. Remaining work is iterating on the GitHub Actions workflow until all 7 builds pass.
+
+**Iteration loop** (Claude Code has read-only GitHub access, no repo write):
+1. User pushes `dev` branch from the host
+2. User tells the session "pushed" or pastes the workflow run URL
+3. Session checks logs: `gh run list --workflow=unity.yml --limit=1` then `gh run view <id> --log-failed`
+4. Session fixes failures, commits to the branch
+5. User pushes again, repeat until green
+
+**GitHub setup (already done):**
+- Secrets configured: `UNITY_EMAIL`, `UNITY_PASSWORD`, `UNITY_SERIAL`
+- Read-only PAT with Actions:read in container via `GITHUB_TOKEN` env var
+
+**Likely first-run failure points:**
+- `unity-editor` wrapper path inside GameCI containers (may need `UNITY_EDITOR` env var set in workflow)
+- `xvfb-run` availability in GameCI images
+- `uv sync` inside container (the workspace `pyproject.toml` may have dependencies not installable in the GameCI image)
+- Container image pull — tags verified as `6000.0.66f1-{module}-3` on Docker Hub
+
+**Key files for iteration:**
+- `.github/workflows/unity.yml` — workflow definition
+- `scripts/src/scripts/build_unity.py` — build logic (UNITY_EDITOR env var, command construction)
+
 ## Log
 
 Clean implementation, no issues. The plan mapped directly to the code. One deviation from design decision 8: win64 builds cross-compile from Linux via GameCI's `windows-mono` module instead of using Windows runners (T75 tracks the switch). License activation uses direct Unity CLI (`unity-editor -serial ...`) instead of `game-ci/unity-activate` action (which doesn't work inside container jobs).
+
+GameCI image tags corrected from `ubuntu-6000.0.66f1-{module}-3.1.0` to `6000.0.66f1-{module}-3` after verifying against Docker Hub API.
 
 ## Observations
 
