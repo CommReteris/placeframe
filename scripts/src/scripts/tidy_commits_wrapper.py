@@ -20,13 +20,17 @@ class Commit(BaseModel):
     message: str
     author: str
     checkout: list[str] = []
+    checkout_ref: dict[str, list[str]] = {}
+    rename: dict[str, str] = {}
     delete: list[str] = []
     content: dict[str, str] = {}
 
     @model_validator(mode="after")
     def has_file_operations(self) -> "Commit":
-        if not self.checkout and not self.delete and not self.content:
-            raise ValueError("commit has no file operations (needs 'checkout', 'delete', or 'content')")
+        if not self.checkout and not self.checkout_ref and not self.rename and not self.delete and not self.content:
+            raise ValueError(
+                "commit has no file operations (needs 'checkout', 'checkout_ref', 'rename', 'delete', or 'content')"
+            )
         return self
 
 
@@ -73,6 +77,14 @@ def execute_plan(plan: TidyCommitsPlan, branch: str, base: str, backup: str) -> 
 
         if commit.checkout:
             run_command(["git", "checkout", backup, "--"] + commit.checkout)
+
+        for reference, paths in commit.checkout_ref.items():
+            run_command(["git", "checkout", reference, "--"] + paths)
+
+        for old_path, new_path in commit.rename.items():
+            run_command(["git", "checkout", backup, "--", old_path])
+            Path(new_path).parent.mkdir(parents=True, exist_ok=True)
+            run_command(["git", "mv", old_path, new_path])
 
         for file_path in commit.delete:
             run_command(["git", "rm", file_path])
