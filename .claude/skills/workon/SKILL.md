@@ -24,6 +24,7 @@ If the ticket's frontmatter has a `plan` field, also read the referenced plan fi
 - **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the ticket's `## Approach` section with the resolved design decisions (so they survive session boundaries), then update the frontmatter status to `plan-needed`. Proceed to step 3a.
 - **`plan-needed`** — If the ticket already has a `plan` field (i.e. it was moved back to `plan-needed` for revision), go to step 3c (revise plan). Otherwise go to step 3a (create plan).
 - **`ready`** — Go to step 3b (warm up from plan) if the ticket has a `plan` field. Otherwise go directly to step 4 (implement).
+- **`in-progress`** — Implementation was started in a previous session. Go to step 3b (warm up from plan) if the ticket has a `plan` field. Otherwise go directly to step 4 (implement). Same as `ready`, but signals that prior work exists on this ticket.
 - **`in-review`** — Inform the user the ticket is awaiting their review. Ask if they want to move it to `done` (accept) or back to an earlier status (rework needed).
 - **`done`** — Inform the user the ticket is done and ask if they want to reopen it.
 
@@ -76,7 +77,9 @@ After ExitPlanMode, proceed to step 3b (warm up) or step 4 (implement) depending
 
 ## 4. TDD implementation cycle
 
-When status is `ready`, implement using Red-Green-Refactor. If the ticket is prose-only (skill files, shared docs, tickets — no code changes), skip TDD and make the edits directly.
+When status is `ready` or `in-progress`, implement using Red-Green-Refactor. If the ticket is prose-only (skill files, shared docs, tickets — no code changes), skip TDD and make the edits directly.
+
+If the ticket's status is `ready` (not yet `in-progress`), update the frontmatter status to `in-progress` before beginning implementation. This signals to future sessions that work has started on this ticket.
 
 ### RED phase — write failing tests
 

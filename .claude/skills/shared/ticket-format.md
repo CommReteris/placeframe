@@ -42,12 +42,13 @@ Ordered by lifecycle progression:
 | `design-needed` | Design needed | Open questions must be discussed before planning |
 | `plan-needed` | Plan needed | Enter plan mode, write approach, get user approval |
 | `ready` | Ready | Approved plan exists, start implementing |
+| `in-progress` | In progress | Implementation actively underway (set by workon skill) |
 | `in-review` | In review | Implementation complete, awaiting human review |
 | `done` | Done | Reviewed and accepted by a human |
 
 ## Status transitions
 
-Normal flow: `design-needed` → `plan-needed` → `ready` → `in-review` → `done`
+Normal flow: `design-needed` → `plan-needed` → `ready` → `in-progress` → `in-review` → `done`
 
 Only a human moves a ticket from `in-review` to `done`. The workon skill moves tickets to `in-review` after implementation is verified.
 
