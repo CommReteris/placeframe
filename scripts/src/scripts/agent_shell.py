@@ -32,7 +32,21 @@ def add_git_mount(container_name: str, main_git_path: Path) -> None:
 
 
 @app.command()
-def agent_shell() -> None:
+def agent_shell(
+    no_unity_license: bool = typer.Option(
+        False, "--no-unity-license", help="Launch without requiring a Unity license mount"
+    ),
+) -> None:
+    if not no_unity_license:
+        profile_devices = run_command("incus profile device show default")
+        if "unity-license:" not in profile_devices:
+            print("ERROR: Unity license device not found in Incus default profile.")
+            print("Either run 'uv run setup-agent-sandbox' to provision the license mount,")
+            print("or use --no-unity-license to launch without it.")
+            sys.exit(1)
+    else:
+        print("WARNING: Launching without Unity license — batchmode compilation will fail.")
+
     git_path = Path(".git")
     if git_path.exists() and not git_path.is_dir():
         main_git_path: Path | None = Path(run_command("git rev-parse --git-common-dir").strip()).resolve()
