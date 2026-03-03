@@ -1,0 +1,101 @@
+name: Unity
+
+on:
+  push:
+    branches: [main, dev]
+    paths-ignore: [".env.lock"]
+  pull_request:
+    branches: [main, dev]
+    paths-ignore: [".env.lock"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.project-name }} (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+    container:
+      image: unityci/editor:ubuntu-6000.0.66f1-${{ matrix.module }}-3.1.0
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: legacy/Outernet.Client
+            project-name: Outernet.Client
+            platform: android-mobile
+            module: android
+          - project: legacy/Outernet.Client
+            project-name: Outernet.Client
+            platform: magicleap
+            module: android
+          - project: legacy/Outernet.Client
+            project-name: Outernet.Client
+            platform: linux64
+            module: linux-il2cpp
+          - project: legacy/Outernet.Client
+            project-name: Outernet.Client
+            platform: win64
+            module: windows-mono
+          - project: apps/MapRegistrationTool
+            project-name: MapRegistrationTool
+            platform: linux64
+            module: linux-il2cpp
+          - project: apps/MapRegistrationTool
+            project-name: MapRegistrationTool
+            platform: win64
+            module: windows-mono
+          - project: apps/AndroidMobile
+            project-name: AndroidMobile
+            platform: android-mobile
+            module: android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Activate Unity License
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        run: |
+          unity-editor -batchmode -nographics -quit \
+            -serial "$UNITY_SERIAL" \
+            -username "$UNITY_EMAIL" \
+            -password "$UNITY_PASSWORD" \
+            -logFile /dev/stdout || true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.project }}/Library
+          key: unity-library-${{ matrix.project-name }}-${{ hashFiles(format('{0}/Packages/manifest.json', matrix.project)) }}
+          restore-keys: |
+            unity-library-${{ matrix.project-name }}-
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Build
+        run: uv run build-unity --project ${{ matrix.project-name }} --platform ${{ matrix.platform }}
+
+      - name: Upload Build Artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.project-name }}-${{ matrix.platform }}
+          path: |
+            /tmp/unity-builds/
+            ${{ matrix.project }}/Build/
+          if-no-files-found: ignore
+
+      - name: Return Unity License
+        if: always()
+        run: |
+          unity-editor -batchmode -nographics -quit \
+            -returnlicense \
+            -logFile /dev/stdout || true
