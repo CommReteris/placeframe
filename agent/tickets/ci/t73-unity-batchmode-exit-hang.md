@@ -1,7 +1,7 @@
 ---
 id: T73
 title: Unity hangs after successful batchmode player build
-status: design-needed
+status: in-review
 depends_on: []
 ---
 
@@ -39,14 +39,19 @@ TrimDiskCacheJob: Current cache size 0mb
 
 The `[UnityConnectServicesConfig] config is NOT valid` line suggests Unity Connect (analytics/cloud services) may be trying to connect and timing out without a network path.
 
-## Open questions
+## Approach
 
-1. Is the hang caused by Unity Connect/analytics trying to reach the internet from inside the COI container (no outbound internet)? If so, can we disable Unity Connect services in ProjectSettings?
-2. Should `build-unity` detect `Build Finished, Result: Success` in the log stream and terminate Unity with a timeout? This would be a workaround, not a fix.
-3. Does passing `-quit` alongside `-buildLinux64Player` help, or is it redundant/ignored?
-4. Are there Unity command-line flags to disable analytics/licensing/connect that would prevent the hang? (e.g. `-disable-analytics`, `-noUpm`)
+Root cause was simply that `-quit` was missing from the linux64 build command in `build_unity.py`. The android path already had it. Without `-quit`, Unity completes the build but enters its idle editor loop instead of exiting. The child processes, UnityConnect message, and lack of internet were all red herrings.
 
 ## Done when
 
-- [ ] `uv run build-unity --project Outernet.Client --target linux64` exits with code 0 after a successful build, without manual kill
+- [x] `uv run build-unity --project Outernet.Client --target linux64` exits with code 0 after a successful build, without manual kill
 - [ ] Solution is documented in CLAUDE.md environment notes if it involves flags or config
+
+## Log
+
+Clean implementation, no issues. The fix was a single flag addition — diagnosed from the asymmetry between the android path (has `-quit`) and the linux64 path (missing `-quit`).
+
+## Observations
+
+No pre-existing issues noticed.
