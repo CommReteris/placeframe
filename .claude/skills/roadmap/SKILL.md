@@ -24,8 +24,9 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 3. Ask the user for: title, status (default `design-needed`), dependencies (default `[]`), and a brief goal.
 4. **Check sizing.** Evaluate the proposed scope against the sizing heuristics in `ticket-format.md`. If the goal implies multiple unrelated actions (fails the one-sentence test), or the scope would likely exceed ~400 lines of change or touch many unrelated subsystems, propose a decomposition — suggest how to split and what the individual tickets would be. The user decides whether to split or keep as-is.
 5. Ask which epic to place the ticket in (list existing epic directories, plus "root" for ungrouped). Default to root if the user doesn't specify.
-6. Write `agent/tickets/{epic}/t{N}-{slug}.md` (or `agent/tickets/t{N}-{slug}.md` for root) with full ticket structure (frontmatter + Goal/Context/Approach/Done-when sections). Slug is derived from the title: lowercase, hyphens, no special characters.
-7. Offer to `/commit`.
+6. **Read the key files.** Before writing the ticket, identify and read the files that will be listed in Key Files. Use what you find to write Context and Approach sections that would be sufficient for a fresh session with no conversation history.
+7. Write `agent/tickets/{epic}/t{N}-{slug}.md` (or `agent/tickets/t{N}-{slug}.md` for root) with full ticket structure (frontmatter + Goal/Context/Approach/Done-when sections). Slug is derived from the title: lowercase, hyphens, no special characters.
+8. Offer to `/commit`.
 
 ## 2. Import
 
