@@ -11,7 +11,7 @@ from subprocess import CalledProcessError
 import typer
 from common.run_command import check_command, exec_command, run_command
 
-from .setup_agent_sandbox import PLACEFRAME_IMAGE, UNITY_CREDENTIALS_PATH, parse_unity_credentials
+from .setup_agent_sandbox import CREDENTIALS_PATH, LEGACY_CREDENTIALS_PATH, PLACEFRAME_IMAGE, parse_credentials
 
 DEVICE_NAME = "main-git"
 UNITY_EDITOR_PATH = "/opt/unity/6000.0.66f1/Editor/Unity"
@@ -47,7 +47,7 @@ def ensure_unity_activated(container_name: str, credentials: tuple[str, str, str
         print("Unity license activated.")
     else:
         print("WARNING: Unity license activation failed. Batchmode compilation will not work.")
-        print("Check credentials in:", UNITY_CREDENTIALS_PATH)
+        print("Check credentials in:", CREDENTIALS_PATH)
 
 
 @app.command()
@@ -56,17 +56,22 @@ def agent_shell(
 ) -> None:
     credentials = None
     if not no_unity:
-        if not UNITY_CREDENTIALS_PATH.exists():
+        credentials_path = CREDENTIALS_PATH
+        if not credentials_path.exists() and LEGACY_CREDENTIALS_PATH.exists():
+            print(f"WARNING: Reading credentials from legacy path {LEGACY_CREDENTIALS_PATH}")
+            print(f"  Move to: {CREDENTIALS_PATH}")
+            credentials_path = LEGACY_CREDENTIALS_PATH
+        if not credentials_path.exists():
             credentials = None
         else:
-            parsed = parse_unity_credentials(UNITY_CREDENTIALS_PATH)
+            parsed = parse_credentials(credentials_path)
             serial = parsed.get("UNITY_SERIAL")
             email = parsed.get("UNITY_EMAIL")
             password = parsed.get("UNITY_PASSWORD")
             if serial and email and password:
                 credentials = (serial, email, password)
         if credentials is None:
-            print(f"ERROR: Unity credentials not found or incomplete at {UNITY_CREDENTIALS_PATH}")
+            print(f"ERROR: Unity credentials not found or incomplete at {CREDENTIALS_PATH}")
             print("Either run 'uv run setup-agent-sandbox' for setup instructions,")
             print("or use --no-unity to launch without Unity license activation.")
             sys.exit(1)

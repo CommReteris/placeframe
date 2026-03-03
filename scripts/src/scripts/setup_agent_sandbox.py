@@ -11,7 +11,8 @@ from subprocess import CalledProcessError
 import typer
 from common.run_command import check_command, run_command
 
-UNITY_CREDENTIALS_PATH = Path.home() / ".config" / "unity3d" / "unity-credentials"
+CREDENTIALS_PATH = Path.home() / ".config" / "placeframe" / "credentials"
+LEGACY_CREDENTIALS_PATH = Path.home() / ".config" / "unity3d" / "unity-credentials"
 
 INCUS_PRESEED = """\
 config: {}
@@ -48,7 +49,7 @@ PLACEFRAME_IMAGE = "coi-placeframe"
 app = typer.Typer(add_completion=False)
 
 
-def parse_unity_credentials(path: Path) -> dict[str, str]:
+def parse_credentials(path: Path) -> dict[str, str]:
     credentials: dict[str, str] = {}
     for line in path.read_text().splitlines():
         line = line.strip()
@@ -215,32 +216,46 @@ def setup_agent_sandbox(
             extracted_serial = base64.b64decode(match.group(1)).decode().strip()
             print(f"Extracted Unity serial from {unity_license_path}: {extracted_serial}")
 
-    # Validate credentials file
-    if not UNITY_CREDENTIALS_PATH.exists():
-        print(f"ERROR: Unity credentials not found at {UNITY_CREDENTIALS_PATH}")
+    # Validate credentials file (support legacy path with deprecation warning)
+    credentials_path = CREDENTIALS_PATH
+    if not credentials_path.exists() and LEGACY_CREDENTIALS_PATH.exists():
+        print(f"WARNING: Reading credentials from legacy path {LEGACY_CREDENTIALS_PATH}")
+        print(f"  Move to: {CREDENTIALS_PATH}")
+        credentials_path = LEGACY_CREDENTIALS_PATH
+    if not credentials_path.exists():
+        print(f"ERROR: Credentials not found at {CREDENTIALS_PATH}")
         print("Create the file with the following format:")
-        print(f"  mkdir -p {UNITY_CREDENTIALS_PATH.parent}")
-        print(f"  cat > {UNITY_CREDENTIALS_PATH} << 'EOF'")
+        print(f"  mkdir -p {CREDENTIALS_PATH.parent}")
+        print(f"  cat > {CREDENTIALS_PATH} << 'EOF'")
         if extracted_serial:
             print(f"  UNITY_SERIAL={extracted_serial}")
         else:
             print("  UNITY_SERIAL=XX-XXXX-XXXX-XXXX-XXXX-XXXX")
         print("  UNITY_EMAIL=your@email.com")
         print("  UNITY_PASSWORD=your-password")
+        print("  GITHUB_TOKEN=github_pat_... (optional, enables gh CLI in container)")
         print("  EOF")
         if not extracted_serial:
             print("To extract the serial from a .ulf file:")
             print('  grep DeveloperData Unity_lic.ulf | sed -E \'s/.*Value="([^"]+)".*/\\1/\' | base64 --decode')
         sys.exit(1)
 
-    credentials = parse_unity_credentials(UNITY_CREDENTIALS_PATH)
+    credentials = parse_credentials(credentials_path)
     missing = [key for key in ["UNITY_SERIAL", "UNITY_EMAIL", "UNITY_PASSWORD"] if key not in credentials]
     if missing:
-        print(f"ERROR: Missing keys in {UNITY_CREDENTIALS_PATH}: {', '.join(missing)}")
+        print(f"ERROR: Missing keys in {credentials_path}: {', '.join(missing)}")
         if "UNITY_SERIAL" in missing and extracted_serial:
             print(f"  (auto-extracted serial from ULF: {extracted_serial})")
         sys.exit(1)
-    print(f"Unity credentials validated: {UNITY_CREDENTIALS_PATH}")
+    print(f"Unity credentials validated: {credentials_path}")
+
+    # Inject optional GITHUB_TOKEN into Incus profile for gh CLI access
+    github_token = credentials.get("GITHUB_TOKEN")
+    if github_token:
+        run_command(f"incus profile set default environment.GITHUB_TOKEN={shlex.quote(github_token)}")
+        print("GITHUB_TOKEN set in Incus default profile.")
+    else:
+        print("NOTE: No GITHUB_TOKEN in credentials file. gh CLI will not work in containers.")
 
     print("Done.")
     print("Run: uv run agent-shell")
