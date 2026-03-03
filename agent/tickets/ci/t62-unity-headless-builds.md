@@ -1,7 +1,7 @@
 ---
 id: T62
 title: Unity headless batch builds in COI container
-status: design-needed
+status: plan-needed
 depends_on: []
 ---
 
@@ -25,8 +25,7 @@ Two editor versions are needed:
 
 1. **Image vs volume** → bake into image. Install editors in `coi-placeframe-build.sh` (~15-20 GB). Slower image rebuild on Unity version bumps, but fast container launch and no first-run surprises.
 2. **License file management** → Incus profile mount. `setup_agent_sandbox.py` locates `~/.local/share/unity3d/Unity/Unity_lic.ulf` on the host and adds a read-only profile disk device mounting it into the container. Errors out if the `.ulf` is missing. Same pattern as git identity — host credential material lives in the profile, not the image. Auto-updates if the user re-activates locally.
-3. **Compilation wrapper**: TBD (standalone script, uv command, or skill — decide during planning).
-4. **Unity 2022.3 specific version**: TBD (pick latest 2022.3.XXf1 patch during planning).
+3. **Compilation wrapper** → `uv run` command (e.g. `uv run check-unity`). Follows existing pattern (`uv run up`, `uv run build`, etc.). Runnable from repo root, no Claude Code dependency.
 
 ## Key risks
 
