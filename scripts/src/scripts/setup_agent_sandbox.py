@@ -1,4 +1,6 @@
+import base64
 import getpass
+import re
 import shlex
 import shutil
 import sys
@@ -8,6 +10,8 @@ from subprocess import CalledProcessError
 
 import typer
 from common.run_command import check_command, run_command
+
+UNITY_CREDENTIALS_PATH = Path.home() / ".config" / "unity3d" / "unity-credentials"
 
 INCUS_PRESEED = """\
 config: {}
@@ -42,6 +46,18 @@ COI_BINARY_URL = "https://github.com/mensfeld/code-on-incus/releases/latest/down
 PLACEFRAME_IMAGE = "coi-placeframe"
 
 app = typer.Typer(add_completion=False)
+
+
+def _parse_unity_credentials(path: Path) -> dict[str, str]:
+    credentials: dict[str, str] = {}
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        key, _, value = line.partition("=")
+        if value:
+            credentials[key.strip()] = value.strip()
+    return credentials
 
 
 @app.command()
@@ -176,32 +192,55 @@ def setup_agent_sandbox(
     # UV project environment
     run_command('incus profile set default environment.UV_PROJECT_ENVIRONMENT="/home/code/.venvs/placeframe"')
 
-    # Unity license file mount — check multiple known locations
+    # Unity serial-based license activation (Unity 6 requires -serial activation for batchmode;
+    # the old ULF copy approach no longer provides the com.unity.editor.headless entitlement).
+    # Credentials file is read by agent_shell.py on the host and passed via incus exec — it is
+    # never mounted into the container, so Claude Code cannot see the credentials.
+
+    # Remove old ULF mount device if present (migrated to serial activation)
+    if "unity-license:" in run_command("incus profile device show default"):
+        run_command("incus profile device remove default unity-license")
+        print("Removed old unity-license profile device (migrated to serial activation).")
+
+    # Auto-extract serial from ULF if available
+    extracted_serial = ""
     unity_license_candidates = [
         Path.home() / ".local/share/unity3d/Unity/Unity_lic.ulf",
         Path.home() / ".config/unity3d/Unity/Unity_lic.ulf",
-        Path("/usr/share/unity3d/config/Unity_lic.ulf"),
     ]
     unity_license_path = next((path for path in unity_license_candidates if path.exists()), None)
-    if unity_license_path is None:
-        print("ERROR: Unity license not found. Checked:")
-        for path in unity_license_candidates:
-            print(f"  - {path}")
-        print("The COI image includes Unity, so a license is required.")
-        print("Activate Unity Personal locally (Unity Hub -> Preferences -> Licenses) and re-run.")
-        print("NOTE: Unity Hub may show an activated license without writing the .ulf file to disk.")
-        print("If already activated, go to Manage Licenses -> Add -> 'Get a free personal license'")
-        print("to force the file to be created, then re-run this script.")
+    if unity_license_path:
+        match = re.search(r'DeveloperData\s+Value="([^"]+)"', unity_license_path.read_text())
+        if match:
+            extracted_serial = base64.b64decode(match.group(1)).decode().strip()
+            print(f"Extracted Unity serial from {unity_license_path}: {extracted_serial}")
+
+    # Validate credentials file
+    if not UNITY_CREDENTIALS_PATH.exists():
+        print(f"ERROR: Unity credentials not found at {UNITY_CREDENTIALS_PATH}")
+        print("Create the file with the following format:")
+        print(f"  mkdir -p {UNITY_CREDENTIALS_PATH.parent}")
+        print(f"  cat > {UNITY_CREDENTIALS_PATH} << 'EOF'")
+        if extracted_serial:
+            print(f"  UNITY_SERIAL={extracted_serial}")
+        else:
+            print("  UNITY_SERIAL=XX-XXXX-XXXX-XXXX-XXXX-XXXX")
+        print("  UNITY_EMAIL=your@email.com")
+        print("  UNITY_PASSWORD=your-password")
+        print("  EOF")
+        if not extracted_serial:
+            print("To extract the serial from a .ulf file:")
+            print('  grep DeveloperData Unity_lic.ulf | sed -E \'s/.*Value="([^"]+)".*/\\1/\' | base64 --decode')
         sys.exit(1)
-    container_license_path = "/root/.local/share/unity3d/Unity/Unity_lic.ulf"
-    if "unity-license:" not in run_command("incus profile device show default"):
-        run_command(
-            f"incus profile device add default unity-license disk"
-            f" source={unity_license_path} path={container_license_path} readonly=true"
-        )
-        print(f"Unity license mounted: {unity_license_path}")
-    else:
-        print("Unity license device already exists in profile.")
+
+    credentials = _parse_unity_credentials(UNITY_CREDENTIALS_PATH)
+    missing = [key for key in ["UNITY_SERIAL", "UNITY_EMAIL", "UNITY_PASSWORD"] if key not in credentials]
+    if missing:
+        print(f"ERROR: Missing keys in {UNITY_CREDENTIALS_PATH}: {', '.join(missing)}")
+        if "UNITY_SERIAL" in missing and extracted_serial:
+            print(f"  (auto-extracted serial from ULF: {extracted_serial})")
+        sys.exit(1)
+    print(f"Unity credentials validated: {UNITY_CREDENTIALS_PATH}")
 
     print("Done.")
     print("Run: uv run agent-shell")

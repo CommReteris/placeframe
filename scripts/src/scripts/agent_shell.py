@@ -1,4 +1,5 @@
 import hashlib
+import shlex
 import signal
 import subprocess
 import sys
@@ -10,9 +11,10 @@ from subprocess import CalledProcessError
 import typer
 from common.run_command import check_command, exec_command, run_command
 
-from .setup_agent_sandbox import PLACEFRAME_IMAGE
+from .setup_agent_sandbox import PLACEFRAME_IMAGE, UNITY_CREDENTIALS_PATH, _parse_unity_credentials
 
 DEVICE_NAME = "main-git"
+UNITY_EDITOR_PATH = "/opt/unity/6000.0.66f1/Editor/Unity"
 
 # COI's config.toml supports [defaults] image = "..." but the binary never applies it —
 # PersistentPreRunE only wires up the "persistent" default, not "image". The empty --image
@@ -31,18 +33,42 @@ def add_git_mount(container_name: str, main_git_path: Path) -> None:
     check_command(f"incus exec {container_name} -- git config --system --add safe.directory {main_git_path.parent}")
 
 
+def ensure_unity_activated(container_name: str, credentials: tuple[str, str, str]) -> None:
+    if check_command(f"incus exec {container_name} -- test -f /root/.local/share/unity3d/Unity/Unity_lic.ulf"):
+        return
+    serial, email, password = credentials
+    print("Activating Unity license...")
+    activated = check_command(
+        f"incus exec {container_name} --"
+        f" {UNITY_EDITOR_PATH} -batchmode -quit -nographics"
+        f" -serial {shlex.quote(serial)} -username {shlex.quote(email)} -password {shlex.quote(password)}"
+    )
+    if activated:
+        print("Unity license activated.")
+    else:
+        print("WARNING: Unity license activation failed. Batchmode compilation will not work.")
+        print("Check credentials in:", UNITY_CREDENTIALS_PATH)
+
+
 @app.command()
 def agent_shell(
-    no_unity_license: bool = typer.Option(
-        False, "--no-unity-license", help="Launch without requiring a Unity license mount"
-    ),
+    no_unity: bool = typer.Option(False, "--no-unity", help="Launch without Unity license activation"),
 ) -> None:
-    if not no_unity_license:
-        profile_devices = run_command("incus profile device show default")
-        if "unity-license:" not in profile_devices:
-            print("ERROR: Unity license device not found in Incus default profile.")
-            print("Either run 'uv run setup-agent-sandbox' to provision the license mount,")
-            print("or use --no-unity-license to launch without it.")
+    credentials = None
+    if not no_unity:
+        if not UNITY_CREDENTIALS_PATH.exists():
+            credentials = None
+        else:
+            parsed = _parse_unity_credentials(UNITY_CREDENTIALS_PATH)
+            serial = parsed.get("UNITY_SERIAL")
+            email = parsed.get("UNITY_EMAIL")
+            password = parsed.get("UNITY_PASSWORD")
+            if serial and email and password:
+                credentials = (serial, email, password)
+        if credentials is None:
+            print(f"ERROR: Unity credentials not found or incomplete at {UNITY_CREDENTIALS_PATH}")
+            print("Either run 'uv run setup-agent-sandbox' for setup instructions,")
+            print("or use --no-unity to launch without Unity license activation.")
             sys.exit(1)
     else:
         print("WARNING: Launching without Unity license — batchmode compilation will fail.")
@@ -61,11 +87,13 @@ def agent_shell(
     if check_command(f"incus info {container_name}"):
         assert main_git_path is not None
         add_git_mount(container_name, main_git_path)
+        if credentials:
+            ensure_unity_activated(container_name, credentials)
         exec_command(SHELL_COMMAND)
     else:
         assert main_git_path is not None
 
-        def add_mount_when_ready() -> None:
+        def configure_container_when_ready() -> None:
             for _ in range(60):
                 time.sleep(1)
                 try:
@@ -75,9 +103,11 @@ def agent_shell(
                 if running:
                     add_git_mount(container_name, main_git_path)
                     print(f"Worktree mount added: {main_git_path}")
+                    if credentials:
+                        ensure_unity_activated(container_name, credentials)
                     return
 
-        threading.Thread(target=add_mount_when_ready, daemon=True).start()
+        threading.Thread(target=configure_container_when_ready, daemon=True).start()
 
         process = subprocess.Popen(["coi", "shell", "--image", PLACEFRAME_IMAGE])
         signal.signal(signal.SIGINT, lambda signum, frame: process.send_signal(signum))

@@ -17,7 +17,7 @@ ANDROID_DIR=$UNITY_PATH/Editor/Data/PlaybackEngines/AndroidPlayer
 apt-get update
 apt-get install -y \
   xvfb \
-  libgtk2.0-0 libglib2.0-0 \
+  libgtk2.0-0 libgtk-3-0 libglib2.0-0 \
   libxinerama1 libxcursor1 libxrandr2 libxext6 libxrender1 libxi6 libx11-6 \
   libglu1-mesa libgl1-mesa-dev mesa-common-dev \
   libpulse0 libnss3 libcap2 libnotify4 libunwind-dev \

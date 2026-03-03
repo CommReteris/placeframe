@@ -16,7 +16,6 @@ UNITY_PROJECTS = [
 BUILD_TARGETS = ["android", "linux64"]
 
 UNITY_INSTALL_PATH = Path("/opt/unity")
-LICENSE_PATH = Path("/root/.local/share/unity3d/Unity/Unity_lic.ulf")
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -64,11 +63,6 @@ def check_unity(
     project: str | None = typer.Option(None, "--project", "-p", help="Check a specific project directory name."),
     target: str | None = typer.Option(None, "--target", "-t", help="Check a specific build target (android, linux64)."),
 ) -> None:
-    if not LICENSE_PATH.exists():
-        print(f"ERROR: Unity license not found at {LICENSE_PATH}")
-        print("Mount the host license via: uv run setup-agent-sandbox")
-        sys.exit(1)
-
     projects = UNITY_PROJECTS
     if project:
         projects = [path for path in UNITY_PROJECTS if path.name == project]
