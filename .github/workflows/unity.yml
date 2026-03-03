@@ -75,6 +75,11 @@ jobs:
           restore-keys: |
             unity-library-${{ matrix.project-name }}-
 
+      - name: Restore NuGet Packages
+        run: |
+          dotnet tool install --global NuGetForUnity.Cli
+          nugetforunity restore ${{ matrix.project }}
+
       - name: Setup UV
         uses: astral-sh/setup-uv@v5
         with:
