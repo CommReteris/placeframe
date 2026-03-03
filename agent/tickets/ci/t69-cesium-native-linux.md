@@ -1,8 +1,9 @@
 ---
 id: T69
 title: Build Cesium for Unity native plugin for Linux
-status: plan-needed
+status: ready
 depends_on: []
+plan: t69-plan.md
 ---
 
 # T69: Build Cesium for Unity native plugin for Linux
@@ -26,6 +27,12 @@ Research report: `agent/research/cesium-unity-native-linux.md`
 3. **Build location**: Built manually once outside the repo. The resulting package (including `.so`) is committed to the repo temporarily. Follow-up ticket moves the build to CI and the artifact to a registry.
 4. **Play Mode bar**: "Loads without crashing" is sufficient. No need for specific Cesium geospatial functionality to work.
 5. **Version tracking**: Manual for now. Follow-up ticket to automate via CI.
+6. **Fork scope**: C# code + Linux `.so` files only (~100-150MB). No other platform binaries (saves ~1.3GB). All original C# platform guards preserved so compilation works everywhere; other platforms lose runtime/Play Mode from this fork but can switch back to the official registry.
+7. **Build automation**: Native `.so` files built via an idempotent shell script committed to the repo. Script installs deps, clones source, and builds regardless of container starting state — serves as both build tool and documentation.
+
+## Approach
+
+Create a Linux-only fork of `com.cesium.unity` at `packages/unity/com.cesium.unity/` — all C# source code preserved (compilation works on all platforms), but only Linux native binaries included (~100-150MB vs 1.4GB for full superset). A Python script mechanically adds `#if UNITY_EDITOR_LINUX` / `#if UNITY_STANDALONE_LINUX` guards to the 41 generated C# files. An idempotent shell script builds the native `.so` files from source (cmake + vcpkg) in any container. Outernet.Client manifest changes from Cesium registry to local `file:` path.
 
 ## Done when
 
