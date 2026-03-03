@@ -37,8 +37,8 @@ After the build script completes, assemble the fork package at `packages/unity/c
 - Copy the Linux `.so` files from the build output
 - Update `CesiumRuntime.asmdef` to include `LinuxStandalone64`
 - Update `package.json` version to `1.15.4-linux.1`
-- Create `.meta` files for the `.so` binaries with correct Unity PluginImporter settings
 - No other platform native binaries (saves ~1.3GB)
+- `.meta` files for the `.so` binaries are generated automatically by Unity on first import
 
 ### Step 3: Update Outernet.Client manifest
 

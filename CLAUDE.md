@@ -66,7 +66,7 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. Default dev cred
 ## Code Conventions
 
 - **Python 3.13+**, line length 120, Ruff for linting/formatting, BasedPyright in strict mode.
-- **C# (Unity)**: CSharpier formatter, 120 char width (`.csharpierrc.json`).
+- **C# (Unity)**: CSharpier formatter, 120 char width (`.csharpierrc.json`). Never manually create `.meta` files — Unity generates them automatically on asset import. Manually created `.meta` files risk incorrect GUIDs, wrong import settings, and subtle asset reference bugs.
 - All Python packages use `src/<package>/` layout with `py.typed` marker. Use relative imports for intra-package imports (`from .module import ...`, not `from package.module import ...`).
 - Pydantic v2 for data validation everywhere; async/await throughout all services.
 - The `deptry-check` command enforces that all imports match declared dependencies. Per-rule exceptions for platform-specific packages (CUDA/ROCm) are documented in each `pyproject.toml`.
