@@ -67,7 +67,7 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. Default dev cred
 
 - **Python 3.13+**, line length 120, Ruff for linting/formatting, BasedPyright in strict mode.
 - **C# (Unity)**: CSharpier formatter, 120 char width (`.csharpierrc.json`).
-- All Python packages use `src/<package>/` layout with `py.typed` marker.
+- All Python packages use `src/<package>/` layout with `py.typed` marker. Use relative imports for intra-package imports (`from .module import ...`, not `from package.module import ...`).
 - Pydantic v2 for data validation everywhere; async/await throughout all services.
 - The `deptry-check` command enforces that all imports match declared dependencies. Per-rule exceptions for platform-specific packages (CUDA/ROCm) are documented in each `pyproject.toml`.
 - **Comments**: Plain `#` only. No section dividers (`# ---`), no decorative formatting. Comments should be rare — prefer self-explanatory code. When a comment is needed, keep it short and factual. No docstrings.
