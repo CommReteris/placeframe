@@ -1,7 +1,7 @@
 ---
 id: T69
 title: Build Cesium for Unity native plugin for Linux
-status: in-review
+status: in-progress
 depends_on: []
 plan: t69-plan.md
 ---
