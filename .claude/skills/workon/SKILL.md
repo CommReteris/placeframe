@@ -81,7 +81,7 @@ When status is `ready`, implement using Red-Green-Refactor. If the ticket is pro
 ### RED phase — write failing tests
 
 1. Read the ticket's "Done when" criteria. Each criterion is the starting point for one or more test cases.
-2. **Check for existing SPEC.md.** Identify the primary directory from the ticket's "Key files" section. If a SPEC.md exists there, read it. The Behaviors section contains testable statements about existing functionality. For each behavior that the current ticket modifies or extends: write regression tests that verify the existing behavior still holds (unless the ticket explicitly changes it), and derive new test cases for behaviors the ticket adds or modifies. If the ticket's changes conflict with a spec behavior, flag this as spec drift (see step 7a).
+2. **Check for existing SPEC.md.** Identify the primary directory from the ticket's "Key files" section. If a SPEC.md exists there, read it. The Behaviors section contains testable statements about existing functionality. For each behavior that the current ticket modifies or extends: write regression tests that verify the existing behavior still holds (unless the ticket explicitly changes it), and derive new test cases for behaviors the ticket adds or modifies. If the ticket's changes conflict with a spec behavior, flag this as spec drift (see step 8a).
 3. Write tests that encode the criteria and any relevant spec behaviors. Start from the "Done when" criteria and spec behaviors, then add tests for edge cases and error handling implied by those criteria. Tests should encode requirements, not predicted code structure.
 4. Follow the conventions in `.claude/skills/shared/testing.md`: AAA pattern, descriptive names (`test_should_<expected>_when_<condition>`), mock only at system boundaries.
 5. Run the tests. Verify they **fail for the right reason** — missing functionality, not syntax errors or import failures. Fix any mechanical issues until all failures are "expected" failures.
@@ -99,7 +99,20 @@ When status is `ready`, implement using Red-Green-Refactor. If the ticket is pro
 2. Apply project code conventions: `uv run ruff format .`, `uv run ruff check .`, `uv run basedpyright`.
 3. Remove duplication, improve naming, simplify logic. Inline aggressively per CLAUDE.md conventions.
 
-## 5. Verify
+## 5. Audit conventions
+
+Self-correct the current session's output against counter-training conventions. Skip this step for prose-only tickets.
+
+Read `.claude/skills/shared/audit-conventions.md` for the full criteria list.
+
+1. Run `git diff main...HEAD --name-only` to find files changed by this branch. Filter to code files only (Python, configs, TypeScript) — exclude markdown, skill files, tickets.
+2. For each changed code file, run `git diff main...HEAD -- <file>` to see only the branch's changes. Open the full file for context.
+3. Review **only the changed lines** against each convention in audit-conventions.md.
+   - **Mechanical violations** (decorative comments, abbreviated names, absolute intra-package imports, raw subprocess.run, try/except on run_command): fix in place.
+   - **Judgment violations** (inlining candidates, unnecessary abstractions): note them briefly when presenting the commit for user review. Do not auto-fix.
+4. If pre-existing violations are noticed in surrounding code (not introduced by this branch), record them in the ticket's `## Observations` section. Do not fix them.
+
+## 6. Verify
 
 Run the full verification suite from the ticket's "Done when" section:
 - `uv run ruff check .`
@@ -111,7 +124,7 @@ Run the full verification suite from the ticket's "Done when" section:
 
 Report which passed and which failed. List any "Requires manual verification" items.
 
-## 6. Capture learnings
+## 7. Capture learnings
 
 Re-read the ticket's `## Log` section. For each failure or pivot recorded:
 
@@ -126,11 +139,11 @@ Re-read the ticket's `## Log` section. For each failure or pivot recorded:
 
 If the log says "Clean implementation, no issues," skip this step entirely.
 
-## 7. Spec maintenance
+## 8. Spec maintenance
 
 Check if the primary directory (from the ticket's "Key files") has a SPEC.md.
 
-### 7a. Spec drift detection
+### 8a. Spec drift detection
 
 If a SPEC.md exists, re-read it and compare its Behaviors section against the current code (including changes just implemented). If any spec behaviors no longer match the code:
 
@@ -138,13 +151,13 @@ If a SPEC.md exists, re-read it and compare its Behaviors section against the cu
 - **Ask the user how to proceed** for each discrepancy: update the spec to match the code (behavior intentionally changed), update the code to match the spec (the code has a bug), or defer (the discrepancy is known and acceptable for now).
 - **Never auto-correct** either direction. The user decides.
 
-### 7b. Spec update proposal
+### 8b. Spec update proposal
 
 If the ticket added new behaviors, modified existing behaviors, or introduced new design decisions, draft proposed updates to the SPEC.md (or a new SPEC.md if none exists and the user wants one). Visual changes (transitions, hover states, focus rings, spacing, typography) are behaviors — include them in spec proposals. Present the complete proposed SPEC.md — show the full document, not a diff. The user must explicitly approve before any changes are written to disk.
 
 If no SPEC.md exists and the feature is not yet mature enough for a spec, do not pressure the user — simply note that no spec exists and move on.
 
-## 8. Submit for review
+## 9. Submit for review
 
 Update the ticket's frontmatter status to `in-review`.
 
@@ -154,8 +167,13 @@ Add a `## Log` section to the ticket body. This section records what was tried a
 - Only record failures and pivots — not a summary of what was built or a restatement of the approach.
 - If implementation was clean with no failures, write "Clean implementation, no issues."
 
-The `## Log` section is always present once a ticket reaches `in-review`.
+Add a `## Observations` section to the ticket body. This section records pre-existing issues noticed in surrounding code during implementation — things not introduced by this branch and not fixed in this ticket:
 
-## 9. Commit
+- Terse entries: file path + what was observed.
+- If nothing was noticed, write "No pre-existing issues noticed."
+
+Both sections are always present once a ticket reaches `in-review`.
+
+## 10. Commit
 
 Offer to `/commit`. Remember: separate prose and code commits.

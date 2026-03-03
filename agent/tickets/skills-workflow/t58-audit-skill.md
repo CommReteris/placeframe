@@ -25,6 +25,8 @@ Two audits were conducted in the session that produced this ticket — a skill a
 
 This pattern will recur — the user wants to audit code against conventions, configs against standards, etc. A skill would formalize the process and prevent mistakes like the T27 incident (see below).
 
+**Counter-training convention audits.** A specific high-value use case: auditing generated code against CLAUDE.md conventions that conflict with LLM training priors (inline aggressively, no decorative comments, no unnecessary abstractions, etc.). These conventions are reliably violated because generation-time priors override instructions. A shared criteria doc at `.claude/skills/shared/audit-conventions.md` (created by T59) will codify these conventions with detection guidance and before/after examples. The `/audit` skill should be able to use it as a criteria doc like any other.
+
 ### Key design inputs from the session
 
 **Cross-reference existing tickets before fixing.** During the skill audit, `disable-model-invocation: true` was added to four skills without checking that T27 (a blocked ticket) already tracked that exact work and was blocked on an upstream bug. The audit skill must search existing tickets for overlap before implementing any fix. If a blocked ticket already tracks the same change, surface it as a finding rather than implementing.
@@ -41,6 +43,7 @@ This pattern will recur — the user wants to audit code against conventions, co
 
 - `.claude/skills/audit/SKILL.md` — new skill
 - `.claude/skills/shared/skill-authoring.md` — reference for invocation model, description conventions
+- `.claude/skills/shared/audit-conventions.md` — counter-training convention criteria doc (created by T59)
 
 ## Done when
 

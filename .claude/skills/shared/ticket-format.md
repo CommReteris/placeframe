@@ -84,6 +84,7 @@ After frontmatter, ticket files use this structure:
 - **`## Approach`** — brief summary of the implementation strategy (2-5 sentences). If a plan file exists, this summarizes it — the full plan lives in `agent/plans/t{N}-plan.md`.
 - **`## Done when`** — bulleted acceptance criteria, split into "Verifiable now" and "Requires manual verification" where applicable
 - **`## Log`** — records what was tried and failed during implementation, and what was changed to resolve each failure. Always present once implementation begins. If implementation was clean with no issues, state that. This section is written by the workon skill when moving a ticket to `in-review`.
+- **`## Observations`** — records pre-existing issues noticed in surrounding code during implementation — things not introduced by this branch and not fixed in this ticket. Terse entries: file path + what was observed. Always present once implementation begins. If nothing was noticed, state "No pre-existing issues noticed." Written by the workon skill alongside the Log section.
 
 ## Plan files
 
