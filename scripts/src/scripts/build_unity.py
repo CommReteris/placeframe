@@ -50,7 +50,7 @@ def build_project(project_path: Path, build_target: str, output_directory: Path)
         print(f"\nBuilding {project_path.name} [{build_target}] (Unity {version})")
         print(f"  Output: {output_path}")
         command = (
-            f"xvfb-run {editor} -batchmode -nographics"
+            f"xvfb-run {editor} -batchmode -nographics -quit"
             f" -projectPath {project_path.resolve()}"
             f" -buildLinux64Player {output_path}"
             f" -logFile /dev/stdout"
