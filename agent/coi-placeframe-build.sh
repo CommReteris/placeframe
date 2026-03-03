@@ -54,7 +54,8 @@ rm -rf /tmp/android-extract /tmp/android-support.pkg
 # OpenJDK 17.0.9 for Android builds
 echo "Downloading OpenJDK..."
 mkdir -p "$ANDROID_DIR/OpenJDK"
-curl -fSL "$CDN/open-jdk/open-jdk-linux-x64/jdk17.0.9-9_8d1cbcce56285f3146cf7761353a643fe573b39e45bd94f35590dca39277f667.zip" \
+# OpenJDK is hosted at a version-independent path (no changeset prefix) — see T62 reopened (4).
+curl -fSL "https://download.unity3d.com/download_unity/open-jdk/open-jdk-linux-x64/jdk17.0.9-9_8d1cbcce56285f3146cf7761353a643fe573b39e45bd94f35590dca39277f667.zip" \
   -o /tmp/jdk.zip
 unzip -q /tmp/jdk.zip -d "$ANDROID_DIR/OpenJDK"
 rm /tmp/jdk.zip
