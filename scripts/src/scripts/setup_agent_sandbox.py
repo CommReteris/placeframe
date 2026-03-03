@@ -176,6 +176,23 @@ def setup_agent_sandbox(
     # UV project environment
     run_command('incus profile set default environment.UV_PROJECT_ENVIRONMENT="/home/code/.venvs/placeframe"')
 
+    # Unity license file mount
+    unity_license_path = Path.home() / ".local/share/unity3d/Unity/Unity_lic.ulf"
+    if not unity_license_path.exists():
+        print(f"ERROR: Unity license not found at {unity_license_path}")
+        print("The COI image includes Unity, so a license is required.")
+        print("Activate Unity Personal locally (Unity Hub -> Preferences -> Licenses) and re-run.")
+        sys.exit(1)
+    container_license_path = "/root/.local/share/unity3d/Unity/Unity_lic.ulf"
+    if "unity-license:" not in run_command("incus profile device show default"):
+        run_command(
+            f"incus profile device add default unity-license disk"
+            f" source={unity_license_path} path={container_license_path} readonly=true"
+        )
+        print(f"Unity license mounted: {unity_license_path}")
+    else:
+        print("Unity license device already exists in profile.")
+
     print("Done.")
     print("Run: uv run agent-shell")
 
