@@ -101,7 +101,8 @@ If the ticket's status is `ready` (not yet `in-progress`), update the frontmatte
 
 1. Improve the implementation while keeping all tests green.
 2. Apply project code conventions: `uv run ruff format .`, `uv run ruff check .`, `uv run basedpyright`.
-3. Remove duplication, improve naming, simplify logic. Inline aggressively per CLAUDE.md conventions.
+3. If the ticket modified `.cs` files under `apps/` or `packages/unity/`, verify Unity compilation for each affected project (see step 6 for the command).
+4. Remove duplication, improve naming, simplify logic. Inline aggressively per CLAUDE.md conventions.
 
 ## 5. Audit conventions
 
@@ -109,7 +110,7 @@ Self-correct the current session's output against counter-training conventions. 
 
 Read `.claude/skills/shared/audit-conventions.md` for the full criteria list.
 
-1. Run `git diff main...HEAD --name-only` to find files changed by this branch. Filter to code files only (Python, configs, TypeScript) — exclude markdown, skill files, tickets.
+1. Run `git diff main...HEAD --name-only` to find files changed by this branch. Filter to code files only (Python, configs, TypeScript, C#) — exclude markdown, skill files, tickets.
 2. For each changed code file, run `git diff main...HEAD -- <file>` to see only the branch's changes. Open the full file for context.
 3. Review **only the changed lines** against each convention in audit-conventions.md.
    - **Mechanical violations** (decorative comments, abbreviated names, absolute intra-package imports, raw subprocess.run, try/except on run_command): fix in place.
@@ -124,6 +125,12 @@ Run the full verification suite from the ticket's "Done when" section:
 - `uv run basedpyright` (for new/modified files)
 - `uv run pytest`
 - If the ticket touches TypeScript/SvelteKit code, also run `pnpm --dir <app-dir> check` and `pnpm --dir <app-dir> lint` (e.g. `pnpm --dir apps/sveltekit/board check`)
+- If the ticket modified `.cs` files under `apps/` or `packages/unity/`, run Unity batchmode compilation on each affected project and check for errors:
+  ```bash
+  xvfb-run /opt/unity/6000.0.66f1/Editor/Unity -batchmode -nographics -quit \
+    -projectPath apps/<project> -logFile /dev/stdout 2>&1 | grep "error CS"
+  ```
+  Any `error CS` output means compilation failed. This is the C# equivalent of `basedpyright` — Unity must generate project files and compile to catch missing usings, type errors, etc. Use `timeout: 300000` (5 min) as cold project opens are slow.
 - Any ticket-specific checks listed under "Verifiable now"
 
 Report which passed and which failed. List any "Requires manual verification" items.
