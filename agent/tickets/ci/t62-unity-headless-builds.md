@@ -81,3 +81,4 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 ## Observations
 
 - `basedpyright` is not in the dev dependency group, so `uv run basedpyright` fails in the sandbox. Tracked as T63.
+- Unity's `services-config.json` lives at `/usr/share/unity3d/config/services-config.json` on Linux (confirmed via strace). The `enableEntitlementLicensing` key is a Licensing Server setting — the editor's licensing client reads the file but ignores that key. Not a viable workaround for the headless entitlement issue.
