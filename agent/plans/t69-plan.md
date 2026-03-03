@@ -2,13 +2,15 @@
 
 ## Context
 
-`com.cesium.unity` v1.15.4 ships no Linux native binaries and all generated C# interop code is wrapped in `#if UNITY_EDITOR_WIN` / `#if UNITY_EDITOR_OSX` guards (no Linux equivalent). On Linux, the interop layer compiles out entirely, causing CS0246 errors that make `uv run build-unity` fail. Additionally, `CesiumRuntime.asmdef` has `includePlatforms` without `LinuxStandalone64`, excluding the assembly from standalone Linux builds.
+`com.cesium.unity` v1.15.3 ships no Linux native binaries and all generated C# interop code is wrapped in `#if UNITY_EDITOR_WIN` / `#if UNITY_EDITOR_OSX` guards (no Linux equivalent). On Linux, the interop layer compiles out entirely, causing CS0246 errors that make `uv run build-unity` fail. Additionally, `CesiumRuntime.asmdef` has `includePlatforms` without `LinuxStandalone64`, excluding the assembly from standalone Linux builds.
 
 ## Approach
 
 Follow the [official Cesium developer setup](https://cesium.com/learn/cesium-unity/ref-doc/developer-setup.html) rather than the community Linux guide. The official path uses `cesium-unity-samples` as the Unity project, which has all dependencies pre-configured. This avoids the incomplete code generation caused by a minimal Unity project missing required modules.
 
-The [community Linux guide](https://github.com/JOHNI1/CesiumSetupLinuxGuide) (v1.15.3, Unity 2022.3) adds extra steps — Reinterop.csproj patching, TilesetJsonLoader.cpp patching — that are workarounds for older versions and specific environments. These are not needed when following the official developer setup with v1.15.4 and Unity 6.
+The [community Linux guide](https://github.com/JOHNI1/CesiumSetupLinuxGuide) (v1.15.3, Unity 2022.3) adds extra steps — Reinterop.csproj patching, TilesetJsonLoader.cpp patching — that are workarounds for older versions and specific environments. These are not needed when following the official developer setup with v1.15.3 and Unity 6.
+
+**Version: v1.15.3, not v1.15.3.** v1.15.3 bumped cesium-native to v0.45.0 which added `BoundingCylinderRegion` to the `BoundingVolume` variant, but the cesium-unity visitor (`CalculateECEFCameraPosition` in `Cesium3DTilesetImpl.cpp`) was not updated — compilation fails in the Runtime target. The fix landed on `main` after the tag (commit `30502bd`, PR #558). v1.15.3 had zero C#/C++ code changes over v1.15.3 (just the submodule bump), so v1.15.3 is functionally identical and compiles cleanly.
 
 ### Step 1: Rewrite the build script
 
@@ -18,7 +20,7 @@ Rewrite to follow the official developer setup:
 
 1. Install build dependencies (cmake, ninja, nasm, g++, dotnet-sdk-8.0, pkg-config)
 2. Clone `cesium-unity-samples` as the Unity project (has all deps configured)
-3. Clone `cesium-unity` v1.15.4 into `Packages/com.cesium.unity/`
+3. Clone `cesium-unity` v1.15.3 into `Packages/com.cesium.unity/`
 4. Add `LinuxStandalone64` to `CesiumRuntime.asmdef`
 5. `dotnet publish Reinterop~ -o .` (build the Roslyn source generator)
 6. Open Unity to trigger Reinterop code generation (produces C++ interop headers)
@@ -34,7 +36,7 @@ After the build script completes, assemble the fork package at `packages/unity/c
 - Copy the Linux `.so` files from the build output
 - Include the built `Reinterop.dll` (source generator, generates platform-specific C# at compile time)
 - Update `CesiumRuntime.asmdef` to include `LinuxStandalone64`
-- Update `package.json` version to `1.15.4-linux.1`
+- Update `package.json` version to `1.15.3-linux.1`
 - No other platform native binaries (saves ~1.3GB)
 
 ### Step 3: Update Outernet.Client manifest

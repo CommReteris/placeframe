@@ -31,6 +31,7 @@ Research report: `agent/research/cesium-unity-native-linux.md`
 7. **Build automation**: Native `.so` files built via an idempotent shell script committed to the repo. Script installs deps, clones source, and builds regardless of container starting state — serves as both build tool and documentation.
 8. **C# guard generation**: Reinterop source generator handles Linux C# guard generation automatically when opened in Unity on Linux — no manual patching needed.
 9. **Build process**: Follow the [official Cesium developer setup](https://cesium.com/learn/cesium-unity/ref-doc/developer-setup.html), not the community Linux guide. Clone `cesium-unity-samples` as the Unity project (has all dependencies pre-configured), clone `cesium-unity` into its `Packages/`, publish Reinterop, open in Unity, cmake build. The community guide's extra steps (Reinterop.csproj patching, TilesetJsonLoader.cpp patching) are workarounds for older versions/specific environments and are not needed.
+10. **Version: v1.15.3, not v1.15.4.** v1.15.4 bumped cesium-native to v0.45.0 which added `BoundingCylinderRegion` to the `BoundingVolume` variant, but cesium-unity v1.15.4 didn't update the `CalculateECEFCameraPosition` visitor to handle it — causing a compilation failure on any platform. The fix landed on main after v1.15.4 (commit `30502bd`). v1.15.3 pins cesium-native v0.44.x which doesn't have the new type. v1.15.4 had zero cesium-unity code changes over v1.15.3, so nothing is lost by staying on v1.15.3.
 
 ## Approach
 
@@ -38,7 +39,7 @@ An idempotent build script follows the [official Cesium developer setup](https:/
 
 ## Next step
 
-Write `scripts/build-cesium-native-linux.sh` following the official developer setup (clone `cesium-unity-samples`, not a minimal project). The previous script was deleted — it used the minimal-project approach that caused incomplete code generation. See plan Step 1 for the new sequence.
+Build script written (`scripts/build-cesium-native-linux.sh`), building v1.15.3. Waiting for cmake compilation to complete, then assemble the fork package and update Outernet.Client manifest.
 
 ## Done when
 
