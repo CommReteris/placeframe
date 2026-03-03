@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using Unity.Plastic.Newtonsoft.Json;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.XR.Management;
 using UnityEditor.XR.Management.Metadata;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Placeframe.Client
 {
