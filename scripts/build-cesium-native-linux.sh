@@ -66,7 +66,21 @@ m_EditorVersion: $UNITY_VERSION
 EOF
     cat > "$UNITY_PROJECT/Packages/manifest.json" <<'EOF'
 {
-  "dependencies": {}
+  "dependencies": {
+    "com.unity.mathematics": "1.2.0",
+    "com.unity.shadergraph": "12.1.6",
+    "com.unity.inputsystem": "1.4.2",
+    "com.unity.splines": "1.0.0",
+    "com.unity.test-framework": "1.1.31",
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.modules.xr": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.physics": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.imageconversion": "1.0.0"
+  }
 }
 EOF
 fi
@@ -102,13 +116,15 @@ fi
 
 # ── Open Unity to trigger Reinterop code generation ─────────────────
 
-GENERATED_CHECK="native~/Runtime/generated-Editor/src/DotNet"
-if [ ! -d "$GENERATED_CHECK" ]; then
+GENERATED_DIR="native~/Runtime/generated-Editor/src/DotNet"
+GENERATED_HEADER="native~/Runtime/generated-Editor/include/DotNet/System/Action1.h"
+
+run_unity_codegen() {
     if [ ! -x "$UNITY_EDITOR" ]; then
         echo "FATAL: Unity editor not found at $UNITY_EDITOR"
         exit 1
     fi
-    echo "Opening Unity to trigger Reinterop code generation..."
+    echo "Opening Unity to trigger Reinterop code generation (pass $1)..."
     echo "(DllNotFoundException warnings are expected — no native library yet)"
     echo ""
     xvfb-run "$UNITY_EDITOR" \
@@ -116,8 +132,22 @@ if [ ! -d "$GENERATED_CHECK" ]; then
         -projectPath "$UNITY_PROJECT" \
         -logFile /dev/stdout || true
     echo ""
-    if [ ! -d "$GENERATED_CHECK" ]; then
-        echo "FATAL: Code generation failed — $GENERATED_CHECK not found."
+}
+
+if [ ! -f "$GENERATED_HEADER" ]; then
+    run_unity_codegen 1
+    if [ ! -d "$GENERATED_DIR" ]; then
+        echo "FATAL: Code generation failed — $GENERATED_DIR not found."
+        echo "Check Unity log above for errors."
+        exit 1
+    fi
+    if [ ! -f "$GENERATED_HEADER" ]; then
+        echo "Incomplete generation (Action1.h missing). Running second pass..."
+        run_unity_codegen 2
+    fi
+    if [ ! -f "$GENERATED_HEADER" ]; then
+        echo "FATAL: Code generation incomplete after two passes."
+        echo "Missing: $GENERATED_HEADER"
         echo "Check Unity log above for errors."
         exit 1
     fi

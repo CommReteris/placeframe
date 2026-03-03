@@ -1,1 +1,2 @@
 * text=auto eol=lf
+packages/unity/com.cesium.unity/**/*.so binary
