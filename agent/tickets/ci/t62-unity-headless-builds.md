@@ -1,7 +1,7 @@
 ---
 id: T62
 title: Unity headless batch builds in COI container
-status: ready
+status: in-progress
 depends_on: []
 plan: t62-plan.md
 ---
@@ -50,7 +50,12 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 
 **Reopened (1)** — `xvfb-run: error: Xvfb failed to start` during `coi build custom` (image build). Fixed by dropping `xvfb-run` and relying on `--headless` alone (750fcc92).
 
-**Reopened (2)** — `unityhub --no-sandbox --headless install-path --set /opt/unity` segfaults (exit 139) during `coi build custom`. Crashpad error precedes: `elf_dynamic_array_reader.h:64: tag not found`. The same commands worked when run interactively in a fully launched COI container — the difference is the COI build container, which is a temporary container with likely more restricted environment (missing `/dev/shm`, tighter seccomp/AppArmor, missing pseudo-filesystems that Electron/Chromium needs). Unity Hub is an Electron app, so it's sensitive to these restrictions even in `--headless --no-sandbox` mode. Logs at `setup-agent-sandbox.log`. Fix attempt: set `ELECTRON_DISABLE_CRASHPAD=1` on both `unityhub` calls in the build script to disable the crashpad crash reporter that's segfaulting.
+**Reopened (2)** — `unityhub --no-sandbox --headless install-path --set /opt/unity` segfaults (exit 139) during `coi build custom`. Crashpad error precedes: `elf_dynamic_array_reader.h:64: tag not found`. The same commands worked when run interactively in a fully launched COI container — the difference is the COI build container, which is a temporary container with likely more restricted environment (missing `/dev/shm`, tighter seccomp/AppArmor, missing pseudo-filesystems that Electron/Chromium needs). Unity Hub is an Electron app, so it's sensitive to these restrictions even in `--headless --no-sandbox` mode.
+
+**Reopened (3)** — `ELECTRON_DISABLE_CRASHPAD=1` fix (fc511baf) did not resolve the segfault. Logs at `setup-agent-sandbox.log` from second `--rebuild` attempt confirm the crashpad error line still appears and the segfault still occurs on the same `unityhub install-path --set` call. The env var only controls the crash *reporter*, not the underlying Chromium subsystem that's segfaulting. The real issue is that Electron/Chromium probes ELF dynamic arrays at startup and hits a code path that dereferences invalid memory in the restricted build container. Possible next approaches:
+- Bypass Unity Hub entirely: download the editor tarball via direct URL (avoids the Electron dependency in the build container altogether).
+- Investigate what the COI build container is missing vs a running container (`/dev/shm`, `/proc` entries, seccomp profile) and pass flags to `coi build custom` to relax restrictions.
+- Use `xvfb-run` + a virtual display (Reopened 1 showed Xvfb itself failed to start — may also be a build-container restriction).
 
 ## Observations
 
