@@ -72,6 +72,8 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 
 **Build complete** — `coi build custom` succeeded. Unity 6000.0.66f1 editor and all modules (Linux IL2CPP, Android support, OpenJDK 17, NDK r27c, SDK build-tools/platform-tools/platforms/cmdline-tools/CMake) verified present at `/opt/unity/6000.0.66f1/`. Five reopens to get here (xvfb, Hub segfault, Hub segfault redux, OpenJDK URL, CMake extraction). Next blocker: ULF license file not mounted — `setup_agent_sandbox.py` adds the Incus profile disk device, but the host needs `~/.local/share/unity3d/Unity/Unity_lic.ulf` present and `uv run setup-agent-sandbox` re-run. After that: smoke-test batchmode compilation, implement `uv run check-unity`, and add Unity 2022.3 LTS.
 
+**ULF not found** — `setup_agent_sandbox.py` checked all three candidate paths and found nothing, despite Unity Hub on the host showing an activated Personal license. Unity Hub can show an activated license without writing the `.ulf` file to disk. Fix: Hub → Manage Licenses → Add → "Get a free personal license" forces the file to be created. Added a hint about this quirk to the error message in `setup_agent_sandbox.py` (9875d0a2).
+
 ## Observations
 
 - `basedpyright` is not in the dev dependency group, so `uv run basedpyright` fails in the sandbox. Tracked as T63.
