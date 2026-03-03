@@ -26,7 +26,7 @@ All four projects currently use **Unity 6 LTS (6000.0.66f1)**. The planned downg
 
 1. **Image vs volume** → bake into image. Install editors in `coi-placeframe-build.sh` (~15-20 GB). Slower image rebuild on Unity version bumps, but fast container launch and no first-run surprises.
 2. **License management** → serial-based activation at container startup. Unity 6 changed the licensing system: the old ULF copy approach no longer provides the `com.unity.editor.headless` entitlement needed for batchmode. Instead, `agent_shell.py` reads credentials from a host-side file (`~/.config/unity3d/unity-credentials`) and runs `-serial -username -password` activation via `incus exec` after the container reaches RUNNING state. The credentials file is never mounted into the container — Claude Code cannot see it. The serial is extracted from the ULF's `DeveloperData` field. Same pattern as GameCI's approach (see issue #74 on game-ci/unity-orb).
-3. **Compilation wrapper** → `uv run` command (e.g. `uv run check-unity`). Follows existing pattern (`uv run up`, `uv run build`, etc.). Runnable from repo root, no Claude Code dependency.
+3. **Compilation wrapper** → `uv run` command (e.g. `uv run build-unity`). Follows existing pattern (`uv run up`, `uv run build`, etc.). Runnable from repo root, no Claude Code dependency.
 
 ## Key risks
 
@@ -42,7 +42,7 @@ Key downloads for 6000.0.66f1 (changeset `e7adf66625be`):
 - Android support: `MacEditorTargetInstaller/UnitySetup-Android-Support-for-Editor-6000.0.66f1.pkg` (675 MB, needs `7z`/`cpio` extraction — no Linux-native `.tar.xz` available)
 - Android SDK/NDK/JDK: individual downloads from Google + Unity CDN (see research report)
 
-License activation is handled by `agent_shell.py` at container startup using serial-based activation (credentials read from host-side file, passed via `incus exec`). Provide `uv run check-unity` to run compilation checks. See `agent/plans/t62-plan.md` for original plan; approach updated per `agent/research/unity-hub-segfault-in-coi-build.md`.
+License activation is handled by `agent_shell.py` at container startup using serial-based activation (credentials read from host-side file, passed via `incus exec`). Provide `uv run build-unity` to run compilation checks. See `agent/plans/t62-plan.md` for original plan; approach updated per `agent/research/unity-hub-segfault-in-coi-build.md`.
 
 ## Done when
 
@@ -68,11 +68,11 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 
 **Reopened (5)** — `mv: cannot stat '.../SDK/cmake/cmake': No such file or directory` during `coi build custom`. The `cmake-3.22.1-linux.zip` from Google extracts flat (`bin/`, `share/`) with no parent directory. The build script assumed it extracted into a `cmake/` subdirectory and tried to rename that to `3.22.1`. **Fix:** extract directly into the `3.22.1` target directory, eliminating the rename.
 
-**Build complete** — `coi build custom` succeeded. Unity 6000.0.66f1 editor and all modules (Linux IL2CPP, Android support, OpenJDK 17, NDK r27c, SDK build-tools/platform-tools/platforms/cmdline-tools/CMake) verified present at `/opt/unity/6000.0.66f1/`. Five reopens to get here (xvfb, Hub segfault, Hub segfault redux, OpenJDK URL, CMake extraction). Next blocker: ULF license file not mounted — `setup_agent_sandbox.py` adds the Incus profile disk device, but the host needs `~/.local/share/unity3d/Unity/Unity_lic.ulf` present and `uv run setup-agent-sandbox` re-run. After that: smoke-test batchmode compilation, implement `uv run check-unity`, and add Unity 2022.3 LTS.
+**Build complete** — `coi build custom` succeeded. Unity 6000.0.66f1 editor and all modules (Linux IL2CPP, Android support, OpenJDK 17, NDK r27c, SDK build-tools/platform-tools/platforms/cmdline-tools/CMake) verified present at `/opt/unity/6000.0.66f1/`. Five reopens to get here (xvfb, Hub segfault, Hub segfault redux, OpenJDK URL, CMake extraction). Next blocker: ULF license file not mounted — `setup_agent_sandbox.py` adds the Incus profile disk device, but the host needs `~/.local/share/unity3d/Unity/Unity_lic.ulf` present and `uv run setup-agent-sandbox` re-run. After that: smoke-test batchmode compilation, implement `uv run build-unity`, and add Unity 2022.3 LTS.
 
 **ULF not found** — `setup_agent_sandbox.py` checked all three candidate paths and found nothing, despite Unity Hub on the host showing an activated Personal license. Unity Hub can show an activated license without writing the `.ulf` file to disk. Fix: Hub → Manage Licenses → Add → "Get a free personal license" forces the file to be created. Added a hint about this quirk to the error message in `setup_agent_sandbox.py` (9875d0a2).
 
-**GTK3 missing** — `uv run check-unity` failed with `libgtk-3.so.0: cannot open shared object file`. The build script installed `libgtk2.0-0` (GTK2) but Unity 6 requires GTK3 even in batchmode. **Fix:** added `libgtk-3-0` to the apt-get install list in `coi-placeframe-build.sh`. Verified in-container: `ldd` shows no missing libraries after install.
+**GTK3 missing** — `uv run build-unity` failed with `libgtk-3.so.0: cannot open shared object file`. The build script installed `libgtk2.0-0` (GTK2) but Unity 6 requires GTK3 even in batchmode. **Fix:** added `libgtk-3-0` to the apt-get install list in `coi-placeframe-build.sh`. Verified in-container: `ldd` shows no missing libraries after install.
 
 **ULF licensing fails with Unity 6** — With GTK3 fixed, Unity launches, loads the project, and completes assembly reload, but rejects the license: `[Licensing::Module] Error: 'com.unity.editor.headless' was not found.` followed by `No valid Unity Editor license found.` Unity 6 changed the licensing system to require an online entitlement check for `com.unity.editor.headless`, which the ULF copy approach doesn't satisfy. This is the same issue documented in [GameCI unity-orb #74](https://github.com/game-ci/unity-orb/issues/74). The `enableEntitlementLicensing: false` workaround in `services-config.json` was attempted but the licensing client ignores it (it's a Licensing Server setting, not an editor setting).
 
@@ -86,5 +86,5 @@ Clean implementation, no issues. Basedpyright not available in sandbox (tracked 
 
 - `basedpyright` is not in the dev dependency group, so `uv run basedpyright` fails in the sandbox. Tracked as T63.
 - Unity's `services-config.json` lives at `/usr/share/unity3d/config/services-config.json` on Linux (confirmed via strace). The `enableEntitlementLicensing` key is a Licensing Server setting — the editor's licensing client reads the file but ignores that key. Not a viable workaround for the headless entitlement issue.
-- `uv run check-unity` with linux64 target causes Unity to auto-add `com.unity.toolchain.linux-x86_64` to project manifests and lock files. This is a Unity side effect, not a bug — the changes are additive and should be committed.
+- `uv run build-unity` with linux64 target causes Unity to auto-add `com.unity.toolchain.linux-x86_64` to project manifests and lock files. This is a Unity side effect, not a bug — the changes are additive and should be committed.
 - Pre-existing format drift in `packages/python/common/src/common/run_command.py`, `packages/python/common/src/common/stream_tar.py`, `scripts/src/scripts/build.py`, `scripts/src/scripts/generate_datamodels.py` — all flagged by `ruff format --check` but not introduced by this branch.

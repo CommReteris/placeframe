@@ -10,7 +10,7 @@ plan: t69-plan.md
 
 ## Goal
 
-Get Outernet.Client's Cesium dependency compiling and entering Play Mode on Linux, so `uv run check-unity` passes for that project.
+Get Outernet.Client's Cesium dependency compiling and entering Play Mode on Linux, so `uv run build-unity` passes for that project.
 
 ## Context
 
@@ -37,7 +37,7 @@ An idempotent build script follows the community Linux guide: clone cesium-unity
 
 ## Done when
 
-- [ ] Outernet.Client passes `uv run check-unity` for both `android` and `linux64` targets
+- [ ] Outernet.Client passes `uv run build-unity` for `linux64` (standalone player build) and `android` (compilation check)
 - [ ] Forked `com.cesium.unity` package committed to repo with Linux binaries
 - [ ] Outernet.Client manifest points at local fork
 - [ ] Build process documented for future version bumps

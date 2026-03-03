@@ -2,7 +2,7 @@
 
 ## Context
 
-Claude Code cannot verify that Unity C# code compiles. When editing generated API clients or Placeframe packages, breakage is only discovered when a human opens the project. This adds Unity to the COI container image and provides a `uv run check-unity` command to verify compilation.
+Claude Code cannot verify that Unity C# code compiles. When editing generated API clients or Placeframe packages, breakage is only discovered when a human opens the project. This adds Unity to the COI container image and provides a `uv run build-unity` command to verify compilation.
 
 All four Unity projects currently use Unity 6000.0.66f1 (changeset `e7adf66625be`). The script reads each project's `ProjectVersion.txt` at runtime, so when the three apps are later downgraded to 2022.3 LTS, only the image needs a second editor install — the command adapts automatically.
 
@@ -28,7 +28,7 @@ After the `UV_PROJECT_ENVIRONMENT` profile line (line 177), add a Unity license 
 
 ~12 lines of Python.
 
-### Step 3: Create `scripts/src/scripts/check_unity.py`
+### Step 3: Create `scripts/src/scripts/build_unity.py`
 
 New Typer command following the `up.py`/`build.py` pattern:
 
@@ -36,13 +36,13 @@ New Typer command following the `up.py`/`build.py` pattern:
 - `read_editor_version(project_path)` — parse `ProjectSettings/ProjectVersion.txt` for `m_EditorVersion`.
 - `find_unity_editor(version)` — resolve `/opt/unity/<version>/Editor/Unity`, error if missing.
 - `check_compilation(project_path, target)` — run `xvfb-run Unity -batchmode -nographics -quit -projectPath <path> -buildTarget <target> -logFile /dev/stdout` via `run_command(stream_log=True)`. Catch `CalledProcessError`, return bool.
-- `check_unity()` command — options `--project`/`-p` and `--target`/`-t` for filtering. Defaults to all projects × all targets. Early exit if license not found. Print summary table, exit 1 if any fail.
+- `build_unity()` command — options `--project`/`-p` and `--target`/`-t` for filtering. Defaults to all projects × all targets. Early exit if license not found. Print summary table, exit 1 if any fail.
 
 ~85 lines of Python.
 
 ### Step 4: Register in `scripts/pyproject.toml`
 
-Add `check-unity = "scripts.check_unity:main"` to `[project.scripts]`.
+Add `build-unity = "scripts.build_unity:main"` to `[project.scripts]`.
 
 ## Key files
 
@@ -50,7 +50,7 @@ Add `check-unity = "scripts.check_unity:main"` to `[project.scripts]`.
 |---|---|---|
 | `agent/coi-placeframe-build.sh` | modify | Add Unity Hub, system deps, editor install |
 | `scripts/src/scripts/setup_agent_sandbox.py` | modify | Add `.ulf` profile mount after line 177 |
-| `scripts/src/scripts/check_unity.py` | create | `uv run check-unity` command |
+| `scripts/src/scripts/build_unity.py` | create | `uv run build-unity` command |
 | `scripts/pyproject.toml` | modify | Entry point registration |
 
 Existing utilities to reuse:
@@ -61,18 +61,18 @@ Existing utilities to reuse:
 
 ### Verifiable now (in sandbox)
 
-- `uv run ruff check scripts/src/scripts/check_unity.py`
-- `uv run ruff format --check scripts/src/scripts/check_unity.py`
-- `uv run basedpyright scripts/src/scripts/check_unity.py`
-- `uv run check-unity --help` (registers and prints usage)
+- `uv run ruff check scripts/src/scripts/build_unity.py`
+- `uv run ruff format --check scripts/src/scripts/build_unity.py`
+- `uv run basedpyright scripts/src/scripts/build_unity.py`
+- `uv run build-unity --help` (registers and prints usage)
 - `bash -n agent/coi-placeframe-build.sh` (syntax check)
 
 ### Requires manual verification (host rebuild)
 
 - `uv run setup-agent-sandbox --rebuild` installs Unity in the image
 - `.ulf` is mounted at `/root/.local/share/unity3d/Unity/Unity_lic.ulf`
-- `uv run check-unity` — all four projects pass for both targets
-- `uv run check-unity --project AndroidMobile --target android` — single check works
+- `uv run build-unity` — all four projects pass for both targets
+- `uv run build-unity --project AndroidMobile --target android` — single check works
 
 ## Known pitfalls
 

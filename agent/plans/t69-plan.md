@@ -2,7 +2,7 @@
 
 ## Context
 
-`com.cesium.unity` v1.15.4 ships no Linux native binaries and all generated C# interop code is wrapped in `#if UNITY_EDITOR_WIN` / `#if UNITY_EDITOR_OSX` guards (no Linux equivalent). On Linux, the interop layer compiles out entirely, causing CS0246 errors that make `uv run check-unity` fail. Additionally, `CesiumRuntime.asmdef` has `includePlatforms` without `LinuxStandalone64`, excluding the assembly from standalone Linux builds.
+`com.cesium.unity` v1.15.4 ships no Linux native binaries and all generated C# interop code is wrapped in `#if UNITY_EDITOR_WIN` / `#if UNITY_EDITOR_OSX` guards (no Linux equivalent). On Linux, the interop layer compiles out entirely, causing CS0246 errors that make `uv run build-unity` fail. Additionally, `CesiumRuntime.asmdef` has `includePlatforms` without `LinuxStandalone64`, excluding the assembly from standalone Linux builds.
 
 ## Approach
 
@@ -70,7 +70,7 @@ Add `packages/unity/com.cesium.unity/**/*.so binary` to `.gitattributes` to prev
 
 ## Verification
 
-1. `uv run check-unity --project Outernet.Client --target linux64` — must pass
-2. `uv run check-unity --project Outernet.Client --target android` — must still pass
+1. `uv run build-unity --project Outernet.Client --target linux64` — must pass (actual standalone player build, exercises .so linkage)
+2. `uv run build-unity --project Outernet.Client --target android` — must still pass (compilation check only, no Android toolchain available)
 3. Verify fork package has Linux .so files at expected paths
 4. Spot-check generated C# files for `#if UNITY_EDITOR_LINUX` guards (produced by Reinterop, not manual patching)
