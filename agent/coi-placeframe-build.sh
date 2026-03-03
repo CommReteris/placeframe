@@ -108,13 +108,12 @@ unzip -q /tmp/cmdline-tools.zip -d "$ANDROID_DIR/SDK/cmdline-tools"
 mv "$ANDROID_DIR/SDK/cmdline-tools/cmdline-tools" "$ANDROID_DIR/SDK/cmdline-tools/16.0"
 rm /tmp/cmdline-tools.zip
 
-# CMake 3.22.1 (ZIP extracts to cmake/; rename to 3.22.1)
+# CMake 3.22.1 (ZIP extracts flat — bin/, share/ — with no parent directory)
 echo "Downloading CMake for Android..."
-mkdir -p "$ANDROID_DIR/SDK/cmake"
+mkdir -p "$ANDROID_DIR/SDK/cmake/3.22.1"
 curl -fSL "https://dl.google.com/android/repository/cmake-3.22.1-linux.zip" \
   -o /tmp/cmake.zip
-unzip -q /tmp/cmake.zip -d "$ANDROID_DIR/SDK/cmake"
-mv "$ANDROID_DIR/SDK/cmake/cmake" "$ANDROID_DIR/SDK/cmake/3.22.1"
+unzip -q /tmp/cmake.zip -d "$ANDROID_DIR/SDK/cmake/3.22.1"
 rm /tmp/cmake.zip
 
 # Accept Android SDK licenses
