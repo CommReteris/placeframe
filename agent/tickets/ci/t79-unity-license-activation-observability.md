@@ -1,7 +1,7 @@
 ---
 id: T79
 title: "Unity CI: make license activation failures visible"
-status: ready
+status: in-review
 depends_on: [T7]
 ---
 
@@ -19,10 +19,18 @@ The same `|| true` pattern is used on the return-license step, which is more def
 
 ## Key files
 
-- `.github/workflows/unity.yml` — activation and return-license steps
+- `.github/workflows/build-unity.yml` — activation and return-license steps
 
 ## Done when
 
 - License activation step fails the job if activation fails
 - Return-license step remains best-effort (`|| true` or `if: always()` with `continue-on-error`)
 - Activation errors appear in the job summary or annotations, not just buried in logs
+
+## Log
+
+Clean implementation, no issues.
+
+## Observations
+
+- The ticket's Key files section referenced `unity.yml` but the actual file is `build-unity.yml` (renamed in T78). Updated the reference.
