@@ -1,4 +1,20 @@
 {
+  "scopedRegistries": [
+    {
+      "name": "npmjs",
+      "url": "https://registry.npmjs.org",
+      "scopes": [
+        "com.placeframe"
+      ]
+    },
+    {
+      "name": "UnityNuGet",
+      "url": "https://unitynuget-registry.openupm.com",
+      "scopes": [
+        "org.nuget"
+      ]
+    }
+  ],
   "dependencies": {
     "com.cysharp.r3": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
@@ -7,10 +23,10 @@
     "com.fofx.observething.statefulextensions": "https://github.com/outernet-foundation/ObserveThing.git?path=Assets/Package/StatefulExtensions",
     "com.fofx.stateful": "https://github.com/epjecha/StatefulUnity.git?path=Assets/Package",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
-    "com.placeframe.api-client": "file:../../../packages/generated/csharp/api-client/src/PlaceframeApiClient",
-    "com.placeframe.vps": "file:../../../packages/unity/Placeframe/Assets/Package/Core",
-    "com.placeframe.vps.arfoundation": "file:../../../packages/unity/Placeframe/Assets/Package/ARFoundation",
-    "com.placeframe.zed-client": "file:../../../packages/generated/csharp/zed-client/src/PlaceframeZedClient",
+    "com.placeframe.vps": "1.0.0",
+    "com.placeframe.vps.arfoundation": "1.0.0",
+    "org.nuget.placeframeapiclient": "0.1.3",
+    "org.nuget.placeframezedclient": "0.1.3",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.collab-proxy": "2.11.2",
     "com.unity.device-simulator.devices": "1.0.0",

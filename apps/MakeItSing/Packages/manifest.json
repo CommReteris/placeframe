@@ -1,10 +1,18 @@
 {
   "scopedRegistries": [
     {
-      "name": "Magic Leap",
+      "name": "npmjs",
       "url": "https://registry.npmjs.org",
       "scopes": [
-        "com.magicleap"
+        "com.magicleap",
+        "com.placeframe"
+      ]
+    },
+    {
+      "name": "UnityNuGet",
+      "url": "https://unitynuget-registry.openupm.com",
+      "scopes": [
+        "org.nuget"
       ]
     }
   ],
@@ -17,10 +25,10 @@
     "com.fofx.stateful": "https://github.com/epjecha/StatefulUnity.git?path=Assets/Package",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
     "com.magicleap.unitysdk": "2.5.0",
-    "com.placeframe.api-client": "file:C:/Users/epjec/Documents/Plerion/packages/generated/csharp/api-client/src/PlaceframeApiClient",
-    "com.placeframe.vps": "file:C:/Users/epjec/Documents/Plerion/packages/unity/Placeframe/Assets/Package/Core",
-    "com.placeframe.vps.arfoundation": "file:C:/Users/epjec/Documents/Plerion/packages/unity/Placeframe/Assets/Package/ARFoundation",
-    "com.placeframe.vps.magicleap": "file:C:/Users/epjec/Documents/Plerion/packages/unity/Placeframe/Assets/Package/MagicLeap",
+    "com.placeframe.vps": "1.0.0",
+    "com.placeframe.vps.arfoundation": "1.0.0",
+    "com.placeframe.vps.magicleap": "1.0.0",
+    "org.nuget.placeframeapiclient": "0.1.3",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.collab-proxy": "2.11.2",
     "com.unity.ide.rider": "3.0.38",

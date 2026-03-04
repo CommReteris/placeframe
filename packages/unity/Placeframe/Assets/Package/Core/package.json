@@ -4,6 +4,12 @@
   "displayName": "Placeframe",
   "description": "Visual Localization System for Unity",
   "unity": "6000.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/outernet-foundation/plerion.git",
+    "directory": "packages/unity/Placeframe/Assets/Package/Core"
+  },
   "author": {
     "name": "Elliot Pjecha",
     "email": "epjecha@gmail.com"

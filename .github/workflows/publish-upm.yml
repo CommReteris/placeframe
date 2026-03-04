@@ -1,0 +1,58 @@
+name: Publish UPM Packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish com.placeframe.vps
+        working-directory: packages/unity/Placeframe/Assets/Package/Core
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "com.placeframe.vps@${PACKAGE_VERSION}" version 2>/dev/null; then
+            echo "com.placeframe.vps@${PACKAGE_VERSION} already published, skipping"
+          else
+            npm publish --access public
+          fi
+
+      - name: Publish com.placeframe.vps.arfoundation
+        working-directory: packages/unity/Placeframe/Assets/Package/ARFoundation
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "com.placeframe.vps.arfoundation@${PACKAGE_VERSION}" version 2>/dev/null; then
+            echo "com.placeframe.vps.arfoundation@${PACKAGE_VERSION} already published, skipping"
+          else
+            npm publish --access public
+          fi
+
+      - name: Publish com.placeframe.vps.magicleap
+        working-directory: packages/unity/Placeframe/Assets/Package/MagicLeap
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "com.placeframe.vps.magicleap@${PACKAGE_VERSION}" version 2>/dev/null; then
+            echo "com.placeframe.vps.magicleap@${PACKAGE_VERSION} already published, skipping"
+          else
+            npm publish --access public
+          fi
