@@ -14,9 +14,11 @@ Read frontmatter from all `agent/tickets/**/t*.md` files. If the user specified 
 
 ## 2. Read the detail file
 
-Read the ticket's full markdown body. Understand the Goal, Context, Approach, and Done-when criteria.
+Read the ticket's full markdown body. Understand the Goal, Context, Approach, Done-when criteria, and Next step (if present).
 
 If the ticket's frontmatter has a `plan` field, also read the referenced plan file from `agent/plans/`.
+
+**Missing Next step check.** If the ticket status is `blocked`, `design-needed`, or `in-progress`, and no `## Next step` section exists, propose one to the user based on the ticket's current state: "This ticket has no Next step section. Based on its state, the next step appears to be: {proposed}. Add this?" Write it only if the user approves. For other statuses, proceed without it.
 
 ## 3. Check status and act
 
@@ -24,7 +26,7 @@ If the ticket's frontmatter has a `plan` field, also read the referenced plan fi
 - **`design-needed`** — Present the open questions. Discuss with the user until the approach is clear. Update the ticket's `## Approach` section with the resolved design decisions (so they survive session boundaries), then update the frontmatter status to `plan-needed`. Proceed to step 3a.
 - **`plan-needed`** — If the ticket already has a `plan` field (i.e. it was moved back to `plan-needed` for revision), go to step 3c (revise plan). Otherwise go to step 3a (create plan).
 - **`ready`** — Go to step 3b (warm up from plan) if the ticket has a `plan` field. Otherwise go directly to step 4 (implement).
-- **`in-progress`** — Implementation was started in a previous session. Go to step 3b (warm up from plan) if the ticket has a `plan` field. Otherwise go directly to step 4 (implement). Same as `ready`, but signals that prior work exists on this ticket.
+- **`in-progress`** — Implementation was started in a previous session. Go to step 3b (warm up from plan) if the ticket has a `plan` field. Otherwise go directly to step 4 (implement). Same as `ready`, but signals that prior work exists on this ticket. If the ticket has a `## Next step` section, use it to determine where to resume rather than re-deriving from the plan alone.
 - **`in-review`** — Inform the user the ticket is awaiting their review. Ask if they want to move it to `done` (accept) or back to an earlier status (rework needed).
 - **`done`** — Inform the user the ticket is done and ask if they want to reopen it.
 
@@ -47,6 +49,7 @@ Immediately after ExitPlanMode:
 3. Add `plan: t{N}-plan.md` to the ticket's frontmatter.
 4. Update the ticket's frontmatter status to `ready`.
 5. If any design decisions were made during planning (via AskUserQuestion or user discussion), append them to the ticket's `## Design decisions` section. These are durable choices that narrow the solution space — not implementation details. If no Design decisions section exists, create one.
+6. Set the `## Next step` section to reflect the immediate next action (typically "Implement the plan" or a more specific starting point if the plan identifies a clear first step).
 
 Proceed to step 3b.
 
@@ -184,6 +187,8 @@ Add a `## Observations` section to the ticket body. This section records pre-exi
 - If nothing was noticed, write "No pre-existing issues noticed."
 
 Both sections are always present once a ticket reaches `in-review`.
+
+Remove the `## Next step` section if present — the ticket is now in `in-review` and the status tells the story.
 
 ## 10. Commit
 

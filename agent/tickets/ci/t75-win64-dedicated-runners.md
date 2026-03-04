@@ -55,7 +55,7 @@ If GitHub's hosted Windows runners share the same machine identity signals that 
 1. **Two separate jobs** (not conditional matrix). The `build-linux` job uses GameCI Linux containers; `build-windows` uses `windows-latest` runners. Clean separation, no conditional YAML.
 2. ~~**GameCI `windows-il2cpp` containers**~~ — Withdrawn. GameCI Windows Docker containers require mounting VS Build Tools from the host (fragile path coupling), don't hardcode machine-id (licensing issues), and have known DNS/IPC bugs. Not viable.
 
-## Current action item
+## Next step
 
 **Decision needed:** choose a Windows IL2CPP CI strategy. Options: serialize + native install (slow, free, reliable), self-hosted runner (free, fast, maintenance burden), skip win64 CI (accept the gap), or paid managed runners ($40/mo). Before deciding, consider running a test workflow that dumps `windows-latest` machine identity values across parallel jobs — the result determines whether native-runner builds can share a single license seat, which narrows the licensing side of the trade-off (though not the install-time problem).
 

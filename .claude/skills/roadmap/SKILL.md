@@ -25,7 +25,7 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 4. **Check sizing.** Evaluate the proposed scope against the sizing heuristics in `ticket-format.md`. If the goal implies multiple unrelated actions (fails the one-sentence test), or the scope would likely exceed ~400 lines of change or touch many unrelated subsystems, propose a decomposition — suggest how to split and what the individual tickets would be. The user decides whether to split or keep as-is.
 5. Ask which epic to place the ticket in (list existing epic directories, plus "root" for ungrouped). Default to root if the user doesn't specify.
 6. **Read the key files.** Before writing the ticket, identify and read the files that will be listed in Key Files. Use what you find to write Context and Approach sections that would be sufficient for a fresh session with no conversation history.
-7. Write `agent/tickets/{epic}/t{N}-{slug}.md` (or `agent/tickets/t{N}-{slug}.md` for root) with full ticket structure (frontmatter + Goal/Context/Approach/Done-when sections). Slug is derived from the title: lowercase, hyphens, no special characters.
+7. Write `agent/tickets/{epic}/t{N}-{slug}.md` (or `agent/tickets/t{N}-{slug}.md` for root) with full ticket structure (frontmatter + Goal/Context/Key files/Approach/Done-when sections). If the status is `blocked` or `design-needed`, also add a `## Next step` section — for `design-needed`, state the key question to resolve; for `blocked`, state the blocker and what to do when unblocked. For other statuses, Next step is optional. Slug is derived from the title: lowercase, hyphens, no special characters.
 8. Offer to `/commit`.
 
 ## 2. Import
@@ -35,7 +35,7 @@ If the user's intent is clear, proceed directly. Otherwise ask which workflow th
 3. **Check sizing.** Evaluate each proposed ticket against the sizing heuristics in `ticket-format.md`. Flag any that fail the one-sentence test or appear too large, and suggest splits. Also flag items that appear too small (no design decisions) and suggest grouping or dropping them.
 4. Ask which epic to place the batch in (or root). All tickets in a single import go to the same epic by default, but the user can override per-ticket during review.
 5. Present the parsed list for user review. Allow edits, deletions, and reordering.
-6. After approval, create all ticket files (same process as Create, in sequence).
+6. After approval, create all ticket files (same process as Create, in sequence — including the Next step section for `blocked` and `design-needed` tickets).
 7. Offer to `/commit`.
 
 ## 3. Query

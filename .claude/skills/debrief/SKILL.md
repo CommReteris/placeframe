@@ -15,11 +15,13 @@ Review the full conversation history. Look for:
 - **Identified gaps or problems** — issues noticed but not yet tracked
 - **User preferences** — workflow habits, tool preferences, communication style that should be in a memory file
 - **Open threads** — discussions that started but didn't conclude, where the interim thinking is worth preserving
+- **Stale or missing Next step** — if the session touched a ticket (status change, body edit, or substantive discussion), check whether its `## Next step` section reflects current state. Flag if: the ticket is `blocked` or `design-needed` and has no Next step; the ticket is `in-progress` and the session did partial work without updating Next step; or a Next step exists but describes a step that was completed or superseded during the session.
 
 Ignore:
 - Working-through-the-problem reasoning that led to an already-captured outcome
 - Implementation details already reflected in committed code
 - Anything already written to a file (ticket, spec, skill, CLAUDE.md, memory)
+- Next step sections that are already accurate (the session didn't change the ticket's state)
 
 ## Step 2: Report
 
