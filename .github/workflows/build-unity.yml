@@ -24,6 +24,12 @@ jobs:
       packages: write
     container:
       image: unityci/editor:6000.0.66f1-${{ matrix.module }}-3
+      volumes:
+        - /usr/local/lib/android:/to_clean/android
+        - /usr/share/dotnet:/to_clean/dotnet
+        - /opt/hostedtoolcache:/to_clean/toolcache
+        - /usr/local/.ghcup:/to_clean/ghcup
+        - /usr/share/swift:/to_clean/swift
     strategy:
       fail-fast: false
       matrix:
@@ -61,15 +67,9 @@ jobs:
 
     steps:
       - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: true
-          android: false
-          dotnet: false
-          haskell: true
-          large-packages: true
-          docker-images: false
-          swap-storage: true
+        run: |
+          rm -rf /to_clean/android/* /to_clean/dotnet/* /to_clean/toolcache/* /to_clean/ghcup/* /to_clean/swift/*
+          df -h
 
       - name: Checkout
         uses: actions/checkout@v4
