@@ -17,6 +17,7 @@
 - **Report all errors on handoff.** Whenever returning control to the user after a task, list every error encountered during execution and how it was resolved. No silent workarounds. Each error likely indicates either a sandbox/environment config issue (update the Environment Notes section) or an error/ambiguity in a ticket, spec, or skill (fix the source). The user needs to see these to fix root causes.
 - **"What happened?" means diagnose, not fix.** When the user asks "what happened?", "why did X happen?", or similar questions about a process failure, they want root-cause analysis of the process/skill/workflow failure — not a quick fix of the symptom. Stop, explain the chain of events that led to the problem, and identify what needs to change (skill, CLAUDE.md, convention). Only fix things after the diagnosis is understood and the user directs the fix.
 - **Yield after answering questions.** When the user asks a question mid-task, answer it and stop. Do not interpret the answer as an implicit instruction to continue executing. The user will direct the next action.
+- **Never bypass safety checks without asking.** When a tool, linter, or validation rejects an action, do not reach for a `--force`, `--disable-*`, `--no-verify`, or equivalent bypass flag. First: understand why the check exists. Second: look for an alternative that satisfies the check (e.g. use relative paths instead of disabling path validation). Third: if no clean alternative exists, explain the tradeoff and ask the user before applying the bypass.
 
 ## Commands
 
