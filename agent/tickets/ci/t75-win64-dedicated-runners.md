@@ -72,15 +72,17 @@ If GitHub's hosted Windows runners share the same machine identity signals that 
 
 ## Next step
 
-**Empirical testing on desktop, then plan.** Most open questions are now answerable on the office desktop (dual-boot Windows). Test sequence:
+**Two go/no-go tests on the office desktop (dual-boot Windows), then plan.** The entire self-hosted container approach hinges on two empirical tests. If either fails, fall back to native install on the self-hosted runner (no containers). Everything else is implementation work with known solutions.
 
-1. **Verify GameCI Windows image tag** — Check Docker Hub for `unityci/editor` Windows tags matching Unity 6000.0.66f1. Confirm the exact tag to use as our base layer.
-2. **Test fixed-MAC licensing** — Pull a GameCI Windows image, activate Unity inside a container with `--mac-address`, stop the container, start a new container with the same MAC, check if the license is still valid. This confirms or kills the fixed-MAC licensing approach (design decision 7). ~10 min test.
-3. **Test vswhere discovery** — Install VS Build Tools (not full VS) on the desktop or in a container. Run a Unity IL2CPP build. Check if Unity finds `cl.exe`. If not, test workarounds (`-products *` env, registry shim, VS Community instead).
-4. **Build the private image** — Write Dockerfile layering VS Build Tools on GameCI's Windows image. Build on the desktop, push to GHCR.
-5. **Test IL2CPP build end-to-end** — Run a win64 IL2CPP build for Outernet.Client inside the private image container. This is the decisive test.
+**Go/no-go test 1: Fixed-MAC licensing (~10 min).** Pull a GameCI Windows image, activate Unity inside a container with `--mac-address=02:42:ac:11:00:02`, stop the container, start a new container with the same MAC, check if the license is still valid without re-activation. Confirms or kills design decision 7.
 
-After tests pass, plan the runner provisioning and workflow changes.
+**Go/no-go test 2: IL2CPP build end-to-end in a container (~1-2 hrs first time).** Build a private image (GameCI Windows base + VS Build Tools via Chocolatey), run a win64 IL2CPP build for Outernet.Client inside it. This confirms Unity finds MSVC (`cl.exe`) via vswhere and that IL2CPP compilation works under process isolation. Implicitly tests vswhere discovery — if the build succeeds, Unity found the compiler.
+
+Prep steps before test 2:
+1. Verify GameCI Windows image tag on Docker Hub for Unity 6000.0.66f1
+2. Write Dockerfile layering VS Build Tools on GameCI's image, build locally, push to GHCR
+
+After both tests pass, plan the runner provisioning and workflow changes.
 
 ## Done when
 
