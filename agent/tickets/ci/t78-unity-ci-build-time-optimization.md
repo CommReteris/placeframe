@@ -155,19 +155,20 @@ Phase 2 (workflow changes) in progress. Three CI failures encountered and fixed:
 - `tar --zstd` shells out to `zstd` binary which isn't installed (only `libzstd1` present) → switched to `tar -czf` (gzip)
 - ORAS rejects absolute file paths (`/tmp/library.tar.gz`) to prevent path traversal → switched to relative paths in cwd
 - Outernet.Client magicleap cold build hit "no space left on device" → added `jlumbroso/free-disk-space` step
+- `jlumbroso/free-disk-space` does nothing inside `container:` jobs — composite actions run inside the container, not on the host, so `rm -rf /usr/share/dotnet` etc. target container paths that don't exist. All 5 jobs showed 0-second completion for that step. AndroidMobile (android-mobile) hung during IL2CPP compilation (1.5+ hours, no logs) — likely disk exhaustion. Fix: replace the action with `container.volumes` bind mounts from host paths + `rm -rf` inside the container. See `agent/research/gha-container-disk-space.md`.
 
 Also renamed workflow files: `build.yml` → `build-docker.yml`, `unity.yml` → `build-unity.yml`.
 
 ## Next step
 
-Waiting on CI run `22688382669` (commit `c3e276ac`, cold-cache). Verify:
-1. All 5 jobs pass (especially magicleap with the free-disk-space fix)
-2. ORAS push succeeds — per-platform cache entries appear in ghcr.io
-3. UPM cache populates via `actions/cache`
-4. Trigger a second run to verify warm-cache speedup
-5. Delete old `unity-library-*` entries from GitHub Actions cache (Settings → Actions → Caches)
+Replace `jlumbroso/free-disk-space` with volume-mount approach (see `agent/research/gha-container-disk-space.md`), then re-run CI to verify all 5 jobs pass. After that, resume the original verification:
+1. ORAS push succeeds — per-platform cache entries appear in ghcr.io
+2. UPM cache populates via `actions/cache`
+3. Trigger a second run to verify warm-cache speedup
+4. Delete old `unity-library-*` entries from GitHub Actions cache (Settings → Actions → Caches)
 
 ## Observations
 
 - GameCI containers (`unityci/editor:*`) default to `sh`, not `bash`. Avoid bashisms in workflow `run:` steps.
 - `libzstd1` is installed but `zstd` CLI is not. `tar --zstd` requires the CLI binary.
+- `jlumbroso/free-disk-space` (and all composite actions that use `sudo rm`) are incompatible with `container:` jobs. Use `container.volumes` to bind-mount host paths and `rm -rf` them from inside the container instead.
