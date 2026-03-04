@@ -33,6 +33,8 @@ Our current workflow uses only GameCI's Docker images (not their GitHub Actions)
   - **Unity in Windows containers**: GameCI solved the Server Core DLL issue (copy opengl32.dll etc from full Windows image). Unity Hub and Editor batchmode work in their Windows images. IL2CPP specifically (needs VS) is unproven but plausible.
   - **VS Build Tools in containers**: MS official Dockerfile pattern works. Minimal workload: `VCTools --includeRecommended` (~15 GB). vswhere default scope excludes Build Tools — needs `-products *`.
   - **Self-hosted runner hosting**: Hetzner AX41 + WS2022 ~€65-70/mo best value; spare machine is free. Public repo = no GitHub platform fee.
+  - **Windows container machine identity (licensing)**: Process-isolated Windows containers have isolated registry hives, but all containers from the same image share the same base hive values. The Windows Product ID (`00430-00000-00000-AA128` in Server Core images) is already fixed across containers — it's baked into Microsoft's base image. The variable element is the MAC address (Unity binding 5): Docker assigns a new random MAC on each `docker run`. Fix: `docker run --mac-address=XX:XX:XX:XX:XX:XX` pins it. This is the Windows equivalent of Linux's hardcoded `machine-id`. Nobody in the GameCI community has tried this — they chose acquire/return-per-run instead. ~75% confidence this works; 10-minute empirical test on desktop would confirm.
+  - **Image layering strategy**: Start FROM GameCI's existing Windows editor image (proven Unity installation), add VS Build Tools on top. Avoids reinventing their Unity install. Dockerfile: `FROM unityci/editor:windows-6000.0.66f1-windows-il2cpp-3` + `choco install visualstudio2022-workload-vctools`. Exact tag needs verification on Docker Hub.
 
 ### Licensing situation
 
@@ -60,21 +62,25 @@ If GitHub's hosted Windows runners share the same machine identity signals that 
 ## Design decisions
 
 1. **Two separate jobs** (not conditional matrix). The `build-linux` job uses GameCI Linux containers; `build-windows` uses a self-hosted Windows runner. Clean separation, no conditional YAML.
-2. ~~**GameCI `windows-il2cpp` containers**~~ — Withdrawn. GameCI Windows Docker containers require mounting VS Build Tools from the host (fragile path coupling), don't hardcode machine-id (licensing issues), and have known DNS/IPC bugs. Not viable.
+2. ~~**GameCI `windows-il2cpp` containers**~~ — Withdrawn as a standalone approach. GameCI Windows Docker containers require mounting VS Build Tools from the host (fragile path coupling) and don't hardcode machine-id. However, GameCI's Windows images are still useful as a **base layer** — they have Unity pre-installed with the Server Core DLL fixes. Our private image builds on top of them.
 3. **VS Build Tools licensing is not a blocker for private images.** Microsoft's restriction is on *public redistribution* only. Building a private Docker image with VS Build Tools baked in for your own CI is explicitly supported ([MS docs](https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022)). This reopens the containerized Windows build approach — build our own image with Unity + VS Build Tools, push to a private registry (GHCR).
 4. **Self-hosted runner + private Docker image.** GitHub-hosted `windows-latest` is not viable for containerized builds: no persistent Docker layer cache (25-40 min pull every run), only 33 GB disk (WS2025), and 2 vCPUs (too slow for IL2CPP compilation). A self-hosted Windows runner solves all three: Docker cache persists between runs, disk/CPU are user-controlled. The private image (Unity + VS Build Tools baked in) on GHCR gives the same container reproducibility as the Linux GameCI approach.
 5. **Hosted runners rejected for containers, not for native install.** The research showed that native Unity install + `actions/cache` on `windows-latest` (Option B) is viable as a fallback if self-hosted proves too burdensome. But containers on hosted runners are economically backwards — pull time exceeds native install time.
 6. **Public repo = no GitHub platform fee.** Self-hosted runner usage on public repos remains free (no $0.002/min orchestration charge introduced March 2026).
+7. **Licensing via fixed MAC address (not acquire/return).** Windows containers from the same image already share a fixed Product ID (Unity binding 1) via the base registry hive. The variable element is the MAC address (binding 5) — Docker assigns a random MAC each run. Fix with `docker run --mac-address=XX:XX:XX:XX:XX:XX`. This is the Windows equivalent of GameCI's Linux `machine-id` hardcoding. Untested by the community but technically sound. Fallback if this doesn't work: native install on the self-hosted runner (no containers), which has a consistent machine identity by definition.
+8. **Layer on GameCI's Windows image.** Start `FROM unityci/editor:windows-...-windows-il2cpp-...`, add VS Build Tools via Chocolatey. Reuses their proven Unity installation and DLL fixes. Exact image tag needs verification.
 
 ## Next step
 
-**Plan the self-hosted runner + private Docker image approach.** Research validated that self-hosted eliminates the three blockers that made containers unviable on hosted runners (pull time, disk, CPU). Open questions before planning:
+**Empirical testing on desktop, then plan.** Most open questions are now answerable on the office desktop (dual-boot Windows). Test sequence:
 
-1. **vswhere discovery** — Does Unity 6 pass `-products *` to `vswhere.exe`, allowing it to find VS Build Tools (not just full VS)? If not, what's the workaround (env var, registry key, symlink)?
-2. **Machine identity inside Windows containers** — Can we hardcode registry-based identity signals (Windows Product ID) to get the same licensing trick as Linux's hardcoded `machine-id`? Or does the self-hosted runner's consistent machine identity make this moot (container activation vs host activation)?
-3. **Image build pipeline** — Build the Windows Docker image on the self-hosted runner itself? Or in a GitHub Actions workflow on `windows-2022`? How often to rebuild?
-4. **Runner provisioning** — Hardware selection, OS setup, Docker configuration, GitHub runner registration. Document as a reproducible setup script (like `setup-agent-sandbox` for COI).
-5. **Disk space on `windows-latest`** — Revisit whether 33 GB on WS2025 hosted runners is workable for any part of the workflow (e.g., image build step only, with builds on self-hosted).
+1. **Verify GameCI Windows image tag** — Check Docker Hub for `unityci/editor` Windows tags matching Unity 6000.0.66f1. Confirm the exact tag to use as our base layer.
+2. **Test fixed-MAC licensing** — Pull a GameCI Windows image, activate Unity inside a container with `--mac-address`, stop the container, start a new container with the same MAC, check if the license is still valid. This confirms or kills the fixed-MAC licensing approach (design decision 7). ~10 min test.
+3. **Test vswhere discovery** — Install VS Build Tools (not full VS) on the desktop or in a container. Run a Unity IL2CPP build. Check if Unity finds `cl.exe`. If not, test workarounds (`-products *` env, registry shim, VS Community instead).
+4. **Build the private image** — Write Dockerfile layering VS Build Tools on GameCI's Windows image. Build on the desktop, push to GHCR.
+5. **Test IL2CPP build end-to-end** — Run a win64 IL2CPP build for Outernet.Client inside the private image container. This is the decisive test.
+
+After tests pass, plan the runner provisioning and workflow changes.
 
 ## Done when
 
