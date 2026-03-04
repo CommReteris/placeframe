@@ -130,10 +130,10 @@ jobs:
         run: |
           rm -rf ${{ matrix.project }}/Library/PackageCache
           tag=$(echo "${{ matrix.project-name }}-${{ matrix.platform }}" | tr '[:upper:]' '[:lower:]')
-          tar -czf /tmp/library.tar.gz ${{ matrix.project }}/Library/
+          tar -czf library.tar.gz ${{ matrix.project }}/Library/
           oras push "$CACHE_REGISTRY/unity-library:${tag}" \
-            /tmp/library.tar.gz:application/vnd.placeframe.unity-cache.v1+gzip
-          rm /tmp/library.tar.gz
+            library.tar.gz:application/vnd.placeframe.unity-cache.v1+gzip
+          rm library.tar.gz
 
       - name: Upload Build Artifacts
         if: success()
