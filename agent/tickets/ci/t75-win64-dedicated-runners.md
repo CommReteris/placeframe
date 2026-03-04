@@ -9,7 +9,7 @@ depends_on: [T7]
 
 ## Goal
 
-Enable the two commented-out win64 builds (Outernet.Client, MapRegistrationTool) in `unity.yml` using IL2CPP scripting backend.
+Enable the two commented-out win64 builds (Outernet.Client, MapRegistrationTool) in `build-unity.yml` using IL2CPP scripting backend.
 
 ## Context
 

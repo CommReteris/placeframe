@@ -28,7 +28,7 @@ Caching cut smaller builds by 4-5x. The two large Outernet.Client builds still t
 
 ## Root cause (identified)
 
-The cache key in `unity.yml` is **per-project but not per-platform**:
+The cache key in `build-unity.yml` is **per-project but not per-platform**:
 
 ```yaml
 key: unity-library-${{ matrix.project-name }}-${{ hashFiles(...) }}
