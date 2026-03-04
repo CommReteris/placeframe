@@ -129,6 +129,7 @@ Docker CI cache gaps (Go module cache in database-migrator, NuGet cache in state
 
 - Root causes of slow warm-cache builds identified (**done** — cross-platform cache sharing)
 - At least one optimization implemented that measurably reduces the slowest build time
+- Old `unity-library-*` entries deleted from GitHub Actions cache (Settings → Actions → Caches)
 
 ## Research: UPM cache architecture
 
@@ -150,6 +151,10 @@ Phase 1 (Bee cache research) completed cleanly. Web research + local inspection 
 - Full findings in `agent/research/unity-bee-cache-internals.md`
 
 Phase 2 (workflow changes) in progress: per-platform cache key + shared UPM cache + PackageCache trimming.
+
+## Next step
+
+Push to `dev`, run CI, evaluate results. First run will be cold-cache (slow). Verify: ORAS push/pull works, per-platform cache entries appear in ghcr.io, UPM cache populates, subsequent run shows warm-cache speedup. Then delete old `unity-library-*` entries from GitHub Actions cache.
 
 ## Observations
 
