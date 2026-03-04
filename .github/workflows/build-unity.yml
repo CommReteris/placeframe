@@ -80,11 +80,16 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         run: |
-          unity-editor -batchmode -nographics -quit \
+          if ! unity-editor -batchmode -nographics -quit \
             -serial "$UNITY_SERIAL" \
             -username "$UNITY_EMAIL" \
             -password "$UNITY_PASSWORD" \
-            -logFile /dev/stdout || true
+            -logFile /dev/stdout; then
+            echo "::error::Unity license activation failed — check seat availability and credentials"
+            echo "### Unity license activation failed" >> "$GITHUB_STEP_SUMMARY"
+            echo "Check seat availability (2-seat serial limit) and credential validity." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
 
       - name: Install ORAS
         run: |
