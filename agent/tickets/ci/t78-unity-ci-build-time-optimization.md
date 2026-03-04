@@ -150,12 +150,24 @@ Phase 1 (Bee cache research) completed cleanly. Web research + local inspection 
 - Not worth caching in CI — negligible compared to multi-GiB Library caches
 - Full findings in `agent/research/unity-bee-cache-internals.md`
 
-Phase 2 (workflow changes) in progress: per-platform cache key + shared UPM cache + PackageCache trimming.
+Phase 2 (workflow changes) in progress. Three CI failures encountered and fixed:
+- `${tag,,}` bashism fails in GameCI containers (default shell is `sh`, not `bash`) → replaced with `tr '[:upper:]' '[:lower:]'`
+- `tar --zstd` shells out to `zstd` binary which isn't installed (only `libzstd1` present) → switched to `tar -czf` (gzip)
+- ORAS rejects absolute file paths (`/tmp/library.tar.gz`) to prevent path traversal → switched to relative paths in cwd
+- Outernet.Client magicleap cold build hit "no space left on device" → added `jlumbroso/free-disk-space` step
+
+Also renamed workflow files: `build.yml` → `build-docker.yml`, `unity.yml` → `build-unity.yml`.
 
 ## Next step
 
-Push to `dev`, run CI, evaluate results. First run will be cold-cache (slow). Verify: ORAS push/pull works, per-platform cache entries appear in ghcr.io, UPM cache populates, subsequent run shows warm-cache speedup. Then delete old `unity-library-*` entries from GitHub Actions cache.
+Waiting on CI run `22688382669` (commit `c3e276ac`, cold-cache). Verify:
+1. All 5 jobs pass (especially magicleap with the free-disk-space fix)
+2. ORAS push succeeds — per-platform cache entries appear in ghcr.io
+3. UPM cache populates via `actions/cache`
+4. Trigger a second run to verify warm-cache speedup
+5. Delete old `unity-library-*` entries from GitHub Actions cache (Settings → Actions → Caches)
 
 ## Observations
 
-No pre-existing issues noticed.
+- GameCI containers (`unityci/editor:*`) default to `sh`, not `bash`. Avoid bashisms in workflow `run:` steps.
+- `libzstd1` is installed but `zstd` CLI is not. `tar --zstd` requires the CLI binary.
