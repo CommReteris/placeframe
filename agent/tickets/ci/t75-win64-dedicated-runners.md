@@ -28,6 +28,11 @@ Our current workflow uses only GameCI's Docker images (not their GitHub Actions)
 
 - `agent/research/unity-ci-licensing.md` — licensing seat analysis: why Linux parallel builds work (hardcoded `machine-id`), why Windows is different, machine fingerprinting on Windows, HardwareId test proposal
 - `agent/research/win64-il2cpp-ci-approaches.md` — cross-compilation infeasibility, MSVC requirement, evaluation of all approaches (serialize + native install, Windows Docker, self-hosted runner, managed runners, skip)
+- Session research (2026-03-04, not yet written to file):
+  - **Windows containers on hosted runners**: 25-40 min pull (no layer cache), 33 GB disk on WS2025, `container:` job syntax Linux-only. Fatal for hosted, solved by self-hosted.
+  - **Unity in Windows containers**: GameCI solved the Server Core DLL issue (copy opengl32.dll etc from full Windows image). Unity Hub and Editor batchmode work in their Windows images. IL2CPP specifically (needs VS) is unproven but plausible.
+  - **VS Build Tools in containers**: MS official Dockerfile pattern works. Minimal workload: `VCTools --includeRecommended` (~15 GB). vswhere default scope excludes Build Tools — needs `-products *`.
+  - **Self-hosted runner hosting**: Hetzner AX41 + WS2022 ~€65-70/mo best value; spare machine is free. Public repo = no GitHub platform fee.
 
 ### Licensing situation
 
@@ -54,20 +59,22 @@ If GitHub's hosted Windows runners share the same machine identity signals that 
 
 ## Design decisions
 
-1. **Two separate jobs** (not conditional matrix). The `build-linux` job uses GameCI Linux containers; `build-windows` uses `windows-latest` runners. Clean separation, no conditional YAML.
+1. **Two separate jobs** (not conditional matrix). The `build-linux` job uses GameCI Linux containers; `build-windows` uses a self-hosted Windows runner. Clean separation, no conditional YAML.
 2. ~~**GameCI `windows-il2cpp` containers**~~ — Withdrawn. GameCI Windows Docker containers require mounting VS Build Tools from the host (fragile path coupling), don't hardcode machine-id (licensing issues), and have known DNS/IPC bugs. Not viable.
 3. **VS Build Tools licensing is not a blocker for private images.** Microsoft's restriction is on *public redistribution* only. Building a private Docker image with VS Build Tools baked in for your own CI is explicitly supported ([MS docs](https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022)). This reopens the containerized Windows build approach — build our own image with Unity + VS Build Tools, push to a private registry (GHCR).
+4. **Self-hosted runner + private Docker image.** GitHub-hosted `windows-latest` is not viable for containerized builds: no persistent Docker layer cache (25-40 min pull every run), only 33 GB disk (WS2025), and 2 vCPUs (too slow for IL2CPP compilation). A self-hosted Windows runner solves all three: Docker cache persists between runs, disk/CPU are user-controlled. The private image (Unity + VS Build Tools baked in) on GHCR gives the same container reproducibility as the Linux GameCI approach.
+5. **Hosted runners rejected for containers, not for native install.** The research showed that native Unity install + `actions/cache` on `windows-latest` (Option B) is viable as a fallback if self-hosted proves too burdensome. But containers on hosted runners are economically backwards — pull time exceeds native install time.
+6. **Public repo = no GitHub platform fee.** Self-hosted runner usage on public repos remains free (no $0.002/min orchestration charge introduced March 2026).
 
 ## Next step
 
-**Explore the private Windows Docker image approach.** Build a custom Windows container image with Unity + VS Build Tools baked in, pushed to GHCR (private). This preserves the container reproducibility we have on Linux. Open questions to research:
+**Plan the self-hosted runner + private Docker image approach.** Research validated that self-hosted eliminates the three blockers that made containers unviable on hosted runners (pull time, disk, CPU). Open questions before planning:
 
-1. **Windows container support on `windows-latest`** — GitHub hosted runners support Windows containers via process isolation. What are the practical limitations? Image size constraints? Pull times?
-2. **Unity installation in a Windows container** — Can Unity be installed headlessly in a Windows Server Core container the same way we install VS Build Tools? Or does it require a full Windows desktop image?
-3. **Machine identity inside Windows containers** — Can we hardcode registry-based identity signals (Windows Product ID) to get the same licensing trick as Linux's hardcoded `machine-id`? The SMBIOS values (BIOS serial) can't be controlled from inside the container, but if Unity licensing primarily checks binding 1 (Product ID), registry hardcoding may suffice.
-4. **Image build pipeline** — Where/how to build the Windows Docker image (GitHub Actions? manually? how often to rebuild?)
-
-The HardwareId test workflow (dumping WMI values across parallel `windows-latest` jobs) is still useful regardless of approach — it informs both the container and native-install strategies.
+1. **vswhere discovery** — Does Unity 6 pass `-products *` to `vswhere.exe`, allowing it to find VS Build Tools (not just full VS)? If not, what's the workaround (env var, registry key, symlink)?
+2. **Machine identity inside Windows containers** — Can we hardcode registry-based identity signals (Windows Product ID) to get the same licensing trick as Linux's hardcoded `machine-id`? Or does the self-hosted runner's consistent machine identity make this moot (container activation vs host activation)?
+3. **Image build pipeline** — Build the Windows Docker image on the self-hosted runner itself? Or in a GitHub Actions workflow on `windows-2022`? How often to rebuild?
+4. **Runner provisioning** — Hardware selection, OS setup, Docker configuration, GitHub runner registration. Document as a reproducible setup script (like `setup-agent-sandbox` for COI).
+5. **Disk space on `windows-latest`** — Revisit whether 33 GB on WS2025 hosted runners is workable for any part of the workflow (e.g., image build step only, with builds on self-hosted).
 
 ## Done when
 
