@@ -1,8 +1,9 @@
 ---
 id: T78
 title: Investigate and reduce Unity CI build times
-status: design-needed
+status: in-progress
 depends_on: [T7]
+plan: t78-plan.md
 ---
 
 # T78: Investigate and reduce Unity CI build times
@@ -98,6 +99,27 @@ The Docker build pipeline is well-optimized:
 - Lock-file-before-source pattern in every Dockerfile
 - `setup-uv` with `enable-cache: true` for host-side uv cache
 
+## Approach
+
+**Phase 1: Understand Unity's Bee build system.** Research Bee internals (web + local inspection + empirical build), understand the structural relationship between project-local `Library/Bee/` and machine-level `~/.cache/unity3d/bee`, record findings in `agent/research/unity-bee-cache-internals.md`. (**Done.**)
+
+**Phase 2: CI workflow changes.**
+1. Add `${{ matrix.platform }}` to the cache key so each platform gets its own Library cache.
+2. Add a shared UPM cache step (`~/.cache/Unity/upm/`, ~113 MB) that serves all builds — analogous to the shared uv download cache in Docker builds.
+3. Trim `Library/PackageCache/` (~1.6 GiB/project) from per-project caches. With the UPM cache warm, PackageCache repopulation is a fast local extraction (verified: 56s total build including extraction, no measurable penalty).
+
+This deduplicates ~8 GiB of per-project PackageCache into a single ~113 MB shared entry, freeing budget for per-platform Library caches.
+
+Docker CI cache gaps (Go module cache in database-migrator, NuGet cache in state-sync) are covered by T81.
+
+## Design decisions
+
+- Bee cache experiment runs locally in the COI container (Unity is licensed here), not in CI.
+- Bee experiment happens before the cache key fix — results inform the cache budget.
+- Docker cache gaps excluded from this ticket (T81).
+- Machine-level Bee cache (`~/.cache/unity3d/bee`) is NOT worth caching in CI — only 37 MB after a full build, max 256 MB with auto-cleanup. See `agent/research/unity-bee-cache-internals.md`.
+- PackageCache trimming requires a shared UPM cache to avoid network re-downloads. The global UPM cache (`~/.cache/Unity/upm/`) is the UPM equivalent of uv's download cache — stores compressed tarballs (~113 MB), shared across all projects/platforms. Verified locally: with UPM cache warm, PackageCache repopulation adds negligible time (56s total build including extraction from tarballs).
+
 ## Key files
 
 - `.github/workflows/unity.yml` — cache configuration (the main target)
@@ -108,16 +130,27 @@ The Docker build pipeline is well-optimized:
 - Root causes of slow warm-cache builds identified (**done** — cross-platform cache sharing)
 - At least one optimization implemented that measurably reduces the slowest build time
 
-## Next step
+## Research: UPM cache architecture
 
-**Empirical test: machine-level Bee cache behavior — must run in CI, not locally.** The COI container has Unity installed but no license (CI uses `UNITY_SERIAL`/`UNITY_EMAIL`/`UNITY_PASSWORD` secrets for activation). Local builds fail with "No valid Unity Editor license found."
+The global UPM cache (`~/.cache/Unity/upm/`) stores downloaded package tarballs, content-addressed by sha512. Conceptually identical to uv's download cache or npm's global cache — a shared download layer that deduplicates network fetches across projects.
 
-Approach: add diagnostic steps to the Unity CI workflow (on a branch) that capture cache state before and after builds:
+| Layer | Size (MapRegistrationTool) | Content | Platform-specific? | Per-project? |
+|---|---|---|---|---|
+| Global UPM cache (`~/.cache/Unity/upm/`) | 113 MB | Compressed tarballs (149 entries) | No | No — shared |
+| `Library/PackageCache/` | 1.6 GiB | Extracted package source | No | Yes — per project |
 
-1. Add a step after the build that runs `du -sh ~/.cache/unity3d/bee` and `ls -la ~/.cache/unity3d/bee/` to see if/what the machine-level Bee cache contains after a build
-2. Add a step that runs `du -sh ${{ matrix.project }}/Library/Bee/` to measure per-platform Library/Bee size
-3. Run this on a push to observe the results
+When `Library/PackageCache/` is missing but the UPM cache is warm, Unity extracts packages from local tarballs during project open. Verified: full build with warm UPM cache + deleted PackageCache completed in 56s (no measurable penalty vs having PackageCache pre-populated).
 
-If `~/.cache/unity3d/bee` is populated and non-trivial, a follow-up experiment would cache it and measure whether it speeds up builds.
+## Log
 
-Independently, the primary fix (add `${{ matrix.platform }}` to cache key) can proceed in parallel with the "trim `Library/PackageCache/`" strategy to fit within 10 GiB. Estimated sizes without PackageCache: ~8.2 GiB total (tight but feasible). This should be tested by pushing the change and measuring actual cache sizes from CI logs.
+Phase 1 (Bee cache research) completed cleanly. Web research + local inspection + empirical build confirmed:
+- Machine-level Bee cache (`~/.cache/unity3d/bee`) produced only 37 MB after a full MapRegistrationTool linux64 build (95 content-addressed entries of package/libIL2CPP compilations)
+- Unity auto-cleans this cache to 256 MB max via LRU eviction
+- Not worth caching in CI — negligible compared to multi-GiB Library caches
+- Full findings in `agent/research/unity-bee-cache-internals.md`
+
+Phase 2 (workflow changes) in progress: per-platform cache key + shared UPM cache + PackageCache trimming.
+
+## Observations
+
+No pre-existing issues noticed.
