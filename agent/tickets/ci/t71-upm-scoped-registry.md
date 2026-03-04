@@ -1,8 +1,10 @@
 ---
 id: T71
 title: Set up scoped UPM registry for Placeframe Unity packages
-status: design-needed
+status: in-review
 depends_on: []
+branch: t71-upm-registry
+plan: t71-plan.md
 ---
 
 # T71: Set up scoped UPM registry for Placeframe Unity packages
