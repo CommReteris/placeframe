@@ -96,8 +96,7 @@ jobs:
 
       - name: Restore Library cache
         run: |
-          tag="${{ matrix.project-name }}-${{ matrix.platform }}"
-          tag="${tag,,}"
+          tag=$(echo "${{ matrix.project-name }}-${{ matrix.platform }}" | tr '[:upper:]' '[:lower:]')
           if oras pull "$CACHE_REGISTRY/unity-library:${tag}" -o /tmp/cache 2>/dev/null; then
             echo "Cache hit: ${tag}"
             tar --zstd -xf /tmp/cache/library.tar.zst -C ./
@@ -130,8 +129,7 @@ jobs:
         if: always()
         run: |
           rm -rf ${{ matrix.project }}/Library/PackageCache
-          tag="${{ matrix.project-name }}-${{ matrix.platform }}"
-          tag="${tag,,}"
+          tag=$(echo "${{ matrix.project-name }}-${{ matrix.platform }}" | tr '[:upper:]' '[:lower:]')
           tar --zstd -cf /tmp/library.tar.zst ${{ matrix.project }}/Library/
           oras push "$CACHE_REGISTRY/unity-library:${tag}" \
             /tmp/library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
