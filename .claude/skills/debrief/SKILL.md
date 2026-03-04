@@ -25,7 +25,7 @@ Ignore:
 
 ## Step 2: Report
 
-If nothing is uncaptured: say so. "Nothing uncaptured — safe to clear."
+If nothing is uncaptured: show what was checked — tickets touched, files committed, decisions made — and confirm each is captured. Then: "Nothing uncaptured — safe to clear."
 
 If something is uncaptured: list each item in priority order (decisions about how the project works > identified gaps or problems > future work ideas > user preferences > open threads), with:
 - What the insight/decision/thread is (one line)
