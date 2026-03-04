@@ -91,6 +91,9 @@ jobs:
             exit 1
           fi
 
+      - name: Install zstd
+        run: apt-get update -qq && apt-get install -y -qq zstd > /dev/null
+
       - name: Install ORAS
         run: |
           curl -sLO "https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz"
@@ -111,14 +114,17 @@ jobs:
             unity-upm-
 
       - name: Restore Library cache
+        id: library-cache
         run: |
           tag=$(echo "${{ matrix.project-name }}-${{ matrix.platform }}" | tr '[:upper:]' '[:lower:]')
           if oras pull "$CACHE_REGISTRY/unity-library:${tag}" -o /tmp/cache 2>/dev/null; then
             echo "Cache hit: ${tag}"
-            tar -xzf /tmp/cache/library.tar.gz -C ./
+            tar -xf /tmp/cache/library.tar.zst -C ./
             rm -rf /tmp/cache
+            echo "cache-hit=true" >> "$GITHUB_OUTPUT"
           else
             echo "Cache miss: ${tag}"
+            echo "cache-hit=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Setup .NET
@@ -142,14 +148,14 @@ jobs:
         run: uv run build-unity --project ${{ matrix.project-name }} --platform ${{ matrix.platform }}
 
       - name: Save Library cache
-        if: always()
+        if: steps.library-cache.outputs.cache-hit == 'false'
         run: |
           rm -rf ${{ matrix.project }}/Library/PackageCache
           tag=$(echo "${{ matrix.project-name }}-${{ matrix.platform }}" | tr '[:upper:]' '[:lower:]')
-          tar -czf library.tar.gz ${{ matrix.project }}/Library/
+          tar --zstd -cf library.tar.zst ${{ matrix.project }}/Library/
           oras push "$CACHE_REGISTRY/unity-library:${tag}" \
-            library.tar.gz:application/vnd.placeframe.unity-cache.v1+gzip
-          rm library.tar.gz
+            library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
+          rm library.tar.zst
 
       - name: Upload Build Artifacts
         if: success()
