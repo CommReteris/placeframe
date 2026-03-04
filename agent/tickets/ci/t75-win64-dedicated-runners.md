@@ -28,13 +28,8 @@ Our current workflow uses only GameCI's Docker images (not their GitHub Actions)
 
 - `agent/research/unity-ci-licensing.md` — licensing seat analysis: why Linux parallel builds work (hardcoded `machine-id`), why Windows is different, machine fingerprinting on Windows, HardwareId test proposal
 - `agent/research/win64-il2cpp-ci-approaches.md` — cross-compilation infeasibility, MSVC requirement, evaluation of all approaches (serialize + native install, Windows Docker, self-hosted runner, managed runners, skip)
-- Session research (2026-03-04, not yet written to file):
-  - **Windows containers on hosted runners**: 25-40 min pull (no layer cache), 33 GB disk on WS2025, `container:` job syntax Linux-only. Fatal for hosted, solved by self-hosted.
-  - **Unity in Windows containers**: GameCI solved the Server Core DLL issue (copy opengl32.dll etc from full Windows image). Unity Hub and Editor batchmode work in their Windows images. IL2CPP specifically (needs VS) is unproven but plausible.
-  - **VS Build Tools in containers**: MS official Dockerfile pattern works. Minimal workload: `VCTools --includeRecommended` (~15 GB). vswhere default scope excludes Build Tools — needs `-products *`.
-  - **Self-hosted runner hosting**: Hetzner AX41 + WS2022 ~€65-70/mo best value; spare machine is free. Public repo = no GitHub platform fee.
-  - **Windows container machine identity (licensing)**: Process-isolated Windows containers have isolated registry hives, but all containers from the same image share the same base hive values. The Windows Product ID (`00430-00000-00000-AA128` in Server Core images) is already fixed across containers — it's baked into Microsoft's base image. The variable element is the MAC address (Unity binding 5): Docker assigns a new random MAC on each `docker run`. Fix: `docker run --mac-address=XX:XX:XX:XX:XX:XX` pins it. This is the Windows equivalent of Linux's hardcoded `machine-id`. Nobody in the GameCI community has tried this — they chose acquire/return-per-run instead. ~75% confidence this works; 10-minute empirical test on desktop would confirm.
-  - **Image layering strategy**: Start FROM GameCI's existing Windows editor image (proven Unity installation), add VS Build Tools on top. Avoids reinventing their Unity install. Dockerfile: `FROM unityci/editor:windows-6000.0.66f1-windows-il2cpp-3` + `choco install visualstudio2022-workload-vctools`. Exact tag needs verification on Docker Hub.
+- `agent/research/win64-container-feasibility.md` — hosted vs self-hosted runners for Windows containers, GameCI Windows image architecture, VS Build Tools in containers, vswhere discovery risk, hosting cost comparison
+- `agent/research/win64-container-machine-identity.md` — Unity licensing bindings on Windows, registry hive isolation in containers, fixed-MAC approach (the Windows equivalent of Linux's hardcoded `machine-id`), empirical test protocol, ~75% confidence assessment
 
 ### Licensing situation
 
@@ -58,6 +53,17 @@ If a runner crashes mid-build, the license isn't returned (recoverable via Unity
 ### Untested assumption: shared HardwareId on `windows-latest`
 
 If GitHub's hosted Windows runners share the same machine identity signals that Unity licensing checks (likely the Windows Product ID), then native-runner activation would consume only 1 seat — the same trick that works on Linux, but via Azure's VM provisioning rather than a hardcoded container ID. This would make serialization simpler (no cross-workflow seat conflicts, parallel Windows builds safe). A test workflow dumping WMI values across parallel jobs would confirm or rule this out. See licensing research doc section 5 for the proposed test.
+
+## Approach
+
+Self-hosted Windows runner (office desktop) running a private Docker image (GameCI Windows base + VS Build Tools, pushed to GHCR). Two go/no-go tests gate the approach. Fallback decision tree:
+
+1. **Primary**: Self-hosted runner + private Docker image with fixed-MAC licensing
+2. **If fixed-MAC licensing fails** (go/no-go test 1): Same self-hosted runner, but native Unity install (no containers). Consistent machine identity by definition. Simpler but less reproducible.
+3. **If IL2CPP-in-container fails** (go/no-go test 2): Same fallback — native install on the self-hosted runner.
+4. **If self-hosted proves too burdensome operationally**: Native Unity install + `actions/cache` on GitHub-hosted `windows-latest`. Slower (3-8 min cached install, 2 vCPUs) but zero infrastructure.
+
+All fallbacks produce working win64 IL2CPP builds. The decision tree trades reproducibility and speed for simplicity at each step.
 
 ## Design decisions
 
