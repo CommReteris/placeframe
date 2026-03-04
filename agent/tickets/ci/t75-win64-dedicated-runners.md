@@ -1,11 +1,11 @@
 ---
 id: T75
-title: "Win64 CI: switch from Linux cross-compilation to dedicated Windows runners"
+title: "Win64 CI: enable IL2CPP builds via GameCI Windows containers"
 status: design-needed
 depends_on: [T7]
 ---
 
-# T75: Win64 CI: switch from Linux cross-compilation to dedicated Windows runners
+# T75: Win64 CI: enable IL2CPP builds via GameCI Windows containers
 
 ## Goal
 
