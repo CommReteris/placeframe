@@ -33,7 +33,7 @@ Sources:
 
 IL2CPP converts C# to C++, then compiles the C++ to native code. On Windows, Unity requires Microsoft's MSVC compiler (`cl.exe` from Visual Studio Build Tools). MinGW, Clang, and other compilers are not supported. This is Unity-specific, not a universal Windows constraint.
 
-Visual Studio Build Tools cannot be redistributed inside Docker images (Microsoft licensing). GameCI's Windows Docker images do not include them — they must be mounted from the host at runtime, which is documented as fragile (path coupling, VS version drift).
+Visual Studio Build Tools cannot be *publicly* redistributed inside Docker images (Microsoft licensing). Building private images with VS Build Tools installed is explicitly supported and documented by Microsoft ([Install VS Build Tools into a container](https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022)). GameCI's images are public, so they can't include them — they must be mounted from the host at runtime, which is documented as fragile (path coupling, VS version drift). A private image (e.g. on GHCR) with VS Build Tools baked in avoids both the licensing issue and the mount fragility.
 
 ## What we use from GameCI today
 

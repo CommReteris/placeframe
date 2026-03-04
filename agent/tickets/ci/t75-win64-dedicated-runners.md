@@ -45,6 +45,7 @@ If a runner crashes mid-build, the license isn't returned (recoverable via Unity
 | **Self-hosted runner** | None (permanent install) | 1 consistent seat | $0 + hardware | Medium — maintenance burden |
 | **Managed runners (Buildalon)** | None (persistent VMs) | Handled | $40-180/mo | Medium — single-person project, governance risk |
 | **GitHub custom images** | None (baked in) | Depends on approach | Requires Team/Enterprise plan | Low-Medium |
+| **Mono backend for win64** | None (cross-compiles from Linux GameCI) | Same as Linux (shared `machine-id`) | $0 | Low — no documented Mono issues for win64; projects just have IL2CPP set in PlayerSettings |
 | **Skip win64 CI** | N/A | N/A | $0 | Accept the gap |
 
 ### Untested assumption: shared HardwareId on `windows-latest`
