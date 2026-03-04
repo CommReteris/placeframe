@@ -31,6 +31,7 @@ Fields:
 - **status** — one of the values below.
 - **depends_on** — list of ticket ID strings. Empty list `[]` if none.
 - **plan** — (optional) filename of the plan file in `agent/plans/`, e.g. `t3-plan.md`. Added when a plan is created during the `plan-needed` phase.
+- **branch** — (optional) git branch where implementation lives, when work is parked on a feature branch. Manual convention pending a proper workflow (T82).
 
 ## Status values
 
