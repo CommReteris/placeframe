@@ -99,7 +99,7 @@ jobs:
           tag=$(echo "${{ matrix.project-name }}-${{ matrix.platform }}" | tr '[:upper:]' '[:lower:]')
           if oras pull "$CACHE_REGISTRY/unity-library:${tag}" -o /tmp/cache 2>/dev/null; then
             echo "Cache hit: ${tag}"
-            tar --zstd -xf /tmp/cache/library.tar.zst -C ./
+            tar -xzf /tmp/cache/library.tar.gz -C ./
             rm -rf /tmp/cache
           else
             echo "Cache miss: ${tag}"
@@ -130,10 +130,10 @@ jobs:
         run: |
           rm -rf ${{ matrix.project }}/Library/PackageCache
           tag=$(echo "${{ matrix.project-name }}-${{ matrix.platform }}" | tr '[:upper:]' '[:lower:]')
-          tar --zstd -cf /tmp/library.tar.zst ${{ matrix.project }}/Library/
+          tar -czf /tmp/library.tar.gz ${{ matrix.project }}/Library/
           oras push "$CACHE_REGISTRY/unity-library:${tag}" \
-            /tmp/library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
-          rm /tmp/library.tar.zst
+            /tmp/library.tar.gz:application/vnd.placeframe.unity-cache.v1+gzip
+          rm /tmp/library.tar.gz
 
       - name: Upload Build Artifacts
         if: success()
