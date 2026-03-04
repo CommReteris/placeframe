@@ -11,11 +11,17 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-#
+
+env:
+  ORAS_VERSION: "1.2.2"
+  CACHE_REGISTRY: ghcr.io/${{ github.repository }}/cache
+
 jobs:
   build:
     name: ${{ matrix.project-name }} (${{ matrix.platform }})
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     container:
       image: unityci/editor:6000.0.66f1-${{ matrix.module }}-3
     strategy:
@@ -69,13 +75,36 @@ jobs:
             -password "$UNITY_PASSWORD" \
             -logFile /dev/stdout || true
 
-      - name: Cache Unity Library
+      - name: Install ORAS
+        run: |
+          curl -sLO "https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz"
+          tar -xzf "oras_${ORAS_VERSION}_linux_amd64.tar.gz" -C /usr/local/bin/ oras
+          rm "oras_${ORAS_VERSION}_linux_amd64.tar.gz"
+
+      - name: Login to ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GITHUB_TOKEN" | oras login ghcr.io --username "${{ github.actor }}" --password-stdin
+
+      - name: Cache UPM packages
         uses: actions/cache@v4
         with:
-          path: ${{ matrix.project }}/Library
-          key: unity-library-${{ matrix.project-name }}-${{ hashFiles(format('{0}/Packages/manifest.json', matrix.project)) }}
+          path: ~/.cache/Unity/upm
+          key: unity-upm-${{ hashFiles(format('{0}/Packages/manifest.json', matrix.project)) }}
           restore-keys: |
-            unity-library-${{ matrix.project-name }}-
+            unity-upm-
+
+      - name: Restore Library cache
+        run: |
+          tag="${{ matrix.project-name }}-${{ matrix.platform }}"
+          tag="${tag,,}"
+          if oras pull "$CACHE_REGISTRY/unity-library:${tag}" -o /tmp/cache 2>/dev/null; then
+            echo "Cache hit: ${tag}"
+            zstd -d -T0 /tmp/cache/library.tar.zst --stdout | tar -xf - -C ./
+            rm -rf /tmp/cache
+          else
+            echo "Cache miss: ${tag}"
+          fi
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -96,6 +125,17 @@ jobs:
         env:
           UNITY_EDITOR: unity-editor
         run: uv run build-unity --project ${{ matrix.project-name }} --platform ${{ matrix.platform }}
+
+      - name: Save Library cache
+        if: always()
+        run: |
+          rm -rf ${{ matrix.project }}/Library/PackageCache
+          tag="${{ matrix.project-name }}-${{ matrix.platform }}"
+          tag="${tag,,}"
+          tar -cf - ${{ matrix.project }}/Library/ | zstd -T0 -3 -o /tmp/library.tar.zst
+          oras push "$CACHE_REGISTRY/unity-library:${tag}" \
+            /tmp/library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
+          rm /tmp/library.tar.zst
 
       - name: Upload Build Artifacts
         if: success()
