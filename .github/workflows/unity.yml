@@ -100,7 +100,7 @@ jobs:
           tag="${tag,,}"
           if oras pull "$CACHE_REGISTRY/unity-library:${tag}" -o /tmp/cache 2>/dev/null; then
             echo "Cache hit: ${tag}"
-            zstd -d -T0 /tmp/cache/library.tar.zst --stdout | tar -xf - -C ./
+            tar --zstd -xf /tmp/cache/library.tar.zst -C ./
             rm -rf /tmp/cache
           else
             echo "Cache miss: ${tag}"
@@ -132,7 +132,7 @@ jobs:
           rm -rf ${{ matrix.project }}/Library/PackageCache
           tag="${{ matrix.project-name }}-${{ matrix.platform }}"
           tag="${tag,,}"
-          tar -cf - ${{ matrix.project }}/Library/ | zstd -T0 -3 -o /tmp/library.tar.zst
+          tar --zstd -cf /tmp/library.tar.zst ${{ matrix.project }}/Library/
           oras push "$CACHE_REGISTRY/unity-library:${tag}" \
             /tmp/library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
           rm /tmp/library.tar.zst
