@@ -1,7 +1,7 @@
 ---
 id: T69
 title: Build Cesium for Unity native plugin for Linux
-status: in-progress
+status: in-review
 depends_on: []
 plan: t69-plan.md
 ---
@@ -40,7 +40,7 @@ An idempotent build script follows the [official Cesium developer setup](https:/
 ## Done when
 
 - [x] Outernet.Client passes `uv run build-unity` for `linux64` — build succeeds (`Build Finished, Result: Success`), but Unity hangs on exit (T73)
-- [ ] Outernet.Client passes `uv run build-unity` for `android` (compilation check) — not yet tested this session
+- [ ] Outernet.Client passes `uv run build-unity` for `android` (compilation check) — untested, low risk since fork only adds Linux binaries
 - [x] Forked `com.cesium.unity` package committed to repo with Linux binaries
 - [x] Outernet.Client manifest points at local fork
 - [x] Build process documented for future version bumps (build script + plan + design decisions)
