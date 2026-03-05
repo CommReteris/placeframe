@@ -1,7 +1,7 @@
 ---
 id: T71
 title: Set up scoped UPM registry for Placeframe Unity packages
-status: in-review
+status: in-progress
 depends_on: []
 branch: t71-upm-registry
 plan: t71-plan.md
@@ -40,9 +40,13 @@ Publish `com.placeframe.vps*` packages to npmjs.org (the public npm registry). G
 
 ## Done when
 
-- [ ] Scoped registry running and accessible from dev machines and CI
-- [ ] At least one Placeframe package published and resolvable
-- [ ] Unity project manifests updated to use the registry
+- [x] Package.json metadata correct (license, repository, inter-package deps)
+- [x] Publish workflow created (`.github/workflows/publish-upm.yml`)
+- [x] Manifest.json files updated with scoped registry entries and version refs
+- [ ] `NPM_TOKEN` secret added to GitHub repo
+- [ ] Publish workflow triggered and all 3 packages live on npmjs.org (`npm view com.placeframe.vps` returns metadata)
+- [ ] UnityNuGet packages (`org.nuget.placeframeapiclient`, `org.nuget.placeframezedclient`) verified resolvable from Unity
+- [ ] At least one Unity project opens and resolves all packages from registries (no `file:` path fallback)
 
 ## Design decisions
 
@@ -56,16 +60,13 @@ Publish `com.placeframe.vps*` packages to npmjs.org (the public npm registry). G
 
 ## Log
 
-Clean implementation, no issues.
+- Manifests were updated to point at registry versions (`"1.0.0"`) but the packages were never published to npmjs.org — all 3 return 404. The publish workflow has never been run because it only exists on the feature branch (not the default branch), and no `NPM_TOKEN` secret has been configured.
+- All Unity projects are currently broken on this branch: manifests reference unpublished registry versions instead of `file:` paths.
 
 ## Observations
 
 - `apps/MakeItSing/Packages/manifest.json` had hardcoded Windows absolute paths (`file:C:/Users/epjec/Documents/Plerion/...`) for Placeframe packages. Fixed by switching to registry references. Other `file:` paths in this project (fofx packages) still use relative paths correctly.
 
-## Requires manual verification
+## Next step
 
-- Add `NPM_TOKEN` repository secret in GitHub (npm granular access token)
-- Trigger `publish-upm.yml` via workflow_dispatch to publish packages to npmjs.org
-- Verify `npm view com.placeframe.vps` returns package metadata
-- Open each Unity project and confirm all packages resolve from registries (vps packages won't resolve until first publish)
-- Note: Unity CI builds will fail until the first npm publish completes, since manifest.json now references registry versions instead of `file:` paths
+Merge to default branch so the publish workflow is discoverable by GitHub Actions, add `NPM_TOKEN` secret, trigger the first publish, then verify packages resolve end-to-end from a Unity project.
