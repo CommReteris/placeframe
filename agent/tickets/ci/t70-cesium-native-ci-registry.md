@@ -46,6 +46,8 @@ Convert shell build script to Python (`uv run build-cesium-native-linux`), creat
 - Separate workflow from `publish-upm.yml` — fundamentally different job (30-60 min cmake build vs quick npm publish)
 - `workflow_dispatch` only (manual trigger) — Cesium version bumps are rare
 - vcpkg/cmake caching via ORAS/GHCR to avoid 30-60 min rebuilds
+- `GIT_LFS_SKIP_SMUDGE=1` required in CI — `unityci/editor` has git-lfs installed, which breaks vcpkg's KTX port (LFS smudge filter fails in temp clone). COI sandbox lacks git-lfs so it works locally.
+- Apache-2.0 redistribution: fork is compliant as long as LICENSE is included in published package and package name doesn't imply official Cesium endorsement
 
 ## Next step
 
