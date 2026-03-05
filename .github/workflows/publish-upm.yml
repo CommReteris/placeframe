@@ -3,6 +3,8 @@ name: Publish UPM Packages
 on:
   workflow_dispatch:
   push:
+    branches:
+      - feature/upm-packages
     tags:
       - "v*"
 
