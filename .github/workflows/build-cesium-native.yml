@@ -126,21 +126,11 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Build Cesium native
+      - name: "Phase 1: Codegen (clone, Reinterop, Unity code generation)"
         env:
           UNITY_EDITOR: unity-editor
           GIT_LFS_SKIP_SMUDGE: "1"
-        run: uv run build-cesium-native-linux --cesium-version ${{ env.CESIUM_VERSION }}
-
-      - name: Save vcpkg cache
-        if: steps.vcpkg-cache.outputs.cache-hit == 'false'
-        run: |
-          tar --zstd -cf vcpkg-cache.tar.zst \
-            /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Editor \
-            /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Standalone
-          oras push "$CACHE_REGISTRY/cesium-vcpkg:${{ env.CESIUM_VERSION }}" \
-            vcpkg-cache.tar.zst:application/vnd.placeframe.cesium-cache.v1+zstd
-          rm vcpkg-cache.tar.zst
+        run: uv run build-cesium-native-linux --cesium-version ${{ env.CESIUM_VERSION }} --phase codegen
 
       - name: Save Unity Library cache
         if: steps.library-cache.outputs.cache-hit == 'false'
@@ -153,6 +143,22 @@ jobs:
               library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
             rm library.tar.zst
           fi
+
+      - name: "Phase 2: Native build (cmake Editor + Standalone)"
+        env:
+          UNITY_EDITOR: unity-editor
+          GIT_LFS_SKIP_SMUDGE: "1"
+        run: uv run build-cesium-native-linux --cesium-version ${{ env.CESIUM_VERSION }} --phase native-build
+
+      - name: Save vcpkg cache
+        if: steps.vcpkg-cache.outputs.cache-hit == 'false'
+        run: |
+          tar --zstd -cf vcpkg-cache.tar.zst \
+            /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Editor \
+            /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Standalone
+          oras push "$CACHE_REGISTRY/cesium-vcpkg:${{ env.CESIUM_VERSION }}" \
+            vcpkg-cache.tar.zst:application/vnd.placeframe.cesium-cache.v1+zstd
+          rm vcpkg-cache.tar.zst
 
       - name: Prepare package
         run: |

@@ -197,47 +197,60 @@ def build_cesium_native_linux(
     build_directory: Path = typer.Option(Path("/tmp/cesium-build"), "--build-dir", help="Build working directory."),
     cesium_version: str = typer.Option("v1.15.3", "--cesium-version", help="Cesium for Unity git tag to build."),
     unity_version: str = typer.Option("6000.0.66f1", "--unity-version", help="Unity editor version."),
+    phase: str = typer.Option("all", "--phase", help="Build phase: 'codegen', 'native-build', or 'all'."),
 ) -> None:
     """Build Cesium for Unity native plugin for Linux.
 
     Follows the official Cesium developer setup. Idempotent: safe to run from any starting state.
+
+    Phases:
+      codegen      — Clone repos, build Reinterop, run Unity code generation.
+      native-build — Create vcpkg triplet, cmake build Editor + Standalone, strip binaries.
+      all          — Run both phases sequentially (default).
     """
+    if phase not in ("all", "codegen", "native-build"):
+        print(f"FATAL: Unknown phase '{phase}'. Use 'codegen', 'native-build', or 'all'.")
+        sys.exit(1)
+
     editor = find_unity_editor(unity_version)
     print("=== Cesium for Unity Linux build ===")
     print(f"Build dir: {build_directory}")
     print(f"Version:   {cesium_version}")
     print(f"Unity:     {unity_version}")
     print(f"Editor:    {editor}")
+    print(f"Phase:     {phase}")
     print()
-
-    install_build_dependencies()
-    install_dotnet()
 
     build_directory.mkdir(parents=True, exist_ok=True)
     project_path = clone_cesium_samples(build_directory)
     package_path = clone_cesium_unity(project_path, cesium_version)
 
-    patch_asmdef_for_linux(package_path)
-    build_reinterop(package_path)
-    run_unity_codegen(editor, project_path, package_path)
-    create_vcpkg_triplet(package_path)
+    if phase in ("all", "codegen"):
+        install_dotnet()
+        patch_asmdef_for_linux(package_path)
+        build_reinterop(package_path)
+        run_unity_codegen(editor, project_path, package_path)
+        print("\n=== Codegen phase complete ===")
 
-    build_native_library(package_path, "Editor", editor_mode=True)
-    build_native_library(package_path, "Standalone", editor_mode=False)
-    strip_binaries(package_path)
+    if phase in ("all", "native-build"):
+        install_build_dependencies()
+        create_vcpkg_triplet(package_path)
+        build_native_library(package_path, "Editor", editor_mode=True)
+        build_native_library(package_path, "Standalone", editor_mode=False)
+        strip_binaries(package_path)
 
-    print()
-    print("=== Build complete ===")
-    print(f"Package directory: {package_path}")
-    for label, path in [
-        ("Editor .so", package_path / "Editor" / "libCesiumForUnityNative-Editor.so"),
-        ("Runtime .so", package_path / "Plugins" / "Standalone" / "libCesiumForUnityNative-Runtime.so"),
-    ]:
-        if path.exists():
-            size_mb = path.stat().st_size / (1024 * 1024)
-            print(f"  {label}: {size_mb:.1f} MB")
-        else:
-            print(f"  {label}: (not found)")
+        print()
+        print("=== Native build complete ===")
+        print(f"Package directory: {package_path}")
+        for label, path in [
+            ("Editor .so", package_path / "Editor" / "libCesiumForUnityNative-Editor.so"),
+            ("Runtime .so", package_path / "Plugins" / "Standalone" / "libCesiumForUnityNative-Runtime.so"),
+        ]:
+            if path.exists():
+                size_mb = path.stat().st_size / (1024 * 1024)
+                print(f"  {label}: {size_mb:.1f} MB")
+            else:
+                print(f"  {label}: (not found)")
 
 
 def main() -> None:
