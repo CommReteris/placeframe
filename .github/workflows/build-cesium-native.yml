@@ -103,6 +103,19 @@ jobs:
             echo "cache-hit=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Restore Unity Library cache
+        id: library-cache
+        run: |
+          if oras pull "$CACHE_REGISTRY/cesium-unity-library:${{ env.CESIUM_VERSION }}" -o /tmp/cache 2>/dev/null; then
+            echo "Cache hit"
+            tar -xf /tmp/cache/library.tar.zst -C /
+            rm -rf /tmp/cache
+            echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Cache miss"
+            echo "cache-hit=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -116,6 +129,7 @@ jobs:
       - name: Build Cesium native
         env:
           UNITY_EDITOR: unity-editor
+          GIT_LFS_SKIP_SMUDGE: "1"
         run: uv run build-cesium-native-linux --cesium-version ${{ env.CESIUM_VERSION }}
 
       - name: Save vcpkg cache
@@ -127,6 +141,18 @@ jobs:
           oras push "$CACHE_REGISTRY/cesium-vcpkg:${{ env.CESIUM_VERSION }}" \
             vcpkg-cache.tar.zst:application/vnd.placeframe.cesium-cache.v1+zstd
           rm vcpkg-cache.tar.zst
+
+      - name: Save Unity Library cache
+        if: steps.library-cache.outputs.cache-hit == 'false'
+        run: |
+          LIBRARY_DIR="/tmp/cesium-build/cesium-unity-samples/Library"
+          if [ -d "$LIBRARY_DIR" ]; then
+            rm -rf "$LIBRARY_DIR/PackageCache"
+            tar --zstd -cf library.tar.zst "$LIBRARY_DIR"
+            oras push "$CACHE_REGISTRY/cesium-unity-library:${{ env.CESIUM_VERSION }}" \
+              library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
+            rm library.tar.zst
+          fi
 
       - name: Prepare package
         run: |
