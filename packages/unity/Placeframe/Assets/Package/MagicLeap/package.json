@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/outernet-foundation/plerion.git",
+    "url": "https://github.com/outernet-foundation/placeframe.git",
     "directory": "packages/unity/Placeframe/Assets/Package/MagicLeap"
   },
   "author": {
