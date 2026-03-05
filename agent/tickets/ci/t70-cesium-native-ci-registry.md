@@ -60,15 +60,15 @@ CI workflow (`build-cesium-native.yml`) uses `unityci/editor` container with ser
 
 ## Next step
 
-CI run `22732964669` passed (34m22s) — all phases green, codegen cache saved, vcpkg cache hit, publish skipped (version already on npm from manual first publish). The Linux build pipeline is proven end-to-end.
+Repackaging step added to workflow: downloads official `com.cesium.unity` v1.15.3 `.tgz`, extracts non-Linux binaries (Windows `.dll`, macOS `.dylib`, Android `.so`, iOS `.a` + `.meta` files), merges into package alongside Linux `.so` files. Linux `.so.meta` files updated with proper `PluginImporter` settings for multi-platform. Version bumped to `1.15.3-1`.
 
 Remaining work, in order:
 
-1. **Add repackaging step to workflow**: download the official `com.cesium.unity` v1.15.3 release `.tgz` from GitHub, extract non-Linux native binaries (Windows `.dll`, macOS `.dylib`, Android `.so`, iOS static libs + `.meta` files), merge into the package directory alongside the Linux `.so` files we build. This makes the published package multi-platform.
-2. **Bump version and drop `-linux` qualifier**: change version from `1.15.3-linux.1` to `1.15.3-allplatforms.1` (or similar) since the package now covers all platforms.
+1. ~~Add repackaging step to workflow~~ done
+2. ~~Bump version and drop `-linux` qualifier~~ done (→ `1.15.3-1`)
 3. **Configure OIDC trusted publishing on npmjs.org** (manual, user action): go to npmjs.org → `org.outernet.cesium-unity` → Settings → Trusted publishing → add `outernet-foundation/placeframe` repo with workflow `build-cesium-native.yml`. This enables CI to publish without a long-lived token.
 4. **Test OIDC publish**: trigger workflow manually, confirm it publishes the new multi-platform version via OIDC.
-5. **Remove push trigger TODO**: delete lines 10 + 15-18 of `build-cesium-native.yml` (the push trigger used for testing).
-6. **Update consumer manifests**: point at the new multi-platform version.
+5. **Remove push trigger TODO**: delete the push trigger from `build-cesium-native.yml` (used for testing).
+6. **Update consumer manifests**: point at the new multi-platform version (`1.15.3-1`).
 7. **Remove committed binaries**: delete `packages/unity/com.cesium.unity/` from the repo once registry package is confirmed working.
 8. **Regenerate packages-lock.json**: open each Unity project in batchmode to pick up the registry package.

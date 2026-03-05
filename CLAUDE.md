@@ -77,7 +77,7 @@ Docker image builds run in `.github/workflows/build-docker.yml`. Build logic liv
 ## Code Conventions
 
 - **Python 3.13+**, line length 120, Ruff for linting/formatting, BasedPyright in strict mode.
-- **C# (Unity)**: CSharpier formatter, 120 char width (`.csharpierrc.json`). Never manually create `.meta` files — Unity generates them automatically on asset import. Manually created `.meta` files risk incorrect GUIDs, wrong import settings, and subtle asset reference bugs. Never manually edit `packages-lock.json` files — Unity generates them during package resolution. To update them, open the project in Unity batchmode and let it re-resolve.
+- **C# (Unity)**: CSharpier formatter, 120 char width (`.csharpierrc.json`). Never manually create or edit `.meta` files — Unity generates them automatically on asset import. Hand-written `.meta` files risk incorrect GUIDs, wrong import settings, and subtle asset reference bugs. If a `.meta` file needs different settings (e.g. PluginImporter platform targeting), use Unity batchmode to reimport the asset rather than editing the YAML by hand. Never manually edit `packages-lock.json` files — Unity generates them during package resolution. To update them, open the project in Unity batchmode and let it re-resolve.
 - All Python packages use `src/<package>/` layout with `py.typed` marker. Use relative imports for intra-package imports (`from .module import ...`, not `from package.module import ...`).
 - Pydantic v2 for data validation everywhere; async/await throughout all services.
 - The `deptry-check` command enforces that all imports match declared dependencies. Per-rule exceptions for platform-specific packages (CUDA/ROCm) are documented in each `pyproject.toml`.
