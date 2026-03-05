@@ -90,6 +90,10 @@ Prep steps before test 2:
 
 After both tests pass, plan the runner provisioning and workflow changes.
 
+## Scope note
+
+This ticket also gates Windows support for T70's Cesium native package. T70 repackages official Cesium binaries (including Windows `.dll` files) into the published `org.outernet.cesium-unity` package, but without a Windows CI runner those binaries can't be exercised in CI builds. Once this ticket is resolved, win64 builds of Outernet.Client and MapRegistrationTool will use the Windows native binaries from the Cesium package.
+
 ## Done when
 
 - win64 matrix entries build successfully with IL2CPP scripting backend
