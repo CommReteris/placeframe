@@ -102,12 +102,13 @@ jobs:
           GIT_LFS_SKIP_SMUDGE: "1"
         run: uv run build-cesium-native-linux --cesium-version ${{ env.CESIUM_VERSION }} --phase clone
 
-      - name: Restore Unity Library cache
-        id: library-cache
+      - name: Restore codegen cache
+        id: codegen-cache
         run: |
-          if oras pull "$CACHE_REGISTRY/cesium-unity-library:${{ env.CESIUM_VERSION }}" -o /tmp/cache 2>/dev/null; then
+          PACKAGE="/tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity"
+          if oras pull "$CACHE_REGISTRY/cesium-codegen:${{ env.CESIUM_VERSION }}" -o /tmp/cache 2>/dev/null; then
             echo "Cache hit"
-            tar -xf /tmp/cache/library.tar.zst -C /
+            tar -xf /tmp/cache/codegen.tar.zst -C "$PACKAGE"
             rm -rf /tmp/cache
             echo "cache-hit=true" >> "$GITHUB_OUTPUT"
           else
@@ -121,17 +122,16 @@ jobs:
           GIT_LFS_SKIP_SMUDGE: "1"
         run: uv run build-cesium-native-linux --cesium-version ${{ env.CESIUM_VERSION }} --phase codegen
 
-      - name: Save Unity Library cache
-        if: steps.library-cache.outputs.cache-hit == 'false'
+      - name: Save codegen cache
+        if: steps.codegen-cache.outputs.cache-hit == 'false'
         run: |
-          LIBRARY_DIR="/tmp/cesium-build/cesium-unity-samples/Library"
-          if [ -d "$LIBRARY_DIR" ]; then
-            rm -rf "$LIBRARY_DIR/PackageCache"
-            tar --zstd -cf library.tar.zst "$LIBRARY_DIR"
-            oras push "$CACHE_REGISTRY/cesium-unity-library:${{ env.CESIUM_VERSION }}" \
-              library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
-            rm library.tar.zst
-          fi
+          PACKAGE="/tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity"
+          tar --zstd -cf codegen.tar.zst -C "$PACKAGE" \
+            Reinterop.dll \
+            $(cd "$PACKAGE" && find native~ -type d -name "generated-*" | sort)
+          oras push "$CACHE_REGISTRY/cesium-codegen:${{ env.CESIUM_VERSION }}" \
+            codegen.tar.zst:application/vnd.placeframe.cesium-codegen.v1+zstd
+          rm codegen.tar.zst
 
       - name: Restore vcpkg cache
         id: vcpkg-cache
