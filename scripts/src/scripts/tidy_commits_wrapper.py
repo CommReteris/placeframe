@@ -87,7 +87,10 @@ def execute_plan(plan: TidyCommitsPlan, branch: str, base: str, backup: str) -> 
             run_command(["git", "mv", old_path, new_path])
 
         for file_path in commit.delete:
-            run_command(["git", "rm", file_path])
+            if file_path.endswith("/"):
+                run_command(["git", "rm", "-r", file_path])
+            else:
+                run_command(["git", "rm", file_path])
 
         for file_path, file_content in commit.content.items():
             Path(file_path).parent.mkdir(parents=True, exist_ok=True)
@@ -102,7 +105,7 @@ def execute_plan(plan: TidyCommitsPlan, branch: str, base: str, backup: str) -> 
 
 
 @app.command()
-def tidy_commits_wrapper() -> None:
+def tidy_commits_wrapper(base: str = typer.Option("", help="Override base ref (skip auto-detection)")) -> None:
     if not Path(PLAN_FILE).exists():
         print(f"FATAL: {PLAN_FILE} not found.", file=sys.stderr)
         sys.exit(1)
@@ -115,13 +118,16 @@ def tidy_commits_wrapper() -> None:
 
     branch = run_command("git rev-parse --abbrev-ref HEAD").strip()
 
-    remote_branch = f"origin/{branch}"
-    if check_command(f"git rev-parse --verify {remote_branch}"):
-        base = run_command(f"git rev-parse {remote_branch}").strip()
-    elif check_command("git rev-parse --verify origin/main"):
-        base = run_command("git merge-base origin/main HEAD").strip()
+    if base:
+        resolved_base = run_command(f"git rev-parse {base}").strip()
     else:
-        base = run_command("git merge-base main HEAD").strip()
+        remote_branch = f"origin/{branch}"
+        if check_command(f"git rev-parse --verify {remote_branch}"):
+            resolved_base = run_command(f"git rev-parse {remote_branch}").strip()
+        elif check_command("git rev-parse --verify origin/main"):
+            resolved_base = run_command("git merge-base origin/main HEAD").strip()
+        else:
+            resolved_base = run_command("git merge-base main HEAD").strip()
 
     backup = find_available_backup_name(branch)
 
@@ -129,7 +135,7 @@ def tidy_commits_wrapper() -> None:
     print(f"Backup created: {backup}")
 
     try:
-        execute_plan(plan, branch, base, backup)
+        execute_plan(plan, branch, resolved_base, backup)
     except Exception as error:
         print(f"FATAL: Plan execution failed: {error}", file=sys.stderr)
         restore_from_backup(branch, backup)
@@ -142,7 +148,7 @@ def tidy_commits_wrapper() -> None:
         sys.exit(1)
 
     print("Tree invariance check passed.")
-    print(run_command(f"git log --oneline {base}..{branch}"))
+    print(run_command(f"git log --oneline {resolved_base}..{branch}"))
 
 
 def main():

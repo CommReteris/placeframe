@@ -183,6 +183,33 @@ class TestExecutePlanOperationOrdering:
         assert delete_index < content_add_index
 
 
+class TestExecutePlanDeleteRecursive:
+    @patch("scripts.tidy_commits_wrapper.Path")
+    @patch("scripts.tidy_commits_wrapper.run_command")
+    def test_should_use_git_rm_recursive_for_trailing_slash(self, mock_run: MagicMock, mock_path: MagicMock):
+        plan = make_plan([
+            Commit(message="delete directory", author="Test <test@example.com>", delete=["some/directory/"])
+        ])
+
+        execute_plan(plan, branch="feature", base="abc000", backup="feature-backup")
+
+        assert call(["git", "rm", "-r", "some/directory/"]) in mock_run.call_args_list
+
+
+class TestExecutePlanDeleteFile:
+    @patch("scripts.tidy_commits_wrapper.Path")
+    @patch("scripts.tidy_commits_wrapper.run_command")
+    def test_should_use_git_rm_without_recursive_for_files(self, mock_run: MagicMock, mock_path: MagicMock):
+        plan = make_plan([
+            Commit(message="delete file", author="Test <test@example.com>", delete=["some/file.md"])
+        ])
+
+        execute_plan(plan, branch="feature", base="abc000", backup="feature-backup")
+
+        assert call(["git", "rm", "some/file.md"]) in mock_run.call_args_list
+        assert call(["git", "rm", "-r", "some/file.md"]) not in mock_run.call_args_list
+
+
 class TestExecutePlanExistingFields:
     @patch("scripts.tidy_commits_wrapper.Path")
     @patch("scripts.tidy_commits_wrapper.run_command")
