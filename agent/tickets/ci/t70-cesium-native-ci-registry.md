@@ -64,9 +64,9 @@ CI run `22732964669` passed (34m22s) — all phases green, codegen cache saved, 
 
 Remaining work, in order:
 
-1. **Configure OIDC trusted publishing on npmjs.org** (manual, user action): go to npmjs.org → `org.outernet.cesium-unity` → Settings → Trusted publishing → add `outernet-foundation/placeframe` repo with workflow `build-cesium-native.yml`. This enables CI to publish without a long-lived token.
-2. **Add repackaging step to workflow**: download the official `com.cesium.unity` v1.15.3 release `.tgz` from GitHub, extract non-Linux native binaries (Windows `.dll`, macOS `.dylib`, Android `.so`, iOS static libs + `.meta` files), merge into the package directory alongside the Linux `.so` files we build. This makes the published package multi-platform.
-3. **Bump version and drop `-linux` qualifier**: change version from `1.15.3-linux.1` to `1.15.3-allplatforms.1` (or similar) since the package now covers all platforms.
+1. **Add repackaging step to workflow**: download the official `com.cesium.unity` v1.15.3 release `.tgz` from GitHub, extract non-Linux native binaries (Windows `.dll`, macOS `.dylib`, Android `.so`, iOS static libs + `.meta` files), merge into the package directory alongside the Linux `.so` files we build. This makes the published package multi-platform.
+2. **Bump version and drop `-linux` qualifier**: change version from `1.15.3-linux.1` to `1.15.3-allplatforms.1` (or similar) since the package now covers all platforms.
+3. **Configure OIDC trusted publishing on npmjs.org** (manual, user action): go to npmjs.org → `org.outernet.cesium-unity` → Settings → Trusted publishing → add `outernet-foundation/placeframe` repo with workflow `build-cesium-native.yml`. This enables CI to publish without a long-lived token.
 4. **Test OIDC publish**: trigger workflow manually, confirm it publishes the new multi-platform version via OIDC.
 5. **Remove push trigger TODO**: delete lines 10 + 15-18 of `build-cesium-native.yml` (the push trigger used for testing).
 6. **Update consumer manifests**: point at the new multi-platform version.
