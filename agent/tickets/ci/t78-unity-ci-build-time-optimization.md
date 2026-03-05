@@ -119,6 +119,7 @@ Docker CI cache gaps (Go module cache in database-migrator, NuGet cache in state
 - Docker cache gaps excluded from this ticket (T81).
 - Machine-level Bee cache (`~/.cache/unity3d/bee`) is NOT worth caching in CI — only 37 MB after a full build, max 256 MB with auto-cleanup. See `agent/research/unity-bee-cache-internals.md`.
 - PackageCache trimming requires a shared UPM cache to avoid network re-downloads. The global UPM cache (`~/.cache/Unity/upm/`) is the UPM equivalent of uv's download cache — stores compressed tarballs (~113 MB), shared across all projects/platforms. Verified locally: with UPM cache warm, PackageCache repopulation adds negligible time (56s total build including extraction from tarballs).
+- **ORAS/GHCR is the permanent Library caching strategy**, not `actions/cache`. The 10 GB `actions/cache` budget will inevitably be exceeded as projects and platforms grow. ORAS pushes to GHCR have no size limit. The tradeoff (slower network transfer vs `actions/cache`'s internal blob storage) is mitigated by zstd compression and conditional save (only on cache miss).
 
 ## Key files
 
@@ -156,16 +157,19 @@ Phase 2 (workflow changes) in progress. Three CI failures encountered and fixed:
 - ORAS rejects absolute file paths (`/tmp/library.tar.gz`) to prevent path traversal → switched to relative paths in cwd
 - Outernet.Client magicleap cold build hit "no space left on device" → added `jlumbroso/free-disk-space` step
 - `jlumbroso/free-disk-space` does nothing inside `container:` jobs — composite actions run inside the container, not on the host, so `rm -rf /usr/share/dotnet` etc. target container paths that don't exist. All 5 jobs showed 0-second completion for that step. AndroidMobile (android-mobile) hung during IL2CPP compilation (1.5+ hours, no logs) — likely disk exhaustion. Fix: replace the action with `container.volumes` bind mounts from host paths + `rm -rf` inside the container. See `agent/research/gha-container-disk-space.md`.
+- Volume-mount disk cleanup confirmed working (30-90s per job instead of 0s). But ORAS save/restore now dominates build time — save step alone was 4-7 min per job with gzip, longer than the actual build for 2 of 3 completed jobs. Fix: switch from gzip to zstd compression (install `zstd` CLI in container), and skip save entirely on cache hit (only save on cold-cache runs).
 
 Also renamed workflow files: `build.yml` → `build-docker.yml`, `unity.yml` → `build-unity.yml`.
 
 ## Next step
 
-Replace `jlumbroso/free-disk-space` with volume-mount approach (see `agent/research/gha-container-disk-space.md`), then re-run CI to verify all 5 jobs pass. After that, resume the original verification:
-1. ORAS push succeeds — per-platform cache entries appear in ghcr.io
-2. UPM cache populates via `actions/cache`
-3. Trigger a second run to verify warm-cache speedup
-4. Delete old `unity-library-*` entries from GitHub Actions cache (Settings → Actions → Caches)
+Waiting on cold-cache CI run with zstd compression + conditional save (push pending from `ci-stuff` branch). Verify:
+1. All 5 jobs pass (especially AndroidMobile which previously hung on disk exhaustion)
+2. zstd save completes significantly faster than the 4-7 min gzip baseline
+3. ORAS push succeeds — per-platform zstd cache entries appear in ghcr.io
+4. UPM cache populates via `actions/cache`
+5. Trigger a second run to verify warm-cache speedup and that save is skipped on cache hit
+6. Delete old `unity-library-*` gzip entries from GitHub Actions cache and GHCR
 
 ## Observations
 
