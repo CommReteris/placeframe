@@ -55,4 +55,6 @@ Publish Placeframe packages to npmjs.org under the `org.outernet` scope. Authent
 
 - `apps/MakeItSing/Packages/manifest.json` had hardcoded Windows absolute paths for Placeframe packages. Fixed by switching to registry references.
 - `com.cysharp.r3` git dependency was unpinned across all 5 manifests. R3 1.3.0 introduced breaking API changes. Pinned to `#1.2.9` as a driveby fix.
-- UnityNuGet packages (`org.nuget.placeframeapiclient`, `org.nuget.placeframezedclient`) were not verified — these depend on the packages being on the UnityNuGet allowlist, which is a separate concern.
+- UnityNuGet packages (`org.nuget.placeframeapiclient`, `org.nuget.placeframezedclient`) resolve successfully from the UnityNuGet registry — confirmed in AndroidMobile package cache.
+- `publish-upm.yml` has a `feature/upm-packages` branch trigger added for testing — remove it before merging to main (keep only `workflow_dispatch` + `v*` tags).
+- Old `com.placeframe.vps*` packages on npmjs.org should be deprecated or unpublished.
