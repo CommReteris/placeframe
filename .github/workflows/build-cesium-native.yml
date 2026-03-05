@@ -87,19 +87,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: echo "$GITHUB_TOKEN" | oras login ghcr.io --username "${{ github.actor }}" --password-stdin
 
-      - name: Restore vcpkg cache
-        id: vcpkg-cache
-        run: |
-          if oras pull "$CACHE_REGISTRY/cesium-vcpkg:${{ env.CESIUM_VERSION }}" -o /tmp/cache 2>/dev/null; then
-            echo "Cache hit"
-            tar -xf /tmp/cache/vcpkg-cache.tar.zst -C /
-            rm -rf /tmp/cache
-            echo "cache-hit=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Cache miss"
-            echo "cache-hit=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -144,6 +131,19 @@ jobs:
             oras push "$CACHE_REGISTRY/cesium-unity-library:${{ env.CESIUM_VERSION }}" \
               library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
             rm library.tar.zst
+          fi
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        run: |
+          if oras pull "$CACHE_REGISTRY/cesium-vcpkg:${{ env.CESIUM_VERSION }}" -o /tmp/cache 2>/dev/null; then
+            echo "Cache hit"
+            tar -xf /tmp/cache/vcpkg-cache.tar.zst -C /
+            rm -rf /tmp/cache
+            echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Cache miss"
+            echo "cache-hit=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: "Phase 3: Native build (cmake Editor + Standalone)"
