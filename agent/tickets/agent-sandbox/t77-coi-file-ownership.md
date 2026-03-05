@@ -34,6 +34,10 @@ Investigate two directions:
 
 Fallback: run Claude Code as UID 1000 (`code`) instead of root inside the container, or add a post-session chown hook.
 
+## Next step
+
+Check COI docs/source for a `shift=true` equivalent on the workspace mount. If COI supports it, that's the simplest fix. If not, test the Incus profile override approach (add a disk device with `shift=true` for `/workspace` in the default profile).
+
 ## Done when
 
 - Files created by Claude Code inside the container are writable by the host user (UID 1000) without manual chown

@@ -57,6 +57,10 @@ Each step required non-obvious diagnostics (`incus config show --expanded`, `ss 
 
 5. **Upstream COI improvements** — File issues for: (a) `coi attach` should offer to start a new tmux session if none exists, (b) `coi shell --resume` should handle port conflicts gracefully, (c) resume cleanup should not destroy session data on failure.
 
+## Next step
+
+Read `agent_shell.py` and the COI source to understand which design directions are feasible within our control (1–4) vs. requiring upstream changes (5). Start with direction 3 (prevent tmux loss) since it addresses the root cause — if tmux survives terminal close, the rest of the recovery complexity goes away.
+
 ## Done when
 
 - A terminal disconnect can be recovered from in under 5 minutes without requiring knowledge of Incus internals
