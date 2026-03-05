@@ -1,7 +1,7 @@
 ---
 id: T71
 title: Set up scoped UPM registry for Placeframe Unity packages
-status: in-progress
+status: blocked
 depends_on: []
 branch: t71-upm-registry
 plan: t71-plan.md
@@ -67,6 +67,12 @@ Publish `com.placeframe.vps*` packages to npmjs.org (the public npm registry). G
 
 - `apps/MakeItSing/Packages/manifest.json` had hardcoded Windows absolute paths (`file:C:/Users/epjec/Documents/Plerion/...`) for Placeframe packages. Fixed by switching to registry references. Other `file:` paths in this project (fofx packages) still use relative paths correctly.
 
+## Blocked on
+
+- **npm credentials**: need an npm account with a granular access token scoped to `com.placeframe.*`, added as `NPM_TOKEN` repo secret in GitHub
+- **Workflow on default branch**: `publish-upm.yml` must be on `main` before GitHub Actions can discover it for `workflow_dispatch`
+- **Unity verification**: need a machine with Unity to confirm packages resolve from registries after first publish
+
 ## Next step
 
-Merge to default branch so the publish workflow is discoverable by GitHub Actions, add `NPM_TOKEN` secret, trigger the first publish, then verify packages resolve end-to-end from a Unity project.
+User: create npm token, add `NPM_TOKEN` secret, merge workflow to `main`, trigger first publish. Then open a Unity project and verify resolution.
