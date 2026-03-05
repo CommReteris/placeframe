@@ -54,10 +54,10 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
    - `committer`: Sets `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` for all commits. Use the most common author from the branch.
    - `message`: Full commit message. Use `\n` for newlines (it's JSON).
    - `author`: Per-commit `--author` flag. When a new commit maps to a single original, use that commit's author. When merging multiple, use the earliest.
-   - `checkout`: Files to `git checkout $BACKUP -- <files>`. Auto-staged by git. This covers most cases. **Every path must exist in the backup** — verify with the file analysis from step 2.
+   - `checkout`: Files or directories to `git checkout $BACKUP -- <files>`. Auto-staged by git. This covers most cases. **Every path must exist in the backup** — verify with the file analysis from step 2. Accepts directory pathspecs (e.g. `"src/module/"`) — git will restore all files under that directory. All paths are passed in a single command.
    - `checkout_ref`: Dict of commit ref → list of file paths. Runs `git checkout <ref> -- <files>` for each ref. Use when a file's desired intermediate state matches a prior commit on the branch — avoids embedding full file content in the plan. The commit hashes come from the `git log` analysis in step 2.
    - `rename`: Dict of old path → new path. Implicitly checks out the old path from the backup, creates parent directories, then runs `git mv`. Prefer over `checkout`+`delete` pairs for pure renames (same content, different path). Fall back to `checkout`+`delete` only when the rename also involves content changes.
-   - `delete`: Files to `git rm`. Use for deletions.
+   - `delete`: Files to `git rm`. Use for deletions. Append a trailing `/` to a path (e.g. `"old/directory/"`) to trigger recursive deletion (`git rm -r`).
    - `content`: Dict of filepath → literal file content string. Use for partial file splits where a file's changes need to appear in different commits (see step 5). The wrapper writes the content and runs `git add`. Prefer `checkout_ref` when the desired state matches a prior commit.
    - Each commit must have at least one of `checkout`, `checkout_ref`, `rename`, `delete`, or `content`.
 
@@ -70,7 +70,7 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
    - For the final commit that includes the file's ultimate state, use `checkout` to pull the final version from the backup.
    - Example: if `config.py` has both a refactor change and a feature change, and the refactor was introduced in commit `abc123`, the refactor commit uses `"checkout_ref": {"abc123": ["config.py"]}` and the feature commit uses `"checkout": ["config.py"]`.
 
-6. **Run the wrapper** immediately after writing the plan: `uv run tidy-commits-wrapper`. Then report the result.
+6. **Run the wrapper** immediately after writing the plan: `uv run tidy-commits-wrapper`. Pass `--base <ref>` to override base detection (useful when the auto-detected base is wrong, e.g. after a force-push or when tidying from an arbitrary ancestor). Then report the result.
 
 ## Important rules
 
@@ -80,3 +80,12 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
 - NEVER modify commits on main.
 - If the branch has only 1 commit already, ask the user if they still want to proceed.
 - **File renames**: Prefer the `rename` field for pure renames (same content, different path). Fall back to `checkout`+`delete` only when the rename also involves content changes. Check `git diff <base>..HEAD --stat` for renames.
+
+## Large-scale reorganizations
+
+When the branch has hundreds of commits or 1000+ changed files, manual JSON construction isn't feasible. Use programmatic plan generation instead:
+
+- **Directory pathspecs**: Use directory paths in `checkout` (e.g. `"src/module/"`) to restore entire subtrees in one entry instead of listing every file.
+- **Recursive delete**: Use trailing `/` in `delete` paths (e.g. `"old/directory/"`) to recursively remove directories.
+- **`--base` override**: If the auto-detected base is wrong (common after force-pushes or unusual branch topologies), pass `--base <ref>` to `uv run tidy-commits-wrapper`.
+- **Programmatic plan building**: Write a script or use Claude to generate the JSON plan programmatically from `git log` / `git diff` output. The plan schema is simple enough for code generation. Validate with `TidyCommitsPlan.model_validate_json()` before running the wrapper.
