@@ -3,7 +3,7 @@ id: T70
 title: Automate Cesium native Linux build, repackage with official binaries, publish to UPM registry
 status: in-progress
 depends_on: [T69, T71]
-plan: t70-plan.md
+plan: t70-plan.md # Steps 1-6 still accurate; step 8 (Prepare package) is superseded — now downloads official .tgz and merges non-Linux binaries instead of copying Linux-only .so files
 ---
 
 # T70: Automate Cesium native Linux build, repackage with official binaries, publish to UPM registry
