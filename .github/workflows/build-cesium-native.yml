@@ -22,10 +22,6 @@ on:
         description: "Cesium for Unity git tag to build"
         required: true
         default: "v1.15.3"
-      package-version:
-        description: "Version to publish (e.g. 1.15.3-linux.1)"
-        required: true
-        default: "1.15.3-linux.1"
 
 env:
   ORAS_VERSION: "1.2.2"
