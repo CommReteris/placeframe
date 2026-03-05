@@ -77,7 +77,7 @@ Docker image builds run in `.github/workflows/build-docker.yml`. Build logic liv
 ## Code Conventions
 
 - **Python 3.13+**, line length 120, Ruff for linting/formatting, BasedPyright in strict mode.
-- **C# (Unity)**: CSharpier formatter, 120 char width (`.csharpierrc.json`). Never manually create `.meta` files — Unity generates them automatically on asset import. Manually created `.meta` files risk incorrect GUIDs, wrong import settings, and subtle asset reference bugs.
+- **C# (Unity)**: CSharpier formatter, 120 char width (`.csharpierrc.json`). Never manually create `.meta` files — Unity generates them automatically on asset import. Manually created `.meta` files risk incorrect GUIDs, wrong import settings, and subtle asset reference bugs. Never manually edit `packages-lock.json` files — Unity generates them during package resolution. To update them, open the project in Unity batchmode and let it re-resolve.
 - All Python packages use `src/<package>/` layout with `py.typed` marker. Use relative imports for intra-package imports (`from .module import ...`, not `from package.module import ...`).
 - Pydantic v2 for data validation everywhere; async/await throughout all services.
 - The `deptry-check` command enforces that all imports match declared dependencies. Per-rule exceptions for platform-specific packages (CUDA/ROCm) are documented in each `pyproject.toml`.
@@ -111,7 +111,7 @@ Docker image builds run in `.github/workflows/build-docker.yml`. Build logic liv
 
 You are running inside an Incus system container managed by [Code on Incus (COI)](https://github.com/mensfeld/code-on-incus), launched on the host via `uv run agent-shell` (`scripts/src/scripts/agent_shell.py`). The host was provisioned with `uv run setup-agent-sandbox` (`scripts/src/scripts/setup_agent_sandbox.py`), which installs Incus, COI, configures firewall/networking, and builds the `coi-placeframe` image. The image build script is `agent/coi-placeframe-build.sh` (installs uv, node, pnpm, playwright, Unity). This environment has no GPU and no ngrok.
 
-Unity is installed at `/opt/unity/6000.0.66f1/Editor/Unity` with Linux IL2CPP and Android build support modules. Use `xvfb-run` for any Unity batchmode invocation (no display server). Unity projects live under `apps/` (`AndroidMobile`, `MapRegistrationTool`, `MakeItSing`) and `packages/unity/`.
+Unity is installed at `/opt/unity/6000.0.66f1/Editor/Unity` with Linux IL2CPP and Android build support modules. The Unity license is already activated in this container (serial-based activation at container startup via credentials from the host). Use `xvfb-run` for any Unity batchmode invocation (no display server). Unity projects live under `apps/` (`AndroidMobile`, `MapRegistrationTool`, `MakeItSing`) and `packages/unity/`. You can use Unity batchmode for tasks like regenerating `packages-lock.json` files, compiling C# code, or triggering code generation.
 
 1. **Install prerequisites**: `uv` may not be pre-installed. Install with `curl -LsSf https://astral.sh/uv/install.sh | sh` and ensure `~/.local/bin` is on PATH.
 1. **Venv isolation**: The container's venv lives outside the mounted workspace at `$UV_PROJECT_ENVIRONMENT` (`/home/code/.venvs/placeframe`) so it doesn't overwrite the host's `.venv`. This is set via the Incus default profile (configured by `uv run setup-agent-sandbox`). If not set, export it manually: `export UV_PROJECT_ENVIRONMENT=/home/code/.venvs/placeframe`. Run `uv sync --all-packages` to create it.

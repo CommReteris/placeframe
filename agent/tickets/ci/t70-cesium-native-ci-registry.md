@@ -1,8 +1,9 @@
 ---
 id: T70
 title: Automate Cesium native Linux build and publish to UPM registry
-status: plan-needed
+status: in-progress
 depends_on: [T69, T71]
+plan: t70-plan.md
 ---
 
 # T70: Automate Cesium native Linux build and publish to UPM registry
@@ -34,3 +35,18 @@ The build script already exists at `scripts/build-cesium-native-linux.sh` — it
 - [ ] Consumer manifests point at registry instead of `file:` path
 - [ ] Committed binary (`packages/unity/com.cesium.unity/`) removed from repo
 - [ ] Rebuild triggers documented (manual or on Cesium version bump)
+
+## Approach
+
+Convert shell build script to Python (`uv run build-cesium-native-linux`), create a separate CI workflow (`build-cesium-native.yml`) using `unityci/editor` container with serial license activation, cache vcpkg/cmake artifacts via ORAS/GHCR, publish as `org.outernet.cesium-unity` to npmjs.org with OIDC trusted publishing, update consumer manifests from `file:` to registry, and regenerate packages-lock.json via Unity batchmode.
+
+## Design decisions
+
+- Package renamed from `com.cesium.unity` to `org.outernet.cesium-unity` to fit the `org.outernet` scoped registry
+- Separate workflow from `publish-upm.yml` — fundamentally different job (30-60 min cmake build vs quick npm publish)
+- `workflow_dispatch` only (manual trigger) — Cesium version bumps are rare
+- vcpkg/cmake caching via ORAS/GHCR to avoid 30-60 min rebuilds
+
+## Next step
+
+Implement the plan.
