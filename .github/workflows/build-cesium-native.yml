@@ -99,6 +99,21 @@ jobs:
             echo "cache-hit=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: "Phase 1: Clone repos"
+        env:
+          GIT_LFS_SKIP_SMUDGE: "1"
+        run: uv run build-cesium-native-linux --cesium-version ${{ env.CESIUM_VERSION }} --phase clone
+
       - name: Restore Unity Library cache
         id: library-cache
         run: |
@@ -112,17 +127,7 @@ jobs:
             echo "cache-hit=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Setup UV
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
-      - name: "Phase 1: Codegen (clone, Reinterop, Unity code generation)"
+      - name: "Phase 2: Codegen (Reinterop, Unity code generation)"
         env:
           UNITY_EDITOR: unity-editor
           GIT_LFS_SKIP_SMUDGE: "1"
@@ -140,7 +145,7 @@ jobs:
             rm library.tar.zst
           fi
 
-      - name: "Phase 2: Native build (cmake Editor + Standalone)"
+      - name: "Phase 3: Native build (cmake Editor + Standalone)"
         env:
           UNITY_EDITOR: unity-editor
           GIT_LFS_SKIP_SMUDGE: "1"
