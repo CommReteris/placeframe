@@ -18,3 +18,7 @@ npm does not support configuring OIDC for packages that don't exist yet (unlike 
 **Prerelease versions** (e.g. `1.15.3-linux.1`): npm requires `--tag latest` (or another explicit tag) when publishing prerelease versions. Without it, publish fails with "You must specify a tag using --tag".
 
 **Node version**: OIDC trusted publishing requires npm >=11.5.1 (ships with Node 24+). Do NOT use `setup-node`'s `registry-url` parameter — it writes a token placeholder `.npmrc` that blocks OIDC.
+
+## ORAS cache ordering constraint
+
+Caches stored via ORAS/GHCR that extract to paths under the clone target directory (e.g. `/tmp/cesium-build/cesium-unity-samples/...`) MUST be restored AFTER the clone phase, not before. The tar extraction creates the parent directory tree, which causes `git clone` to fail with "destination path already exists and is not an empty directory." This has bitten us twice (Library cache, then vcpkg cache). The fix is always the same: move the restore step to after clone and before the phase that needs the cached artifacts.

@@ -48,7 +48,8 @@ Convert shell build script to Python (`uv run build-cesium-native-linux`), creat
 - vcpkg/cmake caching via ORAS/GHCR to avoid 30-60 min rebuilds
 - `GIT_LFS_SKIP_SMUDGE=1` required in CI — `unityci/editor` has git-lfs installed, which breaks vcpkg's KTX port (LFS smudge filter fails in temp clone). COI sandbox lacks git-lfs so it works locally.
 - Apache-2.0 redistribution: fork is compliant as long as LICENSE is included in published package and package name doesn't imply official Cesium endorsement
+- Codegen output cache replaces Unity Library cache — the Library cache caused Reinterop to never fire on warm runs (Unity skipped recompilation, so code generation never ran). Caching just the outputs (Reinterop.dll + generated C++ headers) lets phase_codegen skip Unity entirely via idempotency checks, which is both faster and correct.
 
 ## Next step
 
-Commit and push the three-phase refactor (clone → codegen → native-build). Verify CI passes — the cache ordering bug (Library restore before clone) is fixed. Then configure OIDC trusted publishing on npmjs.org for `org.outernet.cesium-unity` (package already published locally, just needs the GitHub workflow linked in settings). After OIDC is confirmed working, remove the push trigger TODO and the committed binaries from the repo.
+Commit `9ceedede` has been pushed. Wait for CI run to complete — this will be a cold run (~30 min) since the codegen cache doesn't exist yet. If CI passes through codegen and native-build, configure OIDC trusted publishing on npmjs.org for `org.outernet.cesium-unity` (package already published locally, just needs the GitHub workflow linked in settings). After OIDC is confirmed working, remove the push trigger TODO (line 10 + lines 15-18 of `build-cesium-native.yml`) and the committed binaries from the repo.
