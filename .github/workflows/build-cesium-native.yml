@@ -5,12 +5,17 @@
 #   - Unity version bump: update the container image tag and unity-version default
 #   - Linux platform fixes in Cesium upstream
 #
-# This is workflow_dispatch only — Cesium version bumps are rare and the build
+# Normally workflow_dispatch only — Cesium version bumps are rare and the build
 # takes 30-60 minutes cold (5-10 minutes with cache).
+# TODO: Remove push trigger before merging to main.
 
 name: Cesium Native Linux
 
 on:
+  push:
+    branches:
+      - feature/upm-packages
+    paths-ignore: [".env.lock"]
   workflow_dispatch:
     inputs:
       cesium-version:
@@ -25,6 +30,7 @@ on:
 env:
   ORAS_VERSION: "1.2.2"
   CACHE_REGISTRY: ghcr.io/${{ github.repository }}/cache
+  CESIUM_VERSION: ${{ inputs.cesium-version || 'v1.15.3' }}
 
 jobs:
   build-and-publish:
@@ -87,7 +93,7 @@ jobs:
       - name: Restore vcpkg cache
         id: vcpkg-cache
         run: |
-          if oras pull "$CACHE_REGISTRY/cesium-vcpkg:${{ inputs.cesium-version }}" -o /tmp/cache 2>/dev/null; then
+          if oras pull "$CACHE_REGISTRY/cesium-vcpkg:${{ env.CESIUM_VERSION }}" -o /tmp/cache 2>/dev/null; then
             echo "Cache hit"
             tar -xf /tmp/cache/vcpkg-cache.tar.zst -C /
             rm -rf /tmp/cache
@@ -110,7 +116,7 @@ jobs:
       - name: Build Cesium native
         env:
           UNITY_EDITOR: unity-editor
-        run: uv run build-cesium-native-linux --cesium-version ${{ inputs.cesium-version }}
+        run: uv run build-cesium-native-linux --cesium-version ${{ env.CESIUM_VERSION }}
 
       - name: Save vcpkg cache
         if: steps.vcpkg-cache.outputs.cache-hit == 'false'
@@ -118,7 +124,7 @@ jobs:
           tar --zstd -cf vcpkg-cache.tar.zst \
             /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Editor \
             /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Standalone
-          oras push "$CACHE_REGISTRY/cesium-vcpkg:${{ inputs.cesium-version }}" \
+          oras push "$CACHE_REGISTRY/cesium-vcpkg:${{ env.CESIUM_VERSION }}" \
             vcpkg-cache.tar.zst:application/vnd.placeframe.cesium-cache.v1+zstd
           rm vcpkg-cache.tar.zst
 
