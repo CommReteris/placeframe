@@ -1,5 +1,5 @@
 {
-  "name": "com.placeframe.vps.magicleap",
+  "name": "org.outernet.placeframe.magicleap",
   "version": "1.0.0",
   "displayName": "Placeframe - Magic Leap",
   "description": "Magic Leap camera support for Placeframe",
@@ -15,7 +15,7 @@
     "email": "epjecha@gmail.com"
   },
   "dependencies": {
-    "com.placeframe.vps": "1.0.0",
+    "org.outernet.placeframe": "1.0.0",
     "com.cysharp.unitask": "2.5.10"
   }
 }

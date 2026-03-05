@@ -1,5 +1,5 @@
 {
-  "name": "com.placeframe.vps.arfoundation",
+  "name": "org.outernet.placeframe.arfoundation",
   "version": "1.0.0",
   "displayName": "Placeframe - AR Foundation",
   "description": "AR Foundation camera support for Placeframe",
@@ -15,7 +15,7 @@
     "email": "epjecha@gmail.com"
   },
   "dependencies": {
-    "com.placeframe.vps": "1.0.0",
+    "org.outernet.placeframe": "1.0.0",
     "com.cysharp.unitask": "2.5.10",
     "com.cysharp.r3": "1.3.0",
     "com.unity.xr.arfoundation": "6.0.6"
