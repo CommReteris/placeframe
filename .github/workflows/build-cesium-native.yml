@@ -1,0 +1,158 @@
+# Build Cesium for Unity native plugin for Linux and publish to npmjs.org.
+#
+# Rebuild triggers:
+#   - Cesium version bump: change the cesium-version input
+#   - Unity version bump: update the container image tag and unity-version default
+#   - Linux platform fixes in Cesium upstream
+#
+# This is workflow_dispatch only — Cesium version bumps are rare and the build
+# takes 30-60 minutes cold (5-10 minutes with cache).
+
+name: Cesium Native Linux
+
+on:
+  workflow_dispatch:
+    inputs:
+      cesium-version:
+        description: "Cesium for Unity git tag to build"
+        required: true
+        default: "v1.15.3"
+      package-version:
+        description: "Version to publish (e.g. 1.15.3-linux.1)"
+        required: true
+        default: "1.15.3-linux.1"
+
+env:
+  ORAS_VERSION: "1.2.2"
+  CACHE_REGISTRY: ghcr.io/${{ github.repository }}/cache
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    container:
+      image: unityci/editor:6000.0.66f1-linux-il2cpp-3
+      volumes:
+        - /usr/local/lib/android:/to_clean/android
+        - /usr/share/dotnet:/to_clean/dotnet
+        - /opt/hostedtoolcache:/to_clean/toolcache
+        - /usr/local/.ghcup:/to_clean/ghcup
+        - /usr/share/swift:/to_clean/swift
+
+    steps:
+      - name: Free Disk Space
+        run: |
+          rm -rf /to_clean/android/* /to_clean/dotnet/* /to_clean/toolcache/* /to_clean/ghcup/* /to_clean/swift/*
+          df -h
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Activate Unity License
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        run: |
+          if ! unity-editor -batchmode -nographics -quit \
+            -serial "$UNITY_SERIAL" \
+            -username "$UNITY_EMAIL" \
+            -password "$UNITY_PASSWORD" \
+            -logFile /dev/stdout; then
+            echo "::error::Unity license activation failed — check seat availability and credentials"
+            echo "### Unity license activation failed" >> "$GITHUB_STEP_SUMMARY"
+            echo "Check seat availability (2-seat serial limit) and credential validity." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Install build dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq cmake ninja-build nasm g++ zip unzip curl pkg-config zstd > /dev/null
+
+      - name: Install ORAS
+        run: |
+          curl -sLO "https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz"
+          tar -xzf "oras_${ORAS_VERSION}_linux_amd64.tar.gz" -C /usr/local/bin/ oras
+          rm "oras_${ORAS_VERSION}_linux_amd64.tar.gz"
+
+      - name: Login to ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GITHUB_TOKEN" | oras login ghcr.io --username "${{ github.actor }}" --password-stdin
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        run: |
+          if oras pull "$CACHE_REGISTRY/cesium-vcpkg:${{ inputs.cesium-version }}" -o /tmp/cache 2>/dev/null; then
+            echo "Cache hit"
+            tar -xf /tmp/cache/vcpkg-cache.tar.zst -C /
+            rm -rf /tmp/cache
+            echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Cache miss"
+            echo "cache-hit=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Build Cesium native
+        env:
+          UNITY_EDITOR: unity-editor
+        run: uv run build-cesium-native-linux --cesium-version ${{ inputs.cesium-version }}
+
+      - name: Save vcpkg cache
+        if: steps.vcpkg-cache.outputs.cache-hit == 'false'
+        run: |
+          tar --zstd -cf vcpkg-cache.tar.zst \
+            /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Editor \
+            /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Standalone
+          oras push "$CACHE_REGISTRY/cesium-vcpkg:${{ inputs.cesium-version }}" \
+            vcpkg-cache.tar.zst:application/vnd.placeframe.cesium-cache.v1+zstd
+          rm vcpkg-cache.tar.zst
+
+      - name: Prepare package
+        run: |
+          BUILD_PKG="/tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity"
+          REPO_PKG="packages/unity/com.cesium.unity"
+
+          cp "$BUILD_PKG/Editor/libCesiumForUnityNative-Editor.so" "$REPO_PKG/Editor/"
+          cp "$BUILD_PKG/Editor/libCesiumForUnityNative-Runtime.so" "$REPO_PKG/Editor/"
+          cp "$BUILD_PKG/Plugins/Standalone/libCesiumForUnityNative-Runtime.so" "$REPO_PKG/Plugins/Standalone/"
+
+          echo "Package contents:"
+          find "$REPO_PKG" -name "*.so" -exec ls -lh {} \;
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Publish to npmjs.org
+        working-directory: packages/unity/com.cesium.unity
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version 2>/dev/null; then
+            echo "${PACKAGE_NAME}@${PACKAGE_VERSION} already published, skipping"
+          else
+            npm publish --access public --provenance
+          fi
+
+      - name: Return Unity License
+        if: always()
+        run: |
+          unity-editor -batchmode -nographics -quit \
+            -returnlicense \
+            -logFile /dev/stdout || true
