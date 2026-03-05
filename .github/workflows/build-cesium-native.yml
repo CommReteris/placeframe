@@ -185,7 +185,7 @@ jobs:
           if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version 2>/dev/null; then
             echo "${PACKAGE_NAME}@${PACKAGE_VERSION} already published, skipping"
           else
-            npm publish --access public --provenance
+            npm publish --access public --provenance --tag latest
           fi
 
       - name: Return Unity License
