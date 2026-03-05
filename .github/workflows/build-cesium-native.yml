@@ -162,7 +162,7 @@ jobs:
             vcpkg-cache.tar.zst:application/vnd.placeframe.cesium-cache.v1+zstd
           rm vcpkg-cache.tar.zst
 
-      - name: Prepare package
+      - name: Copy Linux binaries into package
         run: |
           BUILD_PKG="/tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity"
           REPO_PKG="packages/unity/com.cesium.unity"
@@ -171,8 +171,53 @@ jobs:
           cp "$BUILD_PKG/Editor/libCesiumForUnityNative-Runtime.so" "$REPO_PKG/Editor/"
           cp "$BUILD_PKG/Plugins/Standalone/libCesiumForUnityNative-Runtime.so" "$REPO_PKG/Plugins/Standalone/"
 
-          echo "Package contents:"
+          echo "Linux binaries:"
           find "$REPO_PKG" -name "*.so" -exec ls -lh {} \;
+
+      - name: Download official Cesium release
+        run: |
+          VERSION="${CESIUM_VERSION#v}"
+          curl -sL "https://github.com/CesiumGS/cesium-unity/releases/download/${CESIUM_VERSION}/com.cesium.unity-${VERSION}.tgz" \
+            -o /tmp/cesium-official.tgz
+          echo "Downloaded com.cesium.unity-${VERSION}.tgz"
+
+      - name: Merge official binaries into package
+        run: |
+          REPO_PKG="packages/unity/com.cesium.unity"
+          mkdir -p /tmp/cesium-official
+          tar -xzf /tmp/cesium-official.tgz -C /tmp/cesium-official
+          OFFICIAL="/tmp/cesium-official/package"
+
+          # Editor: Windows DLLs
+          cp "$OFFICIAL"/Editor/CesiumForUnityNative-Editor.dll "$REPO_PKG/Editor/"
+          cp "$OFFICIAL"/Editor/CesiumForUnityNative-Editor.dll.meta "$REPO_PKG/Editor/"
+          cp "$OFFICIAL"/Editor/CesiumForUnityNative-Runtime.dll "$REPO_PKG/Editor/"
+          cp "$OFFICIAL"/Editor/CesiumForUnityNative-Runtime.dll.meta "$REPO_PKG/Editor/"
+
+          # Editor: macOS dylibs (arm64 + x86_64 subdirectories)
+          for arch in arm64 x86_64; do
+            cp -r "$OFFICIAL/Editor/$arch" "$REPO_PKG/Editor/"
+            cp "$OFFICIAL/Editor/$arch.meta" "$REPO_PKG/Editor/"
+          done
+
+          # Plugins/Standalone: Windows DLL + macOS dylib
+          cp "$OFFICIAL"/Plugins/Standalone/CesiumForUnityNative-Runtime.dll "$REPO_PKG/Plugins/Standalone/"
+          cp "$OFFICIAL"/Plugins/Standalone/CesiumForUnityNative-Runtime.dll.meta "$REPO_PKG/Plugins/Standalone/"
+          cp "$OFFICIAL"/Plugins/Standalone/libCesiumForUnityNative-Runtime.dylib "$REPO_PKG/Plugins/Standalone/"
+          cp "$OFFICIAL"/Plugins/Standalone/libCesiumForUnityNative-Runtime.dylib.meta "$REPO_PKG/Plugins/Standalone/"
+
+          # Plugins: WSA (UWP), Android, iOS — entire directories
+          for platform in WSA Android iOS; do
+            cp -r "$OFFICIAL/Plugins/$platform" "$REPO_PKG/Plugins/"
+            cp "$OFFICIAL/Plugins/$platform.meta" "$REPO_PKG/Plugins/"
+          done
+
+          echo "Multi-platform package contents (native binaries):"
+          find "$REPO_PKG" \( -name "*.so" -o -name "*.dll" -o -name "*.dylib" -o -name "*.a" \) \
+            -not -path "*/iOS/lib/*" -exec ls -lh {} \;
+          echo "iOS static libs: $(find "$REPO_PKG/Plugins/iOS/lib" -name "*.a" | wc -l) files"
+
+          rm -rf /tmp/cesium-official /tmp/cesium-official.tgz
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
