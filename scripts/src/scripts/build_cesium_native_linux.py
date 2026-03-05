@@ -198,11 +198,9 @@ def build_cesium_native_linux(
         print(f"FATAL: Unknown phase '{phase}'. Use 'clone', 'codegen', 'native-build', or 'all'.")
         sys.exit(1)
 
-    editor = find_unity_editor(unity_version)
     print(f"Build dir: {build_directory}")
     print(f"Version:   {cesium_version}")
     print(f"Unity:     {unity_version}")
-    print(f"Editor:    {editor}")
     print(f"Phase:     {phase}")
     print()
 
@@ -215,6 +213,7 @@ def build_cesium_native_linux(
         if phase == "clone":
             return
 
+    editor = find_unity_editor(unity_version)
     if phase in ("all", "codegen"):
         phase_codegen(editor, project_path, package_path)
 
