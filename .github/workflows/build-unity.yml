@@ -1,0 +1,176 @@
+name: Unity
+
+on:
+  push:
+    branches: [main, dev]
+    paths-ignore: [".env.lock"]
+  pull_request:
+    branches: [main, dev]
+    paths-ignore: [".env.lock"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  ORAS_VERSION: "1.2.2"
+  CACHE_REGISTRY: ghcr.io/${{ github.repository }}/cache
+
+#
+jobs:
+  build:
+    name: ${{ matrix.project-name }} (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    container:
+      image: unityci/editor:6000.0.66f1-${{ matrix.module }}-3
+      volumes:
+        - /usr/local/lib/android:/to_clean/android
+        - /usr/share/dotnet:/to_clean/dotnet
+        - /opt/hostedtoolcache:/to_clean/toolcache
+        - /usr/local/.ghcup:/to_clean/ghcup
+        - /usr/share/swift:/to_clean/swift
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: legacy/Outernet.Client
+            project-name: Outernet.Client
+            platform: android-mobile
+            module: android
+          - project: legacy/Outernet.Client
+            project-name: Outernet.Client
+            platform: magicleap
+            module: android
+          - project: legacy/Outernet.Client
+            project-name: Outernet.Client
+            platform: linux64
+            module: linux-il2cpp
+          # win64 builds disabled — IL2CPP not available on Linux cross-compilation.
+          # T75 tracks switching to dedicated Windows runners.
+          # - project: legacy/Outernet.Client
+          #   project-name: Outernet.Client
+          #   platform: win64
+          #   module: windows-mono
+          - project: apps/MapRegistrationTool
+            project-name: MapRegistrationTool
+            platform: linux64
+            module: linux-il2cpp
+          # - project: apps/MapRegistrationTool
+          #   project-name: MapRegistrationTool
+          #   platform: win64
+          #   module: windows-mono
+          - project: apps/AndroidMobile
+            project-name: AndroidMobile
+            platform: android-mobile
+            module: android
+
+    steps:
+      - name: Free Disk Space
+        run: |
+          rm -rf /to_clean/android/* /to_clean/dotnet/* /to_clean/toolcache/* /to_clean/ghcup/* /to_clean/swift/*
+          df -h
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Activate Unity License
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        run: |
+          if ! unity-editor -batchmode -nographics -quit \
+            -serial "$UNITY_SERIAL" \
+            -username "$UNITY_EMAIL" \
+            -password "$UNITY_PASSWORD" \
+            -logFile /dev/stdout; then
+            echo "::error::Unity license activation failed — check seat availability and credentials"
+            echo "### Unity license activation failed" >> "$GITHUB_STEP_SUMMARY"
+            echo "Check seat availability (2-seat serial limit) and credential validity." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Install zstd
+        run: apt-get update -qq && apt-get install -y -qq zstd > /dev/null
+
+      - name: Install ORAS
+        run: |
+          curl -sLO "https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz"
+          tar -xzf "oras_${ORAS_VERSION}_linux_amd64.tar.gz" -C /usr/local/bin/ oras
+          rm "oras_${ORAS_VERSION}_linux_amd64.tar.gz"
+
+      - name: Login to ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GITHUB_TOKEN" | oras login ghcr.io --username "${{ github.actor }}" --password-stdin
+
+      - name: Cache UPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Unity/upm
+          key: unity-upm-${{ hashFiles(format('{0}/Packages/manifest.json', matrix.project)) }}
+          restore-keys: |
+            unity-upm-
+
+      - name: Restore Library cache
+        id: library-cache
+        run: |
+          tag=$(echo "${{ matrix.project-name }}-${{ matrix.platform }}" | tr '[:upper:]' '[:lower:]')
+          if oras pull "$CACHE_REGISTRY/unity-library:${tag}" -o /tmp/cache 2>/dev/null; then
+            echo "Cache hit: ${tag}"
+            tar -xf /tmp/cache/library.tar.zst -C ./
+            rm -rf /tmp/cache
+            echo "cache-hit=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Cache miss: ${tag}"
+            echo "cache-hit=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore NuGet Packages
+        run: |
+          dotnet tool restore
+          dotnet nugetforunity restore ${{ matrix.project }}
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Build
+        env:
+          UNITY_EDITOR: unity-editor
+        run: uv run build-unity --project ${{ matrix.project-name }} --platform ${{ matrix.platform }}
+
+      - name: Save Library cache
+        if: steps.library-cache.outputs.cache-hit == 'false'
+        run: |
+          rm -rf ${{ matrix.project }}/Library/PackageCache
+          tag=$(echo "${{ matrix.project-name }}-${{ matrix.platform }}" | tr '[:upper:]' '[:lower:]')
+          tar --zstd -cf library.tar.zst ${{ matrix.project }}/Library/
+          oras push "$CACHE_REGISTRY/unity-library:${tag}" \
+            library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
+          rm library.tar.zst
+
+      - name: Upload Build Artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.project-name }}-${{ matrix.platform }}
+          path: |
+            /tmp/unity-builds/
+            ${{ matrix.project }}/Build/
+          if-no-files-found: ignore
+
+      - name: Return Unity License
+        if: always()
+        run: |
+          unity-editor -batchmode -nographics -quit \
+            -returnlicense \
+            -logFile /dev/stdout || true
