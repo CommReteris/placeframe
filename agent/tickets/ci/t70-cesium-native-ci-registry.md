@@ -49,4 +49,4 @@ Convert shell build script to Python (`uv run build-cesium-native-linux`), creat
 
 ## Next step
 
-Implement the plan.
+Push and verify CI passes. The KTX/LFS failure was root-caused: the `unityci/editor` container has git-lfs installed, so vcpkg's `git archive` of KTX-Software triggers the LFS smudge filter, which fails because the temp clone has no remote URL context (`missing protocol: ""`). The COI sandbox has no git-lfs, so the filter is silently skipped. Fix: `GIT_LFS_SKIP_SMUDGE=1` on the build step — the LFS files (OpenCL test binaries) aren't needed for compilation.
