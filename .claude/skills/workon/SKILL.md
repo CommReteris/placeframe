@@ -18,6 +18,8 @@ Read the ticket's full markdown body. Understand the Goal, Context, Approach, Do
 
 If the ticket's frontmatter has a `plan` field, also read the referenced plan file from `agent/plans/`.
 
+If the ticket's parent directory contains an `EPIC.md`, read it. Epics contain cross-cutting context (conventions, gotchas, shared infrastructure) that applies to all tickets in the epic.
+
 **Missing Next step check.** If the ticket status is `blocked`, `design-needed`, or `in-progress`, and no `## Next step` section exists, propose one to the user based on the ticket's current state: "This ticket has no Next step section. Based on its state, the next step appears to be: {proposed}. Add this?" Write it only if the user approves. For other statuses, proceed without it.
 
 ## 3. Check status and act
