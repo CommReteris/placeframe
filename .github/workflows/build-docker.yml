@@ -2,19 +2,19 @@ name: Build
 
 on:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - ".env.lock"
+    branches: [main, dev]
+    paths-ignore: [".env.lock"]
+  pull_request:
+    branches: [main, dev]
+    paths-ignore: [".env.lock"]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: write
   packages: write
-  pull-requests: write
 
 jobs:
   build-and-lock:
@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       # Torch layers are huge; we need this step or we'll run out of disk space
       - name: Free Disk Space (Ubuntu)
@@ -66,21 +68,22 @@ jobs:
           echo "::group::Cleanup"
           # Torch layers are huge; we need this step or we'll run out of disk space
           docker buildx prune --all --force --filter "type=exec.cachemount"
-          docker system prune --all --force 
+          docker system prune --all --force
           echo "::endgroup::"
 
           echo "::group::ROCm Images"
           uv run build --mode ci --gpu rocm
           echo "::endgroup::"
 
-      # 4. GitOps: Open the "Release Candidate" PR
-      - name: Create/Update Lockfile PR
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Update .env.lock"
-          title: "Update .env.lock"
-          branch: bot/update-lock
-          base: ${{ github.ref_name }}
-          delete-branch: true
-          signoff: true
+      - name: Commit and push .env.lock
+        if: "!contains(fromJSON('[\"main\",\"dev\"]'), github.head_ref)"
+        run: |
+          if git diff --quiet .env.lock; then
+            echo "No changes to .env.lock, skipping commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .env.lock
+          git commit -m "Update .env.lock"
+          git push
