@@ -158,14 +158,19 @@ jobs:
             library.tar.zst:application/vnd.placeframe.unity-cache.v1+zstd
           rm library.tar.zst
 
+      - name: Collect Build Artifacts
+        if: success()
+        run: |
+          if [ -d "${{ matrix.project }}/Build" ]; then
+            cp -r "${{ matrix.project }}/Build/." /tmp/unity-builds/
+          fi
+
       - name: Upload Build Artifacts
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.project-name }}-${{ matrix.platform }}
-          path: |
-            /tmp/unity-builds/
-            ${{ matrix.project }}/Build/
+          path: /tmp/unity-builds/
           if-no-files-found: ignore
 
       - name: Return Unity License
