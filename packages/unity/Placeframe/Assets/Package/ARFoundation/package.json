@@ -1,16 +1,23 @@
 {
-  "name": "com.placeframe.vps.arfoundation",
-  "version": "1.0.0",
+  "name": "org.outernet.placeframe.arfoundation",
+  "version": "1.0.1",
   "displayName": "Placeframe - AR Foundation",
   "description": "AR Foundation camera support for Placeframe",
   "unity": "6000.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/outernet-foundation/placeframe.git",
+    "directory": "packages/unity/Placeframe/Assets/Package/ARFoundation"
+  },
   "author": {
     "name": "Elliot Pjecha",
     "email": "epjecha@gmail.com"
   },
   "dependencies": {
+    "org.outernet.placeframe": "1.0.0",
     "com.cysharp.unitask": "2.5.10",
-    "com.cysharp.r3": "1.3.0",
+    "com.cysharp.r3": "1.2.9",
     "com.unity.xr.arfoundation": "6.0.6"
   }
 }

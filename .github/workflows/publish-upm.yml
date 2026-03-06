@@ -1,0 +1,54 @@
+name: Publish UPM Packages
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/upm-packages
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Publish org.outernet.placeframe
+        working-directory: packages/unity/Placeframe/Assets/Package/Core
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "org.outernet.placeframe@${PACKAGE_VERSION}" version 2>/dev/null; then
+            echo "org.outernet.placeframe@${PACKAGE_VERSION} already published, skipping"
+          else
+            npm publish --access public --provenance
+          fi
+
+      - name: Publish org.outernet.placeframe.arfoundation
+        working-directory: packages/unity/Placeframe/Assets/Package/ARFoundation
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "org.outernet.placeframe.arfoundation@${PACKAGE_VERSION}" version 2>/dev/null; then
+            echo "org.outernet.placeframe.arfoundation@${PACKAGE_VERSION} already published, skipping"
+          else
+            npm publish --access public --provenance
+          fi
+
+      - name: Publish org.outernet.placeframe.magicleap
+        working-directory: packages/unity/Placeframe/Assets/Package/MagicLeap
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view "org.outernet.placeframe.magicleap@${PACKAGE_VERSION}" version 2>/dev/null; then
+            echo "org.outernet.placeframe.magicleap@${PACKAGE_VERSION} already published, skipping"
+          else
+            npm publish --access public --provenance
+          fi
