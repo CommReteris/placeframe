@@ -1,0 +1,196 @@
+name: Publish Packages
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "publish-state.json"
+      - "packages/unity/Placeframe/Assets/Package/Core/package.json"
+      - "packages/unity/Placeframe/Assets/Package/ARFoundation/package.json"
+      - "packages/unity/Placeframe/Assets/Package/MagicLeap/package.json"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Compute hashes and plan publishes
+        id: plan
+        run: |
+          nuget_hash=$(find packages/generated/csharp/api-client/src/PlaceframeApiClient \
+            -name '*.cs' -not -path '*/bin/*' -not -path '*/obj/*' | sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
+
+          compute_upm_hash() {
+            find "$1" -type f -not -name 'package.json' | sort | xargs sha256sum | sha256sum | cut -d' ' -f1
+          }
+          core_hash=$(compute_upm_hash packages/unity/Placeframe/Assets/Package/Core)
+          arfoundation_hash=$(compute_upm_hash packages/unity/Placeframe/Assets/Package/ARFoundation)
+          magicleap_hash=$(compute_upm_hash packages/unity/Placeframe/Assets/Package/MagicLeap)
+
+          nuget_old_hash=$(jq -r '.nuget.hash' publish-state.json)
+          core_old_hash=$(jq -r '.core.hash' publish-state.json)
+          arfoundation_old_hash=$(jq -r '.arfoundation.hash' publish-state.json)
+          magicleap_old_hash=$(jq -r '.magicleap.hash' publish-state.json)
+
+          nuget_version=$(jq -r '.nuget.version' publish-state.json)
+          core_version=$(jq -r '.core.version' publish-state.json)
+          arfoundation_version=$(jq -r '.arfoundation.version' publish-state.json)
+          magicleap_version=$(jq -r '.magicleap.version' publish-state.json)
+
+          bump_patch() {
+            local version=$1
+            local major minor patch
+            IFS='.' read -r major minor patch <<< "$version"
+            echo "${major}.${minor}.$((patch + 1))"
+          }
+
+          publish_nuget=false
+          publish_core=false
+          publish_arfoundation=false
+          publish_magicleap=false
+
+          if [ "$nuget_hash" != "$nuget_old_hash" ]; then
+            publish_nuget=true
+            nuget_version=$(bump_patch "$nuget_version")
+          fi
+
+          if [ "$core_hash" != "$core_old_hash" ] || [ "$publish_nuget" = "true" ]; then
+            publish_core=true
+            core_version=$(bump_patch "$core_version")
+          fi
+
+          if [ "$arfoundation_hash" != "$arfoundation_old_hash" ] || [ "$publish_core" = "true" ]; then
+            publish_arfoundation=true
+            arfoundation_version=$(bump_patch "$arfoundation_version")
+          fi
+
+          if [ "$magicleap_hash" != "$magicleap_old_hash" ] || [ "$publish_core" = "true" ]; then
+            publish_magicleap=true
+            magicleap_version=$(bump_patch "$magicleap_version")
+          fi
+
+          {
+            echo "publish_nuget=$publish_nuget"
+            echo "publish_core=$publish_core"
+            echo "publish_arfoundation=$publish_arfoundation"
+            echo "publish_magicleap=$publish_magicleap"
+            echo "nuget_version=$nuget_version"
+            echo "core_version=$core_version"
+            echo "arfoundation_version=$arfoundation_version"
+            echo "magicleap_version=$magicleap_version"
+            echo "nuget_hash=$nuget_hash"
+            echo "core_hash=$core_hash"
+            echo "arfoundation_hash=$arfoundation_hash"
+            echo "magicleap_hash=$magicleap_hash"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "### Publish Plan" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Package | Publish | Version |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| NuGet (PlaceframeApiClient) | $publish_nuget | $nuget_version |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Core | $publish_core | $core_version |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| ARFoundation | $publish_arfoundation | $arfoundation_version |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| MagicLeap | $publish_magicleap | $magicleap_version |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish NuGet
+        if: steps.plan.outputs.publish_nuget == 'true'
+        working-directory: packages/generated/csharp/api-client/src/PlaceframeApiClient
+        run: |
+          dotnet pack -c Release -p:Version=${{ steps.plan.outputs.nuget_version }} -o ./nupkg
+          dotnet nuget push ./nupkg/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json
+
+      - name: Update Core package.json
+        if: steps.plan.outputs.publish_core == 'true'
+        run: |
+          CORE_PKG=packages/unity/Placeframe/Assets/Package/Core/package.json
+          jq --arg v "${{ steps.plan.outputs.core_version }}" '.version = $v' "$CORE_PKG" > tmp.json && mv tmp.json "$CORE_PKG"
+          if [ "${{ steps.plan.outputs.publish_nuget }}" = "true" ]; then
+            jq --arg v "${{ steps.plan.outputs.nuget_version }}" '.dependencies["org.nuget.placeframeapiclient"] = $v' "$CORE_PKG" > tmp.json && mv tmp.json "$CORE_PKG"
+          fi
+
+      - name: Publish Core
+        if: steps.plan.outputs.publish_core == 'true'
+        working-directory: packages/unity/Placeframe/Assets/Package/Core
+        run: npm publish --access public --provenance
+
+      - name: Update ARFoundation package.json
+        if: steps.plan.outputs.publish_arfoundation == 'true'
+        run: |
+          PKG=packages/unity/Placeframe/Assets/Package/ARFoundation/package.json
+          jq --arg v "${{ steps.plan.outputs.arfoundation_version }}" '.version = $v' "$PKG" > tmp.json && mv tmp.json "$PKG"
+          if [ "${{ steps.plan.outputs.publish_core }}" = "true" ]; then
+            jq --arg v "${{ steps.plan.outputs.core_version }}" '.dependencies["org.outernet.placeframe"] = $v' "$PKG" > tmp.json && mv tmp.json "$PKG"
+          fi
+
+      - name: Publish ARFoundation
+        if: steps.plan.outputs.publish_arfoundation == 'true'
+        working-directory: packages/unity/Placeframe/Assets/Package/ARFoundation
+        run: npm publish --access public --provenance
+
+      - name: Update MagicLeap package.json
+        if: steps.plan.outputs.publish_magicleap == 'true'
+        run: |
+          PKG=packages/unity/Placeframe/Assets/Package/MagicLeap/package.json
+          jq --arg v "${{ steps.plan.outputs.magicleap_version }}" '.version = $v' "$PKG" > tmp.json && mv tmp.json "$PKG"
+          if [ "${{ steps.plan.outputs.publish_core }}" = "true" ]; then
+            jq --arg v "${{ steps.plan.outputs.core_version }}" '.dependencies["org.outernet.placeframe"] = $v' "$PKG" > tmp.json && mv tmp.json "$PKG"
+          fi
+
+      - name: Publish MagicLeap
+        if: steps.plan.outputs.publish_magicleap == 'true'
+        working-directory: packages/unity/Placeframe/Assets/Package/MagicLeap
+        run: npm publish --access public --provenance
+
+      - name: Update publish-state.json
+        run: |
+          jq -n \
+            --arg nv "${{ steps.plan.outputs.nuget_version }}" \
+            --arg nh "${{ steps.plan.outputs.nuget_hash }}" \
+            --arg cv "${{ steps.plan.outputs.core_version }}" \
+            --arg ch "${{ steps.plan.outputs.core_hash }}" \
+            --arg av "${{ steps.plan.outputs.arfoundation_version }}" \
+            --arg ah "${{ steps.plan.outputs.arfoundation_hash }}" \
+            --arg mv "${{ steps.plan.outputs.magicleap_version }}" \
+            --arg mh "${{ steps.plan.outputs.magicleap_hash }}" \
+            '{
+              nuget: { version: $nv, hash: $nh },
+              core: { version: $cv, hash: $ch },
+              arfoundation: { version: $av, hash: $ah },
+              magicleap: { version: $mv, hash: $mh }
+            }' > publish-state.json
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add publish-state.json
+          git add packages/unity/Placeframe/Assets/Package/*/package.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update publish-state.json"
+          git push

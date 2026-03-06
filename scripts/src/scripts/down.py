@@ -16,7 +16,6 @@ def down(
     volumes: bool = typer.Option(False, "--volumes", "-v", help="Remove named volumes."),
     gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm|none"),
 ) -> None:
-    """Wrapper for docker compose down."""
     if not ENV_FILE.exists():
         raise RuntimeError("No .env file found")
 
