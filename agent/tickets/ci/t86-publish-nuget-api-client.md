@@ -15,7 +15,7 @@ Publish the generated C# API client (`org.nuget.placeframeapiclient`) to npmjs.o
 
 The C# API client is generated from the API's OpenAPI spec via `uv run generate-clients`. The generated source lives at `packages/generated/csharp/api-client/src/PlaceframeApiClient/`. Unity projects consume it as `org.nuget.placeframeapiclient` from the `org.nuget` scoped registry on npmjs.org.
 
-The source is up to date (has all 6 `LocalizationMetrics` fields), but the published npm package (`0.1.3`) was manually published before these fields were added. This causes Unity compilation failures in MapRegistrationTool and AndroidMobile.
+The source is up to date (has all 6 `LocalizationMetrics` fields), but the published npm package (`0.1.3`) was manually published before these fields were added. This causes Unity compilation failures in MapRegistrationTool and Outernet.Client.
 
 ## Key files
 
