@@ -206,16 +206,15 @@ jobs:
           cp "$OFFICIAL"/Plugins/Standalone/libCesiumForUnityNative-Runtime.dylib "$REPO_PKG/Plugins/Standalone/"
           cp "$OFFICIAL"/Plugins/Standalone/libCesiumForUnityNative-Runtime.dylib.meta "$REPO_PKG/Plugins/Standalone/"
 
-          # Plugins: WSA (UWP), Android, iOS — entire directories
-          for platform in WSA Android iOS; do
-            cp -r "$OFFICIAL/Plugins/$platform" "$REPO_PKG/Plugins/"
-            cp "$OFFICIAL/Plugins/$platform.meta" "$REPO_PKG/Plugins/"
-          done
+          # Plugins/Android
+          cp -r "$OFFICIAL/Plugins/Android" "$REPO_PKG/Plugins/"
+          cp "$OFFICIAL/Plugins/Android.meta" "$REPO_PKG/Plugins/"
+
+          # iOS and WSA excluded — iOS static libs push the package over npm's size limit,
+          # WSA is unused. Can revisit if needed.
 
           echo "Multi-platform package contents (native binaries):"
-          find "$REPO_PKG" \( -name "*.so" -o -name "*.dll" -o -name "*.dylib" -o -name "*.a" \) \
-            -not -path "*/iOS/lib/*" -exec ls -lh {} \;
-          echo "iOS static libs: $(find "$REPO_PKG/Plugins/iOS/lib" -name "*.a" | wc -l) files"
+          find "$REPO_PKG" \( -name "*.so" -o -name "*.dll" -o -name "*.dylib" \) -exec ls -lh {} \;
 
           rm -rf /tmp/cesium-official /tmp/cesium-official.tgz
 
