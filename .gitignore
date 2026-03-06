@@ -22,3 +22,7 @@ storage/
 tidy-commits.json
 .pnpm-store/
 packages/unity/com.cesium.unity/native~/
+packages/unity/com.cesium.unity/**/*.so
+packages/unity/com.cesium.unity/**/*.dll
+packages/unity/com.cesium.unity/**/*.dylib
+packages/unity/com.cesium.unity/**/*.a
