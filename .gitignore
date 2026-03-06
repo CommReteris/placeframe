@@ -19,4 +19,5 @@
 .env.local.lock
 metadata.json
 storage/
-tidy-commits.sh
+tidy-commits.json
+packages/unity/com.cesium.unity/native~/
