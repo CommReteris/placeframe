@@ -1,5 +1,5 @@
 name: Build
-
+#
 on:
   push:
     branches: [main, dev]
@@ -76,7 +76,7 @@ jobs:
           echo "::endgroup::"
 
       - name: Commit and push .env.lock
-        if: "!contains(fromJSON('[\"main\",\"dev\"]'), github.head_ref)"
+        if: '!contains(fromJSON(''["main","dev"]''), github.head_ref)'
         run: |
           if git diff --quiet .env.lock; then
             echo "No changes to .env.lock, skipping commit."
