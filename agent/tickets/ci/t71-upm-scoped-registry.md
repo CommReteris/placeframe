@@ -32,17 +32,18 @@ Publish Placeframe packages to npmjs.org under the `org.outernet` scope. Authent
 
 - [x] Package.json metadata correct (license, repository, inter-package deps)
 - [x] Publish workflow created (`.github/workflows/publish-upm.yml`)
-- [x] Manifest.json files updated with scoped registry entries and version refs
+- [x] ~~Manifest.json files updated with scoped registry entries and version refs~~ *(Reversed: manifests should use `file:` refs for monorepo packages — see T88)*
 - [x] OIDC trusted publishing configured (replaces NPM_TOKEN)
 - [x] Publish workflow triggered and all 3 packages live on npmjs.org
-- [x] At least one Unity project opens and resolves all packages from registries (no `file:` path fallback)
+- [x] At least one Unity project opens and resolves all packages from registries
+- [ ] *(Added post-review)* Monorepo app manifests reverted to `file:` references for in-repo packages (T88)
 
 ## Design decisions
 
 - **npmjs.org as the registry.** GitHub Packages was considered but forces `@scope/` naming that's unproven with Unity UPM. npmjs.org is already used by the project (Magic Leap packages), and the rug-pull risk is negligible (too foundational to the npm ecosystem). No need for self-hosted Verdaccio.
 - **`org.outernet` scope.** Packages renamed from `com.placeframe.vps*` to `org.outernet.placeframe*` to align with the Outernet Foundation identity across all FOSS projects.
 - **OIDC trusted publishing over NPM_TOKEN.** npm's trusted publishing uses short-lived OIDC tokens from GitHub Actions — no secrets to manage or rotate. Requires Node 24+ (npm >=11.5.1) and `id-token: write` permission. The `setup-node` `registry-url` parameter must NOT be used as it writes a token placeholder that blocks OIDC.
-- **Proper dependency resolution is the primary driver.** With `file:` paths, transitive dependencies don't resolve — consumers must manually list everything. A registry lets the package manager handle the dependency tree.
+- **~~Proper dependency resolution is the primary driver.~~** *(Reversed — see below.)* Decision changed: monorepo app manifests should use `file:` references for packages that live in the repo. Registry publishing is still useful for external consumers, but intra-monorepo references must be `file:` paths so local edits take effect immediately without a publish cycle. Transitive dependency listing is an acceptable cost. T88 tracks reverting the manifests.
 
 ## Log
 
