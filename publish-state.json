@@ -1,0 +1,18 @@
+{
+  "nuget": {
+    "version": "0.1.4",
+    "hash": ""
+  },
+  "core": {
+    "version": "1.0.1",
+    "hash": ""
+  },
+  "arfoundation": {
+    "version": "1.0.1",
+    "hash": ""
+  },
+  "magicleap": {
+    "version": "1.0.1",
+    "hash": ""
+  }
+}
