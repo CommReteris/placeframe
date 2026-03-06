@@ -20,4 +20,5 @@
 metadata.json
 storage/
 tidy-commits.json
+.pnpm-store/
 packages/unity/com.cesium.unity/native~/
