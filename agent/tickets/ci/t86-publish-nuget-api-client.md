@@ -73,6 +73,26 @@ To close the testing gap, create a minimal Unity project (e.g. `apps/PlaceframeI
 
 This eliminates the "CI must update every consumer manifest" problem — only one manifest tracks registry versions. All other consumers use `file:` references and CI never touches them.
 
+**Complication: what should the integration project's manifest list?** If it's meant to document the correct way to consume these packages, it should only list leaf packages (ARFoundation, MagicLeap) — Core and the API client would be pulled in transitively via the published `package.json` dependency chains. This validates the transitive resolution path, which is the whole point.
+
+But this means the integration project's `manifest.json` only has version entries for ARFoundation and MagicLeap, not Core or the API client. It can't serve as the single version commit-back target for ALL packages. CI must also update:
+- Each package's own `package.json` `"version"` field (when its content hash changes)
+- Inter-package dependency versions: ARFoundation and MagicLeap's `package.json` depend on `org.outernet.placeframe` (Core), and Core's `package.json` depends on `org.nuget.placeframeapiclient`. When a dependency is republished, the dependents' `package.json` files must be updated to reference the new version.
+- The integration project's `manifest.json` (leaf package versions only)
+- The state file (hashes)
+
+So CI touches: up to 4 `package.json` files + 1 integration manifest + 1 state file. The "single commit-back target" simplification is gone, but each file has a clear role.
+
+### Custom Unity editor resolver (explored, rejected)
+
+Explored whether a custom `[InitializeOnLoad]` editor script (inspired by [mob-sakai/GitDependencyResolverForUnity](https://github.com/mob-sakai/GitDependencyResolverForUnity)) could add transitive dependency resolution for `file:`-referenced packages. The mob-sakai plugin works by scanning packages for a `gitDependencies` field, cloning missing deps, and installing them as embedded packages in `Packages/`. It lives in its own `.asmdef` so it compiles independently of broken deps.
+
+A simpler version: an `[InitializeOnLoad]` script that scans `file:`-referenced packages' declared dependencies, finds unresolved ones, and adds them via `UnityEditor.PackageManager.Client.Add()`.
+
+**This breaks down.** `Client.Add()` would resolve the missing dependency from the **registry** (an immutable published copy), not from local source. So you'd get ARFoundation pointing at local source (editable) but its transitive dependency Core frozen at the last-published registry version. Editing local Core source would have no effect — defeating the purpose of `file:` references.
+
+To truly resolve locally, the script would need to detect that the package exists in the monorepo and add it as a `file:` reference or symlink it into `Packages/`. This is essentially reimplementing a workspace protocol from scratch — a significant engineering effort for a fragile result (custom tooling every developer must have, fights Unity's own resolver, cross-platform symlink issues).
+
 **Undecided: state file format.** The content hash must live somewhere. Options explored:
 
 1. **`publish-state.json` with version + hash per package.** Clean but duplicates the version (which is already in `manifest.json` for UPM packages). Example:
@@ -114,8 +134,9 @@ The state file would live co-located with the integration test project (e.g. `ap
 
 ## Open questions
 
+- **Monorepo consumer strategy — still uncomfortable.** The pragmatic path (file: references, no transitive resolution, integration test project for registry validation) is well-analyzed but the user is not satisfied that all approaches have been exhausted. The embedded-package-via-symlink approach and a custom Unity workspace resolver remain theoretically possible but are substantial engineering efforts. Sleeping on it before committing to the pragmatic path.
+- **Integration test project scope.** If it only lists leaf packages (to validate transitive resolution), it can't be the single version commit-back target. CI must update multiple `package.json` files for inter-package dep versions anyway. Name candidates: `PlaceframeIntegration`, `PlaceframeTemplate`, `PlaceframeConsumer`.
 - **State file format**: See "Undecided: state file format" in the monorepo consumer strategy section above. Three options on the table, varying in duplication vs uniformity. The NuGet package is the awkward case — its version has no natural home outside the state file since the `.csproj` is regenerated.
-- **Integration test project**: Name and exact scope. Current candidates: `PlaceframeIntegration`, `PlaceframeTemplate`, `PlaceframeConsumer`. Does it contain any code beyond the manifest, or is it truly empty?
 
 ## Done when
 
@@ -145,4 +166,4 @@ The state file would live co-located with the integration test project (e.g. `ap
 
 ## Next step
 
-Resolve remaining open questions (state file format, integration test project naming/scope). Then create plan.
+Resolve monorepo consumer strategy (user sleeping on it). Then settle integration test project scope and state file format. Then create plan.
