@@ -2,7 +2,7 @@ name: Publish Packages
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/ci-improvements-2]
     paths-ignore:
       - "publish-state.json"
       - "packages/unity/Placeframe/Assets/Package/Core/package.json"
