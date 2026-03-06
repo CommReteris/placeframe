@@ -1,7 +1,7 @@
 ---
 id: T86
 title: Content-hash versioning and automated publishing for UPM and NuGet packages
-status: design-needed
+status: plan-needed
 depends_on: [T71]
 ---
 
@@ -64,25 +64,6 @@ Unity offers none of these. A dependency is either a `file:` reference (local, i
 
 **Testing gap.** If all monorepo consumers use `file:` references, nothing in the repo exercises the registry resolution path. A package could have a broken `package.json` (wrong dependency name, missing dependency) and no one would know until an external consumer hits it.
 
-### Dedicated integration test project (proposed, undecided)
-
-To close the testing gap, create a minimal Unity project (e.g. `apps/PlaceframeIntegration` or `apps/PlaceframeTemplate`) whose sole purpose is:
-1. Reference all published packages via registry (npmjs.org + UnityNuGet scoped registries)
-2. Serve as the CI validation surface — publish workflow builds this project to verify packages resolve correctly
-3. Be the single source of truth for published package versions — the only `manifest.json` that CI commits versions back into
-
-This eliminates the "CI must update every consumer manifest" problem — only one manifest tracks registry versions. All other consumers use `file:` references and CI never touches them.
-
-**Complication: what should the integration project's manifest list?** If it's meant to document the correct way to consume these packages, it should only list leaf packages (ARFoundation, MagicLeap) — Core and the API client would be pulled in transitively via the published `package.json` dependency chains. This validates the transitive resolution path, which is the whole point.
-
-But this means the integration project's `manifest.json` only has version entries for ARFoundation and MagicLeap, not Core or the API client. It can't serve as the single version commit-back target for ALL packages. CI must also update:
-- Each package's own `package.json` `"version"` field (when its content hash changes)
-- Inter-package dependency versions: ARFoundation and MagicLeap's `package.json` depend on `org.outernet.placeframe` (Core), and Core's `package.json` depends on `org.nuget.placeframeapiclient`. When a dependency is republished, the dependents' `package.json` files must be updated to reference the new version.
-- The integration project's `manifest.json` (leaf package versions only)
-- The state file (hashes)
-
-So CI touches: up to 4 `package.json` files + 1 integration manifest + 1 state file. The "single commit-back target" simplification is gone, but each file has a clear role.
-
 ### Custom Unity editor resolver (explored, rejected)
 
 Explored whether a custom `[InitializeOnLoad]` editor script (inspired by [mob-sakai/GitDependencyResolverForUnity](https://github.com/mob-sakai/GitDependencyResolverForUnity)) could add transitive dependency resolution for `file:`-referenced packages. The mob-sakai plugin works by scanning packages for a `gitDependencies` field, cloning missing deps, and installing them as embedded packages in `Packages/`. It lives in its own `.asmdef` so it compiles independently of broken deps.
@@ -93,31 +74,7 @@ A simpler version: an `[InitializeOnLoad]` script that scans `file:`-referenced 
 
 To truly resolve locally, the script would need to detect that the package exists in the monorepo and add it as a `file:` reference or symlink it into `Packages/`. This is essentially reimplementing a workspace protocol from scratch — a significant engineering effort for a fragile result (custom tooling every developer must have, fights Unity's own resolver, cross-platform symlink issues).
 
-**Undecided: state file format.** The content hash must live somewhere. Options explored:
-
-1. **`publish-state.json` with version + hash per package.** Clean but duplicates the version (which is already in `manifest.json` for UPM packages). Example:
-   ```json
-   {
-     "org.outernet.placeframe": { "version": "1.0.2", "hash": "abc123..." },
-     "PlaceframeApiClient": { "version": "0.1.5", "hash": "jkl012..." }
-   }
-   ```
-
-2. **`publish-state.json` with hash only, version read from `manifest.json`.** No duplication for UPM packages. CI reads version from `manifest.json`, hash from `publish-state.json`. But the NuGet package version has no manifest entry (its `.csproj` is regenerated with `0.1.0` every time), so NuGet would need special treatment — either version in the state file for NuGet only, or a separate version source. Example:
-   ```json
-   {
-     "org.outernet.placeframe": "abc123...",
-     "org.outernet.placeframe.arfoundation": "def456...",
-     "org.outernet.placeframe.magicleap": "ghi789...",
-     "PlaceframeApiClient": { "version": "0.1.5", "hash": "jkl012..." }
-   }
-   ```
-
-3. **Version + hash for all packages uniformly.** Accepts the duplication for UPM packages in exchange for a uniform format and a single source of truth for all versions (including NuGet). The duplication is a single string per package, and CI writes both files atomically so they can't drift.
-
-JSON does not support comments, so the hash cannot be embedded in `manifest.json` alongside the version.
-
-The state file would live co-located with the integration test project (e.g. `apps/PlaceframeIntegration/publish-state.json`) and be `paths-ignore`d to prevent CI loops.
+**State file format (decided):** Uniform version + hash per package in `publish-state.json` at repo root. See Design decisions.
 
 ## Key files
 
@@ -127,27 +84,22 @@ The state file would live co-located with the integration test project (e.g. `ap
 - `packages/unity/Placeframe/Assets/Package/MagicLeap/package.json` — UPM package version
 - `packages/generated/csharp/api-client/src/PlaceframeApiClient/PlaceframeApiClient.csproj` — .NET project file (regenerated, version overridden at pack time)
 - `scripts/openapi-generator/configs/csharp.json` — generator config (hardcodes `"packageVersion": "0.1.0"`)
-- `apps/MapRegistrationTool/Packages/manifest.json` — consumer manifest (will use `file:` references)
-- `legacy/Outernet.Client/Packages/manifest.json` — consumer manifest (will use `file:` references)
-- `apps/<IntegrationProject>/Packages/manifest.json` — (proposed) registry-reference consumer, CI version commit-back target
-- `apps/<IntegrationProject>/publish-state.json` — (proposed) content hash state file
+- `apps/MapRegistrationTool/Packages/manifest.json` — consumer manifest (`file:` references, CI does not touch)
+- `legacy/Outernet.Client/Packages/manifest.json` — consumer manifest (`file:` references, CI does not touch)
+- `publish-state.json` — content hash + version state file (repo root, `paths-ignore`d)
 
 ## Open questions
 
-- **Monorepo consumer strategy — still uncomfortable.** The pragmatic path (file: references, no transitive resolution, integration test project for registry validation) is well-analyzed but the user is not satisfied that all approaches have been exhausted. The embedded-package-via-symlink approach and a custom Unity workspace resolver remain theoretically possible but are substantial engineering efforts. Sleeping on it before committing to the pragmatic path.
-- **Integration test project scope.** If it only lists leaf packages (to validate transitive resolution), it can't be the single version commit-back target. CI must update multiple `package.json` files for inter-package dep versions anyway. Name candidates: `PlaceframeIntegration`, `PlaceframeTemplate`, `PlaceframeConsumer`.
-- **State file format**: See "Undecided: state file format" in the monorepo consumer strategy section above. Three options on the table, varying in duplication vs uniformity. The NuGet package is the awkward case — its version has no natural home outside the state file since the `.csproj` is regenerated.
+None — all resolved (see Design decisions).
 
 ## Done when
 
 - [ ] CI content-hashes package source and auto-bumps patch version when content changes
 - [ ] CI publishes 3 UPM packages to npmjs.org and NuGet API client to NuGet.org
 - [ ] No publish occurs when content is unchanged
-- [ ] Published versions committed back into integration test project manifest
 - [ ] Published NuGet package includes all current `LocalizationMetrics` fields
 - [ ] Unity projects compile without `LocalizationMetrics` errors (after UnityNuGet picks up new version)
-- [ ] Version state (version + hash) persisted in repo for archaeological traceability
-- [ ] Integration test project validates registry resolution in CI
+- [ ] Version state (version + hash) persisted in `publish-state.json` for archaeological traceability
 - [ ] Strategy documented
 
 ## Design decisions
@@ -162,8 +114,9 @@ The state file would live co-located with the integration test project (e.g. `ap
 - **Core declares `org.nuget.placeframeapiclient` as a dependency**: The `file:` reference in the Placeframe workspace manifest (`com.placeframe.api-client`) is a holdover from before registries were set up. The API client is auto-generated — nobody hand-edits it. Switching to the registry reference (`org.nuget.placeframeapiclient` from UnityNuGet) eliminates the dual identity problem. Core's `package.json` declares it as a dependency, consumers get it transitively. UnityNuGet presents NuGet packages as UPM packages — from Unity's resolver perspective, `org.nuget.placeframeapiclient` is a regular UPM package served by the UnityNuGet scoped registry. Consumer projects just need the UnityNuGet scoped registry configured (which they already do).
 - **NuGet OIDC trusted publishing**: NuGet.org supports OIDC trusted publishing (launched late 2025), same pattern as npm. No long-lived `NUGET_API_KEY` secret needed. Workflow gets `id-token: write` permission (already present for npm OIDC), exchanges OIDC token with NuGet.org for a short-lived API key. Only manual step is configuring the trusted publishing policy on NuGet.org (and possibly a one-time first publish from a local machine).
 - **Monorepo consumers use `file:` references**: Local developers get immediate iteration without publishing. Trade-off: no transitive dependency resolution (must list all dependencies explicitly in each consumer manifest). Acceptable for 3-4 internal packages. See "Monorepo consumer strategy" in Context for full analysis. Unity's package manager has no workspace protocol equivalent — this is a fundamental limitation, not a gap in our approach.
-- **Dedicated integration test project for registry validation**: A minimal Unity project that uses registry references for all published packages. Serves as: (a) the CI validation surface for registry resolution, (b) the single `manifest.json` that CI commits versions back into, (c) self-documenting code showing what a consumer project's manifest should look like. All other monorepo consumers use `file:` references and CI never touches them.
+- **No dedicated integration test project**: Ditched. The "single commit-back target" simplification didn't hold up — CI would still need to update multiple `package.json` files. The testing gap (nothing exercises registry resolution) is accepted as a trade-off. Registry resolution is validated implicitly when external consumers use the packages.
+- **Uniform state file format (version + hash per package)**: `publish-state.json` stores `{ "version": "x.y.z", "hash": "abc..." }` for every package uniformly. Duplicates the version that's already in UPM `package.json` files, but keeps the format simple and gives NuGet (whose `.csproj` is regenerated) a persistent version home. CI writes both state file and `package.json` atomically.
 
 ## Next step
 
-Resolve monorepo consumer strategy (user sleeping on it). Then settle integration test project scope and state file format. Then create plan.
+Create plan. All design questions resolved.
