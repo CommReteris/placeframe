@@ -1,18 +1,18 @@
 {
   "nuget": {
-    "version": "0.1.4",
-    "hash": ""
+    "version": "0.1.5",
+    "hash": "01fe46b543cfce4bd5a4bcd7c45a18adc0754955e2975d4ae118663fdd9c331d"
   },
   "core": {
-    "version": "1.0.1",
-    "hash": ""
+    "version": "1.0.2",
+    "hash": "5a2a0f43fcbb188562b8d1a6d98ada3db9908eab69681766c784754a1ebe6c85"
   },
   "arfoundation": {
-    "version": "1.0.1",
-    "hash": ""
+    "version": "1.0.2",
+    "hash": "d7ad87d85618fdda951cc002094ef8f76ac3b3510c3113e1ebbcb70f94a53844"
   },
   "magicleap": {
-    "version": "1.0.1",
-    "hash": ""
+    "version": "1.0.2",
+    "hash": "f0078457cd3daa4da12eb0b8ffd4eeae2e5e0276f1e7046fd920b340628bce06"
   }
 }
