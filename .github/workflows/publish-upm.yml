@@ -129,10 +129,10 @@ jobs:
         if: steps.plan.outputs.publish_core == 'true'
         run: |
           CORE_PKG=packages/unity/Placeframe/Assets/Package/Core/package.json
-          jq --arg v "${{ steps.plan.outputs.core_version }}" '.version = $v' "$CORE_PKG" > tmp.json && mv tmp.json "$CORE_PKG"
-          if [ "${{ steps.plan.outputs.publish_nuget }}" = "true" ]; then
-            jq --arg v "${{ steps.plan.outputs.nuget_version }}" '.dependencies["org.nuget.placeframeapiclient"] = $v' "$CORE_PKG" > tmp.json && mv tmp.json "$CORE_PKG"
-          fi
+          jq --arg v "${{ steps.plan.outputs.core_version }}" \
+             --arg nv "${{ steps.plan.outputs.nuget_version }}" \
+             '.version = $v | .dependencies["org.nuget.placeframeapiclient"] = $nv' \
+             "$CORE_PKG" > tmp.json && mv tmp.json "$CORE_PKG"
 
       - name: Publish Core
         if: steps.plan.outputs.publish_core == 'true'
