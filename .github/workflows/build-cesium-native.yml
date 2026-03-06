@@ -133,12 +133,12 @@ jobs:
             codegen.tar.zst:application/vnd.placeframe.cesium-codegen.v1+zstd
           rm codegen.tar.zst
 
-      - name: Restore vcpkg cache
-        id: vcpkg-cache
+      - name: Restore native build cache
+        id: native-build-cache
         run: |
-          if oras pull "$CACHE_REGISTRY/cesium-vcpkg:${{ env.CESIUM_VERSION }}" -o /tmp/cache 2>/dev/null; then
+          if oras pull "$CACHE_REGISTRY/cesium-native-build:${{ env.CESIUM_VERSION }}" -o /tmp/cache 2>/dev/null; then
             echo "Cache hit"
-            tar -xf /tmp/cache/vcpkg-cache.tar.zst -C /
+            tar -xf /tmp/cache/native-build.tar.zst -C /
             rm -rf /tmp/cache
             echo "cache-hit=true" >> "$GITHUB_OUTPUT"
           else
@@ -152,15 +152,19 @@ jobs:
           GIT_LFS_SKIP_SMUDGE: "1"
         run: uv run build-cesium-native-linux --cesium-version ${{ env.CESIUM_VERSION }} --phase native-build
 
-      - name: Save vcpkg cache
-        if: steps.vcpkg-cache.outputs.cache-hit == 'false'
+      - name: Save native build cache
+        if: steps.native-build-cache.outputs.cache-hit == 'false'
         run: |
-          tar --zstd -cf vcpkg-cache.tar.zst \
-            /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Editor \
-            /tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity/native~/build-Standalone
-          oras push "$CACHE_REGISTRY/cesium-vcpkg:${{ env.CESIUM_VERSION }}" \
-            vcpkg-cache.tar.zst:application/vnd.placeframe.cesium-cache.v1+zstd
-          rm vcpkg-cache.tar.zst
+          PACKAGE="/tmp/cesium-build/cesium-unity-samples/Packages/com.cesium.unity"
+          tar --zstd -cf native-build.tar.zst \
+            "$PACKAGE/native~/build-Editor" \
+            "$PACKAGE/native~/build-Standalone" \
+            "$PACKAGE/Editor/libCesiumForUnityNative-Editor.so" \
+            "$PACKAGE/Editor/libCesiumForUnityNative-Runtime.so" \
+            "$PACKAGE/Plugins/Standalone/libCesiumForUnityNative-Runtime.so"
+          oras push "$CACHE_REGISTRY/cesium-native-build:${{ env.CESIUM_VERSION }}" \
+            native-build.tar.zst:application/vnd.placeframe.cesium-cache.v1+zstd
+          rm native-build.tar.zst
 
       - name: Copy Linux binaries into package
         run: |
