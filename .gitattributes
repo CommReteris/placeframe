@@ -1,3 +1,4 @@
 * text=auto eol=lf
 packages/unity/com.cesium.unity/**/*.so binary
 .env.lock merge=ours
+publish-state.json merge=ours
