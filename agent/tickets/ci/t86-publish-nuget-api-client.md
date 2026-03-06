@@ -1,7 +1,8 @@
 ---
 id: T86
 title: Content-hash versioning and automated publishing for UPM and NuGet packages
-status: plan-needed
+status: in-review
+plan: t86-plan.md
 depends_on: [T71]
 ---
 
@@ -112,11 +113,19 @@ None — all resolved (see Design decisions).
 - **Hash scope**: NuGet = all `.cs` files in `packages/generated/csharp/api-client/src/PlaceframeApiClient/` (excluding `.csproj`, which is regenerated with a fixed version). UPM = all files in the package directory except `package.json` (which contains the version field being bumped). Hash is deterministic: sort file paths, hash contents, combine.
 - **CI loop prevention**: `paths-ignore` for the state file, same proven pattern as `.env.lock` with `paths-ignore: [".env.lock"]` in `build-docker.yml`.
 - **Core declares `org.nuget.placeframeapiclient` as a dependency**: The `file:` reference in the Placeframe workspace manifest (`com.placeframe.api-client`) is a holdover from before registries were set up. The API client is auto-generated — nobody hand-edits it. Switching to the registry reference (`org.nuget.placeframeapiclient` from UnityNuGet) eliminates the dual identity problem. Core's `package.json` declares it as a dependency, consumers get it transitively. UnityNuGet presents NuGet packages as UPM packages — from Unity's resolver perspective, `org.nuget.placeframeapiclient` is a regular UPM package served by the UnityNuGet scoped registry. Consumer projects just need the UnityNuGet scoped registry configured (which they already do).
-- **NuGet OIDC trusted publishing**: NuGet.org supports OIDC trusted publishing (launched late 2025), same pattern as npm. No long-lived `NUGET_API_KEY` secret needed. Workflow gets `id-token: write` permission (already present for npm OIDC), exchanges OIDC token with NuGet.org for a short-lived API key. Only manual step is configuring the trusted publishing policy on NuGet.org (and possibly a one-time first publish from a local machine).
+- **NuGet API key for now, OIDC later (T87)**: NuGet.org's OIDC trusted publishing is in gradual rollout and not yet available on the `tylerhatch` account. Using a traditional `NUGET_API_KEY` repository secret until the feature is available. T87 tracks the switch to OIDC.
 - **Monorepo consumers use `file:` references**: Local developers get immediate iteration without publishing. Trade-off: no transitive dependency resolution (must list all dependencies explicitly in each consumer manifest). Acceptable for 3-4 internal packages. See "Monorepo consumer strategy" in Context for full analysis. Unity's package manager has no workspace protocol equivalent — this is a fundamental limitation, not a gap in our approach.
 - **No dedicated integration test project**: Ditched. The "single commit-back target" simplification didn't hold up — CI would still need to update multiple `package.json` files. The testing gap (nothing exercises registry resolution) is accepted as a trade-off. Registry resolution is validated implicitly when external consumers use the packages.
 - **Uniform state file format (version + hash per package)**: `publish-state.json` stores `{ "version": "x.y.z", "hash": "abc..." }` for every package uniformly. Duplicates the version that's already in UPM `package.json` files, but keeps the format simple and gives NuGet (whose `.csproj` is regenerated) a persistent version home. CI writes both state file and `package.json` atomically.
 
-## Next step
+## Approach
 
-Create plan. All design questions resolved.
+Content-hash each package's source directory, compare against `publish-state.json`, auto-bump patch and publish when content differs. Cascade dependency graph: NuGet → Core → ARFoundation/MagicLeap. Commit state + updated `package.json` files back to repo. NuGet publishes via OIDC trusted publishing (same pattern as npm). Loop prevention via `paths-ignore` on all CI-written files.
+
+## Log
+
+Clean implementation, no issues.
+
+## Observations
+
+No pre-existing issues noticed.
