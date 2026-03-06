@@ -1,6 +1,6 @@
 {
   "name": "org.outernet.placeframe",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "displayName": "Placeframe",
   "description": "Visual Localization System for Unity",
   "unity": "6000.0",
@@ -20,6 +20,6 @@
     "com.unity.xr.arfoundation": "6.0.6",
     "com.unity.mathematics": "1.3.2",
     "com.unity.cloud.gltfast": "6.15.1",
-    "org.nuget.placeframeapiclient": "0.1.4"
+    "org.nuget.placeframeapiclient": "0.1.5"
   }
 }
