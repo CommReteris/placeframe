@@ -1,3 +1,10 @@
+---
+id: T9
+title: Unity 2022.3 LTS compatibility
+status: ready
+depends_on: []
+---
+
 # Unity 2022.3 LTS Compatibility for Placeframe Packages + AndroidMobile
 
 ## Context
@@ -152,3 +159,12 @@ The app's scripts (`CaptureController`, `AuthManager`, `CameraProvider` usage, e
 
 ### Risk: `ARAnchorManager.AddAnchor(Pose)` deprecation
 In late ARFoundation 5.x, `AddAnchor` may be `[Obsolete]` (warning, not error). If it was removed (unlikely), fallback is instantiating a `GameObject` with `ARAnchor` component at the desired pose. Verify at runtime.
+
+## Done when
+
+**Verifiable now (no special infra):**
+- `#if` gate compiles under basedpyright (no Python changes break)
+
+**Requires Unity (verify manually later):**
+- Project opens in 2022.3 without errors
+- APK builds

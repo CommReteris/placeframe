@@ -5,9 +5,11 @@ description: Reorganize commits on the current branch into clean, logical commit
 
 Reorganize the commits on the current branch into clean, logical commits suitable for PR review. Follow these steps:
 
+0. **Pre-flight**: Run the checks in `.claude/skills/shared/git-preflight.md`. Stop if any fail.
+
 1. **Determine the base:**
-   - Run `git merge-base origin/main HEAD` to find the true fork point. Use this as `<base>` throughout.
-   - If `origin/main` doesn't exist, fall back to `git merge-base main HEAD`.
+   - Check if `origin/<current-branch>` exists (`git rev-parse --verify origin/<branch>`). If so, use it directly as `<base>` — this limits tidying to unpushed commits only, preventing history rewrites that would require a force push.
+   - If the branch hasn't been pushed yet, fall back to `git merge-base origin/main HEAD` (or `git merge-base main HEAD` if `origin/main` doesn't exist).
 
 2. **Analyze the current state:**
    - Run `git log --oneline <base>..HEAD` to see all commits on this branch.
@@ -19,56 +21,71 @@ Reorganize the commits on the current branch into clean, logical commits suitabl
    - Read through all the changes and group them into logical, self-contained commits.
    - Each commit should represent one coherent change (a feature, a fix, a refactor, a config change, etc.).
    - Order commits so that earlier commits don't depend on later ones.
-   - Write a clear commit message for each planned commit following the commit message style guide below.
-   - Present the plan to the user and wait for approval before proceeding.
+   - **Never put prose files and code files in the same commit.** Prose files are markdown, text, skill files, and research notes. Code files are Python, configs, .gitignore, pyproject.toml. If a logical change spans both (e.g. a new feature + its SKILL.md), split into two commits.
+   - Read `.claude/skills/shared/commit-style.md` for commit message conventions.
+   - Write a clear commit message for each planned commit following the style guide.
+   - Do NOT present the plan for conversational approval — the Write tool permission prompt is the gate.
 
-## Commit message style guide
+4. **Write the commit plan:**
+   - First, **delete any existing `tidy-commits.json`** using the Bash tool (`rm -f tidy-commits.json`) so the user sees the new plan cleanly instead of a meaningless diff against an old version.
+   - Then use the Write tool to create a fresh `tidy-commits.json` in the repo root.
+   - The wrapper script (`uv run tidy-commits-wrapper`) handles backup, invariance checking, and rollback. The plan only declares commits.
+   - Read authors during analysis with `git log --format="%an <%ae>" <base>..HEAD`.
 
-- **Subject line**: Concise but specific (under 72 chars). Name the actual things that changed — don't hide details behind vague catch-alls like "update config" or "fix scripts".
-- **Body**: Use a bulleted list (`-`) of short phrases. State *what* changed, not *why*. No full sentences, no parenthetical justifications.
-- **Brevity**: Err heavily on the side of terse. "Fix label_type/link_type to NOT NULL" not "Fix label_type and link_type columns in nodes table to be NOT NULL (were incorrectly nullable)". "Remove openapi-generator-cli from docker/api dev deps" not "Remove openapi-generator-cli from docker/api dev dependencies — it was never used by the API service".
-- **Accuracy**: Name the specific things that changed. Don't hide bug fixes under vague phrasing.
-- **Structure**: Subject line summarizes the theme; bullets in the body cover specifics that wouldn't fit in the subject.
+   **JSON schema:**
+   ```json
+   {
+     "committer": { "name": "Full Name", "email": "email@example.com" },
+     "commits": [
+       {
+         "message": "Subject line\n\n- Body bullet",
+         "author": "Full Name <email@example.com>",
+         "checkout": ["path/to/file"],
+         "checkout_ref": { "abc123": ["path/to/file_at_that_commit"] },
+         "rename": { "old/path/file.md": "new/path/file.md" },
+         "delete": ["path/to/old_file"],
+         "content": { "path/to/partial_file": "full intermediate content" }
+       }
+     ]
+   }
+   ```
 
-4. **Create a backup branch:**
-   - Before doing anything destructive, create a backup branch as a **separate Bash tool call** so the user can see it:
-     `git branch <branch>-backup`
-   - This must be its own tool use — not part of the script — so the user sees "backup created" before anything else happens.
+   **Field reference:**
+   - `committer`: Sets `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` for all commits. Use the most common author from the branch.
+   - `message`: Full commit message. Use `\n` for newlines (it's JSON).
+   - `author`: Per-commit `--author` flag. When a new commit maps to a single original, use that commit's author. When merging multiple, use the earliest.
+   - `checkout`: Files or directories to `git checkout $BACKUP -- <files>`. Auto-staged by git. This covers most cases. **Every path must exist in the backup** — verify with the file analysis from step 2. Accepts directory pathspecs (e.g. `"src/module/"`) — git will restore all files under that directory. All paths are passed in a single command.
+   - `checkout_ref`: Dict of commit ref → list of file paths. Runs `git checkout <ref> -- <files>` for each ref. Use when a file's desired intermediate state matches a prior commit on the branch — avoids embedding full file content in the plan. The commit hashes come from the `git log` analysis in step 2.
+   - `rename`: Dict of old path → new path. Implicitly checks out the old path from the backup, creates parent directories, then runs `git mv`. Prefer over `checkout`+`delete` pairs for pure renames (same content, different path). Fall back to `checkout`+`delete` only when the rename also involves content changes.
+   - `delete`: Files to `git rm`. Use for deletions. Append a trailing `/` to a path (e.g. `"old/directory/"`) to trigger recursive deletion (`git rm -r`).
+   - `content`: Dict of filepath → literal file content string. Use for partial file splits where a file's changes need to appear in different commits (see step 5). The wrapper writes the content and runs `git add`. Prefer `checkout_ref` when the desired state matches a prior commit.
+   - Each commit must have at least one of `checkout`, `checkout_ref`, `rename`, `delete`, or `content`.
 
-5. **Ensure `tidy-commits.sh` is gitignored:**
-   - Before writing the script, add `tidy-commits.sh` to `.gitignore` (if not already there) and `git rm --cached tidy-commits.sh` if it's currently tracked.
-   - This keeps the script untracked so git won't block branch switches.
-   - Commit the `.gitignore` change to the current branch before running the script.
+   - **Do NOT include `tidy-commits.json` in any of the new commits.** It's a temporary artifact, not project code.
 
-6. **Write a shell script to build the commits:**
-   - First, **delete any existing `tidy-commits.sh`** using the Bash tool (`rm -f tidy-commits.sh`) so the user sees the new script cleanly instead of a meaningless diff against an old version.
-   - Then use the Write tool to create a fresh `tidy-commits.sh` in the repo root.
-   - The script should:
-     - `set -euo pipefail` for safety
-     - Build new commits on a **temporary branch** (e.g. `<branch>-tmp`) starting from `<base>`
-     - Use `git checkout <backup-branch> -- <files>` to pull files from the backup (which points at the original history). **NEVER use `git add -A` or `git add .`** — these will pick up untracked files (like the script itself). Instead, `git checkout ... -- <files>` already stages the files, so just run `git commit` directly without a separate add step.
-     - **Preserve original commit authors**: When a new commit maps to a single original commit, use `--author="Name <email>"` with the original commit's author. When a new commit merges multiple original commits, use the author from the earliest one (or the most common one if they differ). Read authors during analysis with `git log --format="%an <%ae>" <base>..HEAD`.
-     - **Set committer identity explicitly**: Export `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` at the top of the script to match the author. Environment variables (e.g. from a container) can override `git config`, so always set these explicitly.
-     - After all commits, verify: `git diff <tmp-branch> <backup-branch>` to confirm trees are identical
-     - On success, move the **original branch name** to the new commits: `git branch -f <branch> <tmp-branch>`
-     - Switch back to the original branch: `git checkout <branch>`
-     - Delete the temp branch: `git branch -d <tmp-branch>`
-     - Print the new commit log
-   - **Do NOT include `tidy-commits.sh` in any of the new commits.** It's a temporary utility, not project code.
-   - The end result: the user ends up on their original branch with clean history. The backup branch preserves the old history.
-   - Present the script to the user for review. They approve it once, then run it.
+5. **Handle partial file splits (if needed):**
+   - Sometimes a single file has changes belonging to different logical commits.
+   - **Prefer `checkout_ref`** when the desired intermediate state matches a prior commit on the branch. Use the commit hash from your `git log` analysis: `"checkout_ref": {"<hash>": ["config.py"]}`.
+   - Fall back to `content` when the intermediate state doesn't correspond to any single commit (e.g. a hand-crafted blend of changes).
+   - For the final commit that includes the file's ultimate state, use `checkout` to pull the final version from the backup.
+   - Example: if `config.py` has both a refactor change and a feature change, and the refactor was introduced in commit `abc123`, the refactor commit uses `"checkout_ref": {"abc123": ["config.py"]}` and the feature commit uses `"checkout": ["config.py"]`.
 
-7. **Handle partial file splits (if needed):**
-   - Sometimes a single file has changes belonging to different logical commits. This requires generating patches and applying specific hunks — which is fragile and hard to review in a script.
-   - **We don't have a reliable automated approach for this yet.** If the plan requires splitting a file across commits, flag this to the user and discuss how to handle it before writing the script.
-
-8. **Run the script** after user approval, then report the result. Do NOT delete the backup branch.
+6. **Run the wrapper** immediately after writing the plan: `uv run tidy-commits-wrapper`. Pass `--base <ref>` to override base detection (useful when the auto-detected base is wrong, e.g. after a force-push or when tidying from an arbitrary ancestor). Then report the result.
 
 ## Important rules
 
-- NEVER use `git rebase -i` — it requires interactive input. Instead, build commits from scratch on a new branch.
-- NEVER use `$()` command substitution or `for` loops over git output in Bash commands — these trigger permission prompts every time. Use single git commands (e.g., `git log --reverse --oneline --name-only`) instead.
+- NEVER use `git rebase -i` — it requires interactive input. Instead, the plan builds commits from scratch on a new branch.
 - NEVER force-push or delete branches without explicit user approval.
+- NEVER delete backup branches. The wrapper auto-numbers them (`-backup`, `-backup-2`, etc.) when previous backups exist.
 - NEVER modify commits on main.
-- If there are uncommitted changes, ask the user to commit or stash them first.
 - If the branch has only 1 commit already, ask the user if they still want to proceed.
+- **File renames**: Prefer the `rename` field for pure renames (same content, different path). Fall back to `checkout`+`delete` only when the rename also involves content changes. Check `git diff <base>..HEAD --stat` for renames.
+
+## Large-scale reorganizations
+
+When the branch has hundreds of commits or 1000+ changed files, manual JSON construction isn't feasible. Use programmatic plan generation instead:
+
+- **Directory pathspecs**: Use directory paths in `checkout` (e.g. `"src/module/"`) to restore entire subtrees in one entry instead of listing every file.
+- **Recursive delete**: Use trailing `/` in `delete` paths (e.g. `"old/directory/"`) to recursively remove directories.
+- **`--base` override**: If the auto-detected base is wrong (common after force-pushes or unusual branch topologies), pass `--base <ref>` to `uv run tidy-commits-wrapper`.
+- **Programmatic plan building**: Write a script or use Claude to generate the JSON plan programmatically from `git log` / `git diff` output. The plan schema is simple enough for code generation. Validate with `TidyCommitsPlan.model_validate_json()` before running the wrapper.
