@@ -1,15 +1,23 @@
 {
   "scopedRegistries": [
     {
-      "name": "Magic Leap",
+      "name": "npmjs",
       "url": "https://registry.npmjs.org",
       "scopes": [
-        "com.magicleap"
+        "com.magicleap",
+        "org.outernet"
+      ]
+    },
+    {
+      "name": "UnityNuGet",
+      "url": "https://unitynuget-registry.openupm.com",
+      "scopes": [
+        "org.nuget"
       ]
     }
   ],
   "dependencies": {
-    "com.cysharp.r3": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity",
+    "com.cysharp.r3": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity#1.2.9",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.fofx.nessle": "https://github.com/outernet-foundation/Nessle.git?path=Assets/Package/Core",
     "com.fofx.observething": "https://github.com/outernet-foundation/ObserveThing.git?path=Assets/Package/Core",
@@ -17,10 +25,10 @@
     "com.fofx.stateful": "https://github.com/epjecha/StatefulUnity.git?path=Assets/Package",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
     "com.magicleap.unitysdk": "2.5.0",
-    "com.placeframe.api-client": "file:C:/Users/epjec/Documents/Plerion/packages/generated/csharp/api-client/src/PlaceframeApiClient",
-    "com.placeframe.vps": "file:C:/Users/epjec/Documents/Plerion/packages/unity/Placeframe/Assets/Package/Core",
-    "com.placeframe.vps.arfoundation": "file:C:/Users/epjec/Documents/Plerion/packages/unity/Placeframe/Assets/Package/ARFoundation",
-    "com.placeframe.vps.magicleap": "file:C:/Users/epjec/Documents/Plerion/packages/unity/Placeframe/Assets/Package/MagicLeap",
+    "org.outernet.placeframe": "file:../../../packages/unity/Placeframe/Assets/Package/Core",
+    "org.outernet.placeframe.arfoundation": "file:../../../packages/unity/Placeframe/Assets/Package/ARFoundation",
+    "org.outernet.placeframe.magicleap": "file:../../../packages/unity/Placeframe/Assets/Package/MagicLeap",
+    "com.placeframe.api-client": "file:../../../packages/generated/csharp/api-client/src/PlaceframeApiClient",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.collab-proxy": "2.11.2",
     "com.unity.ide.rider": "3.0.38",
@@ -30,6 +38,7 @@
     "com.unity.render-pipelines.universal": "17.0.4",
     "com.unity.test-framework": "1.6.0",
     "com.unity.timeline": "1.8.10",
+    "com.unity.toolchain.linux-x86_64": "2.0.11",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.7",
     "com.unity.xr.arcore": "6.0.6",

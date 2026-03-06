@@ -1,28 +1,29 @@
 {
   "scopedRegistries": [
     {
-      "name": "Magic Leap",
+      "name": "npmjs",
       "url": "https://registry.npmjs.org",
       "scopes": [
-        "com.magicleap"
+        "com.magicleap",
+        "org.outernet"
       ]
     },
     {
-      "name": "Cesium",
-      "url": "https://unity.pkg.cesium.com",
+      "name": "UnityNuGet",
+      "url": "https://unitynuget-registry.openupm.com",
       "scopes": [
-        "com.cesium.unity"
+        "org.nuget"
       ]
     }
   ],
   "dependencies": {
-    "com.cesium.unity": "1.15.4",
-    "com.cysharp.r3": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity",
+    "org.outernet.cesium-unity": "1.15.3-linux.1",
+    "com.cysharp.r3": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity#1.2.9",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.cysharp.yetanotherhttphandler": "https://github.com/Cysharp/YetAnotherHttpHandler.git?path=src/YetAnotherHttpHandler#1.5.3",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
+    "org.outernet.placeframe": "file:../../../packages/unity/Placeframe/Assets/Package/Core",
     "com.placeframe.api-client": "file:../../../packages/generated/csharp/api-client/src/PlaceframeApiClient",
-    "com.placeframe.vps": "file:../../../packages/unity/Placeframe/Assets/Package/Core",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.cloud.gltfast": "6.14.1",
     "com.unity.collab-proxy": "2.11.2",
@@ -32,6 +33,7 @@
     "com.unity.render-pipelines.universal": "17.0.4",
     "com.unity.shadergraph": "17.0.4",
     "com.unity.timeline": "1.8.10",
+    "com.unity.toolchain.linux-x86_64": "2.0.11",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.7",
     "com.unity.modules.accessibility": "1.0.0",
