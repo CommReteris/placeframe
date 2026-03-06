@@ -60,15 +60,19 @@ CI workflow (`build-cesium-native.yml`) uses `unityci/editor` container with ser
 
 ## Next step
 
-Repackaging step added to workflow: downloads official `com.cesium.unity` v1.15.3 `.tgz`, extracts non-Linux binaries (Windows `.dll`, macOS `.dylib`, Android `.so`, iOS `.a` + `.meta` files), merges into package alongside Linux `.so` files. Linux `.so.meta` files updated with proper `PluginImporter` settings for multi-platform. Version bumped to `1.15.3-1`.
+CI is green — multi-platform package published to npmjs.org as `org.outernet.cesium-unity@1.15.3-1` via OIDC trusted publishing. Repackaging merges official Windows + Android binaries with Linux-built `.so` files (macOS/iOS/WSA excluded to stay under npm's 200 MB limit).
 
-Remaining work, in order:
+Completed:
 
 1. ~~Add repackaging step to workflow~~ done
 2. ~~Bump version and drop `-linux` qualifier~~ done (→ `1.15.3-1`)
-3. **Configure OIDC trusted publishing on npmjs.org** (manual, user action): go to npmjs.org → `org.outernet.cesium-unity` → Settings → Trusted publishing → add `outernet-foundation/placeframe` repo with workflow `build-cesium-native.yml`. This enables CI to publish without a long-lived token.
-4. **Test OIDC publish**: trigger workflow manually, confirm it publishes the new multi-platform version via OIDC.
-5. **Remove push trigger TODO**: delete the push trigger from `build-cesium-native.yml` (used for testing).
-6. **Update consumer manifests**: point at the new multi-platform version (`1.15.3-1`).
-7. **Remove committed binaries**: delete `packages/unity/com.cesium.unity/` from the repo once registry package is confirmed working.
-8. **Regenerate packages-lock.json**: open each Unity project in batchmode to pick up the registry package.
+3. ~~Configure OIDC trusted publishing on npmjs.org~~ done
+4. ~~Test OIDC publish~~ done (CI run passed, package published)
+5. ~~Update consumer manifests~~ done (MapRegistrationTool + Outernet.Client → `1.15.3-1`)
+6. ~~Remove committed binaries~~ done (deleted `.so` files, added to `.gitignore`)
+7. ~~Regenerate packages-lock.json~~ done (both projects, pre-existing compilation errors from stale `org.nuget.placeframeapiclient` — tracked in T86)
+
+Remaining:
+
+1. **Remove push trigger**: delete the push trigger from `build-cesium-native.yml` (used for testing, should be `workflow_dispatch` only before merging to main).
+2. **Unity compilation errors**: both consumer projects have pre-existing `error CS` from stale `org.nuget.placeframeapiclient@0.1.3` on npm (missing `NumInliers`, `InlierCoverage`, etc.). Tracked in T86.
