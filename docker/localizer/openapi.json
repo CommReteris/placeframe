@@ -167,11 +167,27 @@
           },
           "reprojection_error_median": {
             "type": "number"
+          },
+          "num_inliers": {
+            "type": "integer"
+          },
+          "num_correspondences": {
+            "type": "integer"
+          },
+          "num_matches": {
+            "type": "integer"
+          },
+          "inlier_coverage": {
+            "type": "number"
           }
         },
         "type": "object",
         "required": [
+          "inlier_coverage",
           "inlier_ratio",
+          "num_correspondences",
+          "num_inliers",
+          "num_matches",
           "reprojection_error_median"
         ],
         "title": "LocalizationMetrics"

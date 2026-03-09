@@ -77,6 +77,5 @@
   "basedpyright.analysis.diagnosticMode": "workspace",
   "pgFormatter.configFile": "${workspaceFolder}/pg_format.conf",
   "ruff.nativeServer": "on",
-  "ruff.importStrategy": "useBundled",
-  "python-envs.pythonProjects": []
+  "ruff.importStrategy": "useBundled"
 }

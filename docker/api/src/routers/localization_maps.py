@@ -13,7 +13,7 @@ from datamodels.public_dtos import (
     localization_map_from_dto,
     localization_map_to_dto,
 )
-from datamodels.public_tables import LocalizationMap, OrchestrationStatus
+from datamodels.public_tables import LocalizationMap, LocalizationMapCameraPosition, OrchestrationStatus
 from litestar import Router, delete, get, patch, post
 from litestar.di import Provide
 from litestar.exceptions import ClientException, HTTPException, NotFoundException
@@ -21,7 +21,8 @@ from litestar.params import Parameter
 from litestar.status_codes import HTTP_409_CONFLICT
 from numpy import load
 from scipy.spatial.transform import Rotation
-from sqlalchemy import exists, func, select, text
+from sqlalchemy import delete as sqlalchemy_delete
+from sqlalchemy import exists, func, insert, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_session
@@ -41,38 +42,37 @@ _TRANSFORM_FIELDS = {"position_x", "position_y", "position_z", "rotation_x", "ro
 
 async def _sync_camera_positions(session: AsyncSession, row: LocalizationMap) -> None:
     """Compute world-space camera positions from the reconstruction's frame poses and store them in the DB."""
-    npz_bytes = s3_client.get_object(
-        Bucket=settings.reconstructions_bucket,
-        Key=f"{row.reconstruction_id}/sfm_model/frame_poses.npz",
+    frame_poses_bytes = s3_client.get_object(
+        Bucket=settings.reconstructions_bucket, Key=f"{row.reconstruction_id}/sfm_model/frame_poses.npz"
     )["Body"].read()
 
-    with load(BytesIO(npz_bytes)) as npz:
-        recon_positions = npz["positions"]  # (N, 3)
+    with load(BytesIO(frame_poses_bytes)) as npz:
+        frame_positions = npz["positions"]  # (N, 3)
 
     rotation_matrix = Rotation.from_quat([row.rotation_x, row.rotation_y, row.rotation_z, row.rotation_w]).as_matrix()
     translation = [row.position_x, row.position_y, row.position_z]
-    world_positions = (rotation_matrix @ recon_positions.T).T + translation
+    world_positions = (rotation_matrix @ frame_positions.T).T + translation
 
     await session.execute(
-        text("DELETE FROM localization_map_camera_positions WHERE localization_map_id = :map_id"),
-        {"map_id": row.id},
+        sqlalchemy_delete(LocalizationMapCameraPosition).where(
+            LocalizationMapCameraPosition.localization_map_id == row.id
+        )
     )
 
-    await session.execute(
-        text(
-            "INSERT INTO localization_map_camera_positions "
-            "(localization_map_id, tenant_id, position_x, position_y, position_z) "
-            "SELECT :map_id, :tenant_id, "
-            "unnest(:xs::double precision[]), unnest(:ys::double precision[]), unnest(:zs::double precision[])"
-        ),
-        {
-            "map_id": row.id,
-            "tenant_id": row.tenant_id,
-            "xs": [float(p[0]) for p in world_positions],
-            "ys": [float(p[1]) for p in world_positions],
-            "zs": [float(p[2]) for p in world_positions],
-        },
-    )
+    if len(world_positions) > 0:
+        await session.execute(
+            insert(LocalizationMapCameraPosition),
+            [
+                {
+                    "localization_map_id": row.id,
+                    "tenant_id": row.tenant_id,
+                    "position_x": float(p[0]),
+                    "position_y": float(p[1]),
+                    "position_z": float(p[2]),
+                }
+                for p in world_positions
+            ],
+        )
 
 
 @post("")
