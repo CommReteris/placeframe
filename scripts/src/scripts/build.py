@@ -99,7 +99,9 @@ def build(
     mode: Mode = typer.Option("local", "--mode", help="local: updates .env.lock.local; ci: updates .env.lock."),
     gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm|none"),
     no_cache: bool = typer.Option(False, "--no-cache", help="Force rebuild by disabling cache usage."),
-    targets_opt: list[str] | None = typer.Option(None, "--targets", "-t", help="Build only these services (from compose.bake.yml)."),
+    targets_opt: list[str] | None = typer.Option(
+        None, "--targets", "-t", help="Build only these services (from compose.bake.yml)."
+    ),
 ) -> None:
     # Read bake, compose, and lock files
     bake_data: dict[str, Any] = yaml.safe_load(BAKE_FILE.read_text(encoding="utf-8"))
@@ -212,9 +214,10 @@ def build(
 
     # Lock digests for baked images
     for name in baked_images:
-        local_lock_data[name.upper().replace("-", "_") + "_IMAGE"] = (
-            f"{baked_images[name]['image.name']}@{baked_images[name]['containerimage.digest']}"
-        )
+        image_ref = f"{baked_images[name]['image.name']}"
+        if mode != "local":
+            image_ref += f"@{baked_images[name]['containerimage.digest']}"
+        local_lock_data[name.upper().replace("-", "_") + "_IMAGE"] = image_ref
 
     # Write lock
     _write_lock_file(LOCK_FILE if mode == "ci" else LOCAL_LOCK_FILE, local_lock_data)
