@@ -21,10 +21,9 @@ namespace Placeframe.Core
 {
     public static class VisualPositioningSystem
     {
-        private const int MinInliers = 20;
-        private const float MinInlierRatio = 0.3f;
-        private const float MinInlierCoverage = 0.05f;
-        private const float MaxReprojectionErrorMedian = 8.0f;
+        private const int MinInliers = 175;
+        private const float MinAdjustmentTranslationDelta = .3f;
+        private const float MinAdjustmentRotationDelta = 5f;
 
         private static Action<string> _logCallback;
         private static Action<string> _warnCallback;
@@ -195,11 +194,8 @@ namespace Placeframe.Core
             // TODO: Handle multiple results
             var localizationResult = localizationResults.FirstOrDefault();
 
-            if (localizationResult.Metrics.NumInliers < MinInliers
-                || localizationResult.Metrics.InlierRatio < MinInlierRatio
-                || localizationResult.Metrics.InlierCoverage < MinInlierCoverage
-                || localizationResult.Metrics.ReprojectionErrorMedian > MaxReprojectionErrorMedian)
-                throw new Exception($"Localization rejected based on metrics.\nNum Inliers: {localizationResult.Metrics.NumInliers}\nInlier Ratio: {localizationResult.Metrics.InlierRatio}\nInlier Coverage: {localizationResult.Metrics.InlierCoverage}\nReprojection Error Median: {localizationResult.Metrics.ReprojectionErrorMedian}");
+            if (localizationResult.Metrics.NumInliers < MinInliers)
+                throw new Exception($"Localization rejected based on metrics.\nNum Inliers: {localizationResult.Metrics.NumInliers}");
 
             // Get the transform from the map to the camera (The inverse of the camera's pose in the map)
             var translationCameraFromMap = localizationResult.CameraFromMapTransform.Translation.ToDouble3();
@@ -243,10 +239,18 @@ namespace Placeframe.Core
 
             await UniTask.SwitchToMainThread();
 
-            _unityFromEcefTransform = math.mul(
+            var newUnityFromEcefTransform = math.mul(
                 transformUnityFromMap,
                 math.inverse(Double4x4.FromTranslationRotation(translationEcefFromMap, rotationEcefFromMap))
             );
+
+            var adjustmentTranslationDelta = math.length(newUnityFromEcefTransform.Position() - _unityFromEcefTransform.Position());
+            var adjustmentRotationDelta = math.angle(newUnityFromEcefTransform.RotationQuaternion(), _unityFromEcefTransform.RotationQuaternion()) * Mathf.Rad2Deg;
+
+            if (adjustmentTranslationDelta < MinAdjustmentTranslationDelta && adjustmentRotationDelta < MinAdjustmentRotationDelta)
+                throw new Exception($"Localization rejected because the adjustment would be too minor. Adjustment distance: {adjustmentTranslationDelta}, Adjustment rotation: {adjustmentRotationDelta}");
+
+            _unityFromEcefTransform = newUnityFromEcefTransform;
             _ecefFromUnityTransform = math.inverse(_unityFromEcefTransform);
 
             MostRecentMetrics = localizationResult.Metrics;
