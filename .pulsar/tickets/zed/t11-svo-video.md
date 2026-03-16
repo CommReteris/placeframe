@@ -1,7 +1,7 @@
 ---
 id: T11
 title: SVO video capture refactor
-status: ready
+status: in-progress
 depends_on: [T10]
 ---
 

@@ -39,20 +39,17 @@ Implement `--dry-run` first: the flag makes the script print every shell command
 Runs on the user's host PC (not the Jetson). Uses `common.run_command.run_command` and `typer`, consistent with other scripts in the `scripts` package. Default host: `user@192.168.55.1`.
 
 Flow:
-1. **Probe** — `ssh {host} "cat /etc/nv_tegra_release"` — detect L4T major revision.
-2. **Map** — Parse L4T revision to image tag (`R36.*` → `jp6.2`, `R35.*` → `jp5.1`).
-3. **Pull** — `docker pull ghcr.io/outernet-foundation/placeframe/zed-capture:{tag}` on the host.
-4. **Save** — `docker save -o /tmp/zed-capture.tar ghcr.io/.../zed-capture:{tag}`.
-5. **Render compose** — Read `zed/compose.rig.yml`, substitute the image tag, write to a temp file.
-6. **Transfer** — `scp /tmp/zed-capture.tar {host}:/tmp/zed-capture.tar` and `scp {compose_tmp} {host}:/tmp/compose.rig.yml`.
-7. **Install** — `ssh {host} "docker load -i /tmp/zed-capture.tar && docker compose -f /tmp/compose.rig.yml up -d"`.
-8. **Cleanup** — Delete `/tmp/zed-capture.tar` locally; `ssh {host} "rm /tmp/zed-capture.tar"`.
+1. **Pull** — `docker pull ghcr.io/outernet-foundation/placeframe/zed-capture:latest` on the host.
+2. **Save** — `docker save -o /tmp/zed-capture.tar ghcr.io/.../zed-capture:latest`.
+3. **Transfer** — `scp /tmp/zed-capture.tar {host}:/tmp/zed-capture.tar` and `scp zed/compose.rig.yml {host}:/tmp/compose.rig.yml`.
+4. **Install** — `ssh {host} "docker load -i /tmp/zed-capture.tar && docker compose -f /tmp/compose.rig.yml up -d"`.
+5. **Cleanup** — Delete `/tmp/zed-capture.tar` locally; `ssh {host} "rm /tmp/zed-capture.tar"`.
 
 **Verify dry-run:**
 ```bash
 uv run deploy-rig --dry-run --host user@192.168.55.1
 ```
-Expect: each step prints the command that would be executed, in order. No connections made. Confirm the L4T-to-tag mapping logic is correct by reading the printed output. Green without a ZED Box.
+Expect: each step prints the command that would be executed, in order. No connections made. Green without a ZED Box.
 
 **Static analysis:**
 ```bash
@@ -63,12 +60,12 @@ Expect: exit 0.
 
 ## 3b. Create `zed/compose.rig.yml`
 
-Minimal compose for the ZED Box. Image tag is a template placeholder substituted by `deploy_rig.py` before scp. No separate test needed — the file is validated implicitly when `deploy_rig.py --dry-run` reads and renders it.
+Minimal compose for the ZED Box. No template substitution needed — single image tag.
 
 ```yaml
 services:
   zed-capture:
-    image: ghcr.io/outernet-foundation/placeframe/zed-capture:{TAG}
+    image: ghcr.io/outernet-foundation/placeframe/zed-capture:latest
     network_mode: host
     privileged: true
     devices:
@@ -80,8 +77,6 @@ services:
 volumes:
   captures:
 ```
-
-Re-run `uv run deploy-rig --dry-run --host user@192.168.55.1` after creating this file to confirm the rendered compose output looks correct.
 
 ## 3c. Delete `zed/install.py`
 
