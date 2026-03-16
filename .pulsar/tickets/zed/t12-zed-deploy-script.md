@@ -1,7 +1,7 @@
 ---
 id: T12
 title: Zero-internet ZED deployment script
-status: ready
+status: in-review
 depends_on: [T10]
 ---
 
@@ -113,3 +113,13 @@ Expect: exit 0 (no dangling imports).
 
 **Requires ZED Box (verify manually later):**
 - Full deploy completes
+
+## Log
+
+Clean implementation, no issues.
+
+## Observations
+
+- `zed/install.py` used `common.bash.bash` (not `common.run_command`) and `typer.run` instead of `typer.Typer()` — both are older patterns. The old file is now deleted so no action needed.
+- `scripts/src/scripts/list_debug_targets.py` uses raw `subprocess.check_output` instead of `common.run_command`. Pre-existing, not introduced by this branch.
+- `scripts/src/scripts/forward_unity_android_debug_port.py` uses `common.bash.bash_output` instead of `common.run_command`. Pre-existing.
