@@ -1,3 +1,4 @@
+using System.Numerics;
 using FofX.Stateful;
 
 namespace Plerion.MakeItSing
@@ -16,19 +17,19 @@ namespace Plerion.MakeItSing
     {
         public UserSettings userSettings { get; private set; }
         public ObservablePrimitive<bool> loggedIn { get; private set; }
-        public ObservablePrimitive<bool> readyToJoin { get; private set; }
         public ConnectionState nameServerConnection { get; private set; }
         public ConnectionState roomConnection { get; private set; }
         public ObservablePrimitive<bool> isMasterClient { get; private set; }
         public ObservablePrimitive<int> playerID { get; private set; }
         public ObservableList<ObservablePrimitive<string>> activeRooms { get; private set; }
+        public ObservablePrimitive<Vector2> roughGrainedLocation { get; private set; }
 
         protected override void PostInitializeInternal()
         {
             nameServerConnection.shouldBeConnected.RegisterDerived(
-                _ => nameServerConnection.shouldBeConnected.value = readyToJoin.value && !string.IsNullOrEmpty(nameServerConnection.connectionString.value),
+                _ => nameServerConnection.shouldBeConnected.value = loggedIn.value && !string.IsNullOrEmpty(nameServerConnection.connectionString.value),
                 ObservationScope.All,
-                readyToJoin,
+                loggedIn,
                 nameServerConnection.connectionString
             );
 

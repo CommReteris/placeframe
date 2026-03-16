@@ -165,6 +165,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &405281355 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 117491871233750510, guid: 85a2c8901e7acfe45932592c50cdb76c, type: 3}
+  m_PrefabInstance: {fileID: 1971253309}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -317,6 +322,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _arAnchorManager: {fileID: 1971253312}
   _arCameraManager: {fileID: 1971253310}
+  _controllers:
+  - {fileID: 405281355}
+  - {fileID: 841283076}
 --- !u!4 &520039903
 Transform:
   m_ObjectHideFlags: 0
@@ -381,6 +389,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &841283076 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 117491873087747345, guid: 85a2c8901e7acfe45932592c50cdb76c, type: 3}
+  m_PrefabInstance: {fileID: 1971253309}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &998282262
 GameObject:
   m_ObjectHideFlags: 0

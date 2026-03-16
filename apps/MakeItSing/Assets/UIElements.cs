@@ -233,12 +233,15 @@ namespace Plerion.MakeItSing
                                         childControlHeight = Value(true),
                                         childControlWidth = Value(true),
                                         spacing = Value(10f),
+                                        childAlignment = Value(TextAnchor.LowerLeft),
+                                        padding = Value(new RectOffset(0, 0, 0, 10)),
                                         layout =
                                         {
-                                            anchorMin = Value(new Vector2(0, 0f)),
-                                            anchorMax = Value(new Vector2(1, 0.5f)),
-                                            offsetMin = Value(new Vector2(0, 0)),
-                                            offsetMax = Value(new Vector2(0, 40f)) // center the input field in the middle of the screen
+                                            anchorMin = Value(new Vector2(0f, 0.5f)),
+                                            anchorMax = Value(new Vector2(1f, 1f)),
+                                            offsetMin = Value(new Vector2(0f, 0f)),
+                                            offsetMax = Value(new Vector2(0f, 0f)),
+                                            pivot = Value(new Vector2(0.5f, 0f))
                                         },
                                         children = List(
                                             Text(new() { value = Value("Join Room") }),
@@ -263,6 +266,7 @@ namespace Plerion.MakeItSing
                                                             }),
                                                             Button(new()
                                                             {
+                                                                onClick = () => props.onRoomSelected?.Invoke(internalRoomName.value),
                                                                 content = List(
                                                                     Text(new() { value = Value("Create") })
                                                                 )
@@ -270,83 +274,85 @@ namespace Plerion.MakeItSing
                                                         )
                                                     })
                                                 )
-                                            }),
-                                            ScrollRect(new()
+                                            })
+                                        )
+                                    }),
+                                    ScrollRect(new()
+                                    {
+                                        horizontal = Value(false),
+                                        vertical = Value(true),
+                                        layout =
+                                        {
+                                            anchorMin = Value(new Vector2(0, 0f)),
+                                            anchorMax = Value(new Vector2(1, 0.5f)),
+                                            offsetMin = Value(new Vector2(0, 0)),
+                                            offsetMax = Value(new Vector2(0, 0))
+                                        },
+                                        content = Value(VerticalLayout(new()
+                                        {
+                                            childControlWidth = Value(true),
+                                            childControlHeight = Value(true),
+                                            childForceExpandWidth = Value(true),
+                                            layout =
                                             {
-                                                horizontal = Value(false),
-                                                vertical = Value(true),
-                                                layout =
+                                                pivot = Value(new Vector2(0, 1)),
+                                                anchorMin = Value(new Vector2(0, 1)),
+                                                anchorMax = Value(new Vector2(1, 1)),
+                                                offsetMin = Value(new Vector2(0, 0)),
+                                                offsetMax = Value(new Vector2(0, 0)),
+                                                fitContentVertical = Value(UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize)
+                                            },
+                                            children = List(
+                                                VerticalLayout(new()
                                                 {
-                                                    flexibleHeight = Value(true),
-                                                    flexibleWidth = Value(true)
-                                                },
-                                                content = Value(VerticalLayout(new()
-                                                {
-                                                    childControlWidth = Value(true),
+                                                    element = { active = props.activeRooms?.ObservableCount().ObservableSelect(x => x > 0) },
                                                     childControlHeight = Value(true),
+                                                    childControlWidth = Value(true),
                                                     childForceExpandWidth = Value(true),
-                                                    layout =
-                                                    {
-                                                        pivot = Value(new Vector2(0, 1)),
-                                                        anchorMin = Value(new Vector2(0, 1)),
-                                                        anchorMax = Value(new Vector2(1, 1)),
-                                                        offsetMin = Value(new Vector2(0, 0)),
-                                                        offsetMax = Value(new Vector2(0, 0)),
-                                                        fitContentVertical = Value(UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize)
-                                                    },
+                                                    spacing = Value(10f),
                                                     children = List(
+                                                        Text(new() { value = Value("Active") }),
                                                         VerticalLayout(new()
                                                         {
-                                                            element = { active = props.activeRooms.ObservableCount().ObservableSelect(x => x > 0) },
                                                             childControlHeight = Value(true),
                                                             childControlWidth = Value(true),
                                                             childForceExpandWidth = Value(true),
                                                             spacing = Value(10f),
-                                                            children = List(
-                                                                Text(new() { value = Value("Active") }),
-                                                                VerticalLayout(new()
-                                                                {
-                                                                    childControlHeight = Value(true),
-                                                                    childControlWidth = Value(true),
-                                                                    childForceExpandWidth = Value(true),
-                                                                    spacing = Value(10f),
-                                                                    children = props.activeRooms.CreateDynamic(x => Button(new()
-                                                                    {
-                                                                        content = List(Text(new() { value = Value(x), })),
-                                                                        onClick = () => props.onRoomSelected?.Invoke(x)
-                                                                    }))
-                                                                })
-                                                            )
-                                                        }),
-                                                        VerticalLayout(new()
-                                                        {
-                                                            element = {
-                                                                active = props.recentRooms.AsObservable().ObservableCount().ObservableSelect(x => x != 0)
-                                                            },
-                                                            childControlHeight = Value(true),
-                                                            childControlWidth = Value(true),
-                                                            spacing = Value(10f),
-                                                            children = List(
-                                                                Text(new() { value = Value("Recent") }),
-                                                                VerticalLayout(new()
-                                                                {
-                                                                    childControlHeight = Value(true),
-                                                                    childControlWidth = Value(true),
-                                                                    childForceExpandWidth = Value(true),
-                                                                    spacing = Value(10f),
-                                                                    children = props.recentRooms.AsObservable()
-                                                                        .CreateDynamic(x => Button(new()
-                                                                        {
-                                                                            content = List(Text(new() { value = Value(x), })),
-                                                                            onClick = () => props.onRoomSelected?.Invoke(x)
-                                                                        }))
-                                                                })
-                                                            )
+                                                            children = props.activeRooms?.ObservableCreate(x => Button(new()
+                                                            {
+                                                                content = List(Text(new() { value = Value(x), })),
+                                                                onClick = () => props.onRoomSelected?.Invoke(x)
+                                                            }))
                                                         })
                                                     )
-                                                }))
-                                            })
-                                        )
+                                                }),
+                                                VerticalLayout(new()
+                                                {
+                                                    element = {
+                                                        active = props.recentRooms?.ObservableCount().ObservableSelect(x => x != 0)
+                                                    },
+                                                    childControlHeight = Value(true),
+                                                    childControlWidth = Value(true),
+                                                    spacing = Value(10f),
+                                                    children = List(
+                                                        Text(new() { value = Value("Recent") }),
+                                                        VerticalLayout(new()
+                                                        {
+                                                            childControlHeight = Value(true),
+                                                            childControlWidth = Value(true),
+                                                            childForceExpandWidth = Value(true),
+                                                            spacing = Value(10f),
+                                                            children = props.recentRooms?
+                                                                .ObservableCreate(x => Button(new()
+                                                                {
+                                                                    content = List(Text(new() { value = Value(x), })),
+                                                                    onClick = () => props.onRoomSelected?.Invoke(x)
+                                                                }))
+                                                        })
+                                                    )
+                                                })
+                                            )
+                                        }))
                                     })
                                 )
                             }

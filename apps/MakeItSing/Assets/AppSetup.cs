@@ -30,6 +30,11 @@ namespace Plerion.MakeItSing
 
             Instantiate(Prefabs.LocalizationMapManager);
 
+#if !PLERION_MAGIC_LEAP
+            foreach (var controller in SceneReferences.Controllers)
+                controller.SetActive(false);
+#endif
+
             gameObject.AddComponent<App>();
             gameObject.AddComponent<PhotonConnectionManager>();
             gameObject.AddComponent<SettingsManager>();
@@ -41,7 +46,10 @@ namespace Plerion.MakeItSing
                 x.Add().value = "demo2";
                 x.Add().value = "Let's do this!";
                 x.Add().value = "Join here";
+                x.Add().value = "new thing";
             });
+
+            App.state.nameServerConnection.connectionString.ExecuteSet("ad42c298-520b-4fb9-8aa7-ec0aa825714e");
 
             Destroy(this);
         }

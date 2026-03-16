@@ -78,8 +78,8 @@ namespace Plerion.MakeItSing
                                 {
                                     layout = FillParentProps(),
                                     roomName = App.state.roomConnection.connectionString.ToObservable(),
-                                    recentRooms = App.state.userSettings.recentRooms.ToObservable(),
                                     activeRooms = App.state.activeRooms.ToObservable(),
+                                    recentRooms = App.state.userSettings.recentRooms.ToObservable().ObservableExcept(App.state.activeRooms.ToObservable()),
                                     onRoomSelected = x => App.state.roomConnection.connectionString.ExecuteSet(x)
                                 });
                             }
