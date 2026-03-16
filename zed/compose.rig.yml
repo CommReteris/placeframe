@@ -1,0 +1,13 @@
+services:
+  zed-capture:
+    image: ghcr.io/outernet-foundation/placeframe/zed-capture:latest
+    network_mode: host
+    privileged: true
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    volumes:
+      - captures:/root/captures
+    restart: unless-stopped
+
+volumes:
+  captures:
