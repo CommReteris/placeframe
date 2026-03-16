@@ -16,6 +16,7 @@ namespace Outernet.Client
 {
     public class AppSetup : MonoBehaviour
     {
+        private static readonly string AUTH_AUDIENCE = "placeframe-dev";
         public PrefabSystem prefabSystem;
         public SceneReferences sceneReferences;
         public LocalizationMapManager localizationMapManager;
@@ -53,7 +54,7 @@ namespace Outernet.Client
             UnityEnv env = UnityEnv.GetOrCreateInstance();
 
             Auth.Initialize(
-                env.placeframeAuthAudience,
+                AUTH_AUDIENCE,
                 x => Log.Debug(LogGroup.Default, x),
                 x => Log.Warn(LogGroup.Default, x),
                 x => Log.Error(LogGroup.Default, x)
@@ -110,7 +111,7 @@ namespace Outernet.Client
 
             VisualPositioningSystem.Initialize(
                 GetProvider(),
-                env.placeframeAuthAudience,
+                AUTH_AUDIENCE,
                 x => Log.Debug(LogGroup.Default, x),
                 x => Log.Warn(LogGroup.Default, x),
                 x => Log.Error(LogGroup.Default, x)

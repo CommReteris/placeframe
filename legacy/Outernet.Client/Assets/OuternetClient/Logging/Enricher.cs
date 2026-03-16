@@ -49,7 +49,7 @@ namespace Outernet.Client
             logEvent.AddPropertyIfAbsent(new LogEventProperty("message", new ScalarValue(logEvent.MessageTemplate.Render(logEvent.Properties))));
             logEvent.AddPropertyIfAbsent(new LogEventProperty("deviceName", new ScalarValue(Logger.DeviceName)));
 
-            var room = ConnectionManager.RoomConnectionRequested.Value;
+            var room = ConnectionManager.RoomConnectionRequested?.Value;
             if (room != null)
             {
                 logEvent.AddOrUpdateProperty(propertyFactory.CreateProperty("room", room));
@@ -113,29 +113,34 @@ namespace Outernet.Client
             return new DictionaryValue(properties);
         }
 
+        private static int _diagCount = 0;
+
         SequenceValue SerilogStackTrace(Exception exception = null)
         {
+            bool diag = _diagCount < 3;
+            _diagCount++;
+            if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", "[EnricherDiag] SerilogStackTrace entry");
+
             var stackTrace = exception != null
                 ? new StackTrace(exception, true)
                 : new StackTrace(true);
 
-            var frames = stackTrace.GetFrames().AsEnumerable();
-            // var lastHiddenFrame = frames
-            //     .Select((value, index) => new { value, index })
-            //     .LastOrDefault(frame =>
-            //         frame.value.GetMethod() != null &&
-            //         frame.value.GetMethod().GetCustomAttributes(typeof(InnerFramesHiddenFromStackTraceAttribute), false).Length > 0);
+            if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] stackTrace null? {stackTrace == null}");
 
-            // if (lastHiddenFrame != null)
-            // {
-            //     frames = frames.Skip(lastHiddenFrame.index + 1);
-            // }
+            var rawFrames = stackTrace.GetFrames();
+            if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] GetFrames() null? {rawFrames == null}, count={rawFrames?.Length}");
 
-            return new SequenceValue(frames.Select(frame =>
+            var frames = (rawFrames ?? Array.Empty<StackFrame>()).AsEnumerable();
+
+            if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] unityProjectRoot null? {unityProjectRoot == null}, value={unityProjectRoot}");
+
+            var result = new SequenceValue(frames.Select((frame, index) =>
             {
-                var method = frame.GetMethod();
+                if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] frame[{index}] null? {frame == null}");
 
-                // If we couldn't determine the method name, enrich with a method signature of "<unknown method>"
+                var method = frame.GetMethod();
+                if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] frame[{index}] GetMethod() null? {method == null}");
+
                 if (method == null)
                 {
                     return new DictionaryValue(new Dictionary<ScalarValue, LogEventPropertyValue>
@@ -144,18 +149,34 @@ namespace Outernet.Client
                     });
                 }
 
-                var methodParameters = method.GetParameters();
-                var methodSignature = BuildMethodName(method);
-                methodSignature += methodParameters.Length == 0 ? "()" : $"({string.Join(", ", methodParameters.Select(parameter => parameter.ParameterType.Name))})";
+                if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] frame[{index}] method.Name={method.Name}, DeclaringType null? {method.DeclaringType == null}, DeclaringType={method.DeclaringType}");
 
-                // Enrich with the method signature
+                var methodParameters = method.GetParameters();
+                if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] frame[{index}] GetParameters() null? {methodParameters == null}, count={methodParameters?.Length}");
+
+                if (methodParameters != null)
+                {
+                    for (int i = 0; i < methodParameters.Length; i++)
+                    {
+                        if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] frame[{index}] param[{i}] null? {methodParameters[i] == null}, ParameterType null? {methodParameters[i]?.ParameterType == null}, Name={methodParameters[i]?.ParameterType?.Name}");
+                    }
+                }
+
+                if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] frame[{index}] calling BuildMethodName");
+                var methodSignature = BuildMethodName(method);
+                if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] frame[{index}] BuildMethodName returned: {methodSignature}");
+
+                methodSignature += methodParameters.Length == 0 ? "()" : $"({string.Join(", ", methodParameters.Select(parameter => parameter.ParameterType.Name))})";
+                if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] frame[{index}] full signature: {methodSignature}");
+
                 var properties = new Dictionary<ScalarValue, LogEventPropertyValue>
                 {
                     { methodSignatureKey, new ScalarValue(methodSignature) }
                 };
 
-                // Enrich with the file name and line number, if available
                 var fileName = frame.GetFileName();
+                if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] frame[{index}] fileName={fileName}");
+
                 if (fileName != null && fileName != string.Empty)
                 {
                     fileName = Path.GetFullPath(fileName);
@@ -170,6 +191,9 @@ namespace Outernet.Client
 
                 return new DictionaryValue(properties);
             }));
+
+            if (diag) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] SerilogStackTrace call #{_diagCount} completed OK");
+            return result;
         }
 
         private static string BuildMethodName(MethodBase method)
@@ -179,28 +203,32 @@ namespace Outernet.Client
             var methodName = method.Name;
             var type = method.DeclaringType;
 
-            // If this is a generic method, append the generic arguments to the method name
+            if (_diagCount <= 3) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] BuildMethodName: methodName={methodName}, IsGenericMethod={method.IsGenericMethod}, DeclaringType null? {type == null}, DeclaringType={type}");
+
             if (method.IsGenericMethod)
             {
-                methodName += $"<{string.Join(", ", method.GetGenericArguments().Select(arg => arg.Name))}>";
+                var genericArgs = method.GetGenericArguments();
+                if (_diagCount <= 3) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] BuildMethodName: GetGenericArguments() null? {genericArgs == null}, count={genericArgs?.Length}");
+                methodName += $"<{string.Join(", ", genericArgs.Select(arg => arg.Name))}>";
             }
 
             if (type != null)
             {
                 var typeName = type.Name;
+                if (_diagCount <= 3) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] BuildMethodName: typeName={typeName}, IsNested={type.IsNested}");
 
-                // If this is a lambda method, use a less cryptic name
                 if (typeName.StartsWith("<>c"))
                 {
+                    if (_diagCount <= 3) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] BuildMethodName: lambda type, type.DeclaringType null? {type.DeclaringType == null}, type.DeclaringType={type.DeclaringType}");
                     var match = anonymousFunctionRegex.Match(methodName);
                     var enclosingMethodName = match.Groups["method"].Value;
                     var lambdaIndex = match.Groups["index"].Value;
                     return $"{BuildTypeName(type.DeclaringType)}.{enclosingMethodName}+[Anonymous_{lambdaIndex}]";
                 }
 
-                // If this is an async state machine method, use a less cryptic name
                 if (typeName.Contains("d__"))
                 {
+                    if (_diagCount <= 3) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] BuildMethodName: async SM type, type.DeclaringType null? {type.DeclaringType == null}, type.DeclaringType={type.DeclaringType}");
                     var match = asyncStateMachineRegex.Match(typeName);
                     var originalMethodName = match.Groups["method"].Value;
                     return $"{BuildTypeName(type.DeclaringType)}.{originalMethodName}+[AsyncStateMachine].{methodName}";
@@ -214,6 +242,8 @@ namespace Outernet.Client
 
         private static string BuildTypeName(Type type)
         {
+            if (_diagCount <= 3) Logger.defaultUnityLogHandler.LogFormat(LogType.Log, null, "{0}", $"[EnricherDiag] BuildTypeName: type null? {type == null}, type={type}");
+
             string typeName = type.Name;
 
             // If this is a generic type, append the generic arguments to the type name

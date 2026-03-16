@@ -38,6 +38,33 @@ namespace Outernet.Client
             BuildMain("AndroidMobile");
         }
 
+        public static void BuildForWin64()
+        {
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
+            PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}-{BuildInfo.CommitSha}";
+
+            string outputPath = "Build/Win64/Outernet.Client.exe";
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+
+            BuildReport report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = new[] { "Assets/OuternetClient/Main.unity" },
+                locationPathName = outputPath,
+                target = BuildTarget.StandaloneWindows64,
+                targetGroup = BuildTargetGroup.Standalone,
+            });
+
+            SerializableBuildReport serializableReport = new SerializableBuildReport();
+            serializableReport.result = report.summary.result.ToString();
+            (serializableReport.steps, serializableReport.messages) = BuildStepTree(new List<BuildStep>(report.steps), -1);
+            File.WriteAllText("Build/Win64/BuildReport.json", JsonConvert.SerializeObject(serializableReport, Formatting.Indented));
+
+            if (report.summary.result != BuildResult.Succeeded)
+            {
+                EditorApplication.Exit(1);
+            }
+        }
+
         // [MenuItem("Build/MagicLeap", priority = 0)]
         // public static void StartBuildForMagicLeap()
         // {
@@ -143,8 +170,7 @@ namespace Outernet.Client
         {
             try
             {
-                // Set the log handler to suppress specific messages
-                // UnityEngine.Debug.unityLogger.logHandler = new LogHandler();
+                PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}-{BuildInfo.CommitSha}";
 
                 string buildTarget = "Android";
                 string outputPath = $"Build/{platform}/";
