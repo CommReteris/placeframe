@@ -5,6 +5,8 @@ using FofX.Serialization;
 using Unity.Mathematics;
 using SimpleJSON;
 using Placeframe.Core;
+using Nessle;
+using Outernet.Client.AuthoringTools;
 
 #if AUTHORING_TOOLS_ENABLED
 using UnityEngine.InputSystem.UI;
@@ -17,6 +19,7 @@ namespace Outernet.Client
         public PrefabSystem prefabSystem;
         public SceneReferences sceneReferences;
         public LocalizationMapManager localizationMapManager;
+        public UIPrimitiveSet uiPrimitives;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Initialize()
@@ -32,6 +35,8 @@ namespace Outernet.Client
 
         private void Awake()
         {
+            Nessle.UIBuilder.primitives = uiPrimitives;
+
             AddCustomSerializers();
             sceneReferences.Initialize();
 
@@ -46,7 +51,6 @@ namespace Outernet.Client
 #endif
 
             UnityEnv env = UnityEnv.GetOrCreateInstance();
-            App.apiUrl = $"https://{env.placeframeDomain}";
 
             Auth.Initialize(
                 env.placeframeAuthAudience,
@@ -54,12 +58,6 @@ namespace Outernet.Client
                 x => Log.Warn(LogGroup.Default, x),
                 x => Log.Error(LogGroup.Default, x)
             );
-
-            Auth.Login(
-                $"https://{env.placeframeDomain}/auth/realms/placeframe-dev/protocol/openid-connect/token",
-                "user",
-                "password"
-            ).Forget();
 
             Instantiate(prefabSystem, transform);
 
@@ -72,11 +70,13 @@ namespace Outernet.Client
             PlaneDetector.Initialize().Forget();
 
             gameObject.AddComponent<GPSManager>();
+            gameObject.AddComponent<UserSettingsManager>();
 
 #if !AUTHORING_TOOLS_ENABLED
             SceneViewManager.Initialize();
             TilesetManager.Initialize();
             Instantiate(localizationMapManager);
+            gameObject.AddComponent<SystemUI>();
 #else
             gameObject.AddComponent<AuthoringTools.AuthoringToolsApp>();
 
@@ -104,6 +104,10 @@ namespace Outernet.Client
             runtimeHandles.transform.SetParent(sceneViewRoot.transform);
 #endif
 
+#if !OUTERNET_MAGIC_LEAP
+            Destroy(SceneReferences.GlobalNonNativeKeyboard.gameObject); // prefer system keyboards where ever they are available
+#endif
+
             VisualPositioningSystem.Initialize(
                 GetProvider(),
                 env.placeframeAuthAudience,
@@ -111,12 +115,6 @@ namespace Outernet.Client
                 x => Log.Warn(LogGroup.Default, x),
                 x => Log.Error(LogGroup.Default, x)
             );
-
-            VisualPositioningSystem.Login(
-                env.placeframeDomain,
-                "user",
-                "password"
-            ).Forget();
 
             gameObject.AddComponent<LocalizationManager>();
 

@@ -37,9 +37,6 @@ namespace Outernet.Client
         public static RoomRecord State_Old => ConnectionManager.State;
         public static Guid? ClientID => ConnectionManager.ClientID;
 
-        public static string apiUrl;
-        public static bool InternetReachable => internetReachable;
-
         private static bool internetReachable = false;
         private bool initialized = false;
 
@@ -49,27 +46,14 @@ namespace Outernet.Client
         protected override void Awake()
         {
             base.Awake();
-
-            API = new DefaultApi(
-                new HttpClient(new KeycloakHttpHandler() { InnerHandler = new HttpClientHandler() })
-                {
-                    BaseAddress = new Uri(apiUrl)
-                },
-                apiUrl
-            );
-
             Application.wantsToQuit += WantsToQuit;
-
-#if !AUTHORING_TOOLS_ENABLED
-            ConnectionManager.HubConnectionRequested.EnqueueSet(true);
-            ConnectionManager.RoomConnectionRequested.EnqueueSet("test");
-#endif
         }
 
         private void Start()
         {
+            RegisterObserver(HandleLoggedInChanged, state.loggedIn);
+
 #if !AUTHORING_TOOLS_ENABLED
-            VisualPositioningSystem.StartLocalizing(1f);
 
             internetReachable = Application.internetReachability != NetworkReachability.NotReachable;
 
@@ -78,13 +62,13 @@ namespace Outernet.Client
                 Toast.ShowToast("No internet connection");
             }
 
-            PropertyBinding(State_Old.settingsAnimateNodeIndicators, state.settings.animateNodeIndicators);
-            SetBinding(State_Old.settingsVisibleLayers, state.settings.visibleLayers);
+            PropertyBinding(State_Old.settingsAnimateNodeIndicators, state.roomSettings.animateNodeIndicators);
+            SetBinding(State_Old.settingsVisibleLayers, state.roomSettings.visibleLayers);
 
             ConnectionManager.RoomConnectionStatusStream.Subscribe(status =>
             {
                 if (State_Old.users.Count == 1 && status == ConnectionManager.RoomConnectionStatus.Connected)
-                    state.settings.visibleLayers.ExecuteSetOrDelay(new Guid[] { Guid.Empty });
+                    state.roomSettings.visibleLayers.ExecuteSetOrDelay(new Guid[] { Guid.Empty });
             });
 
             ObserveEach(
@@ -119,9 +103,32 @@ namespace Outernet.Client
                 }
             );
 #endif
+        }
+
+        private void HandleLoggedInChanged(NodeChangeEventArgs args)
+        {
+            if (!state.loggedIn.value)
+                return;
+
+            var domain = $"https://{state.userSettings.domain.value}";
+
+            API = new DefaultApi(
+                new HttpClient(new KeycloakHttpHandler() { InnerHandler = new HttpClientHandler() })
+                {
+                    BaseAddress = new Uri(domain)
+                },
+                domain
+            );
+
+#if !AUTHORING_TOOLS_ENABLED
+            ConnectionManager.HubConnectionRequested.EnqueueSet(true);
+            ConnectionManager.RoomConnectionRequested.EnqueueSet("test");
+            VisualPositioningSystem.StartLocalizing(1f);
+#endif
 
             GetLayersAndPopulate();
             initialized = true;
+            state.apiReady.ExecuteSetOrDelay(true);
         }
 
         private async void GetLayersAndPopulate()
@@ -315,7 +322,6 @@ namespace Outernet.Client
 #endif
             SceneViewManager.Terminate();
             Logger.Terminate();
-
 
             return true;
         }

@@ -1,4 +1,6 @@
+using System;
 using Cysharp.Threading.Tasks;
+using FofX.Stateful;
 using Placeframe.Core;
 using UnityEngine;
 
@@ -8,8 +10,13 @@ namespace Outernet.Client
     {
         private void Awake()
         {
-            // This will ultimately be predicated on App.state.roughGrainedLocation
-            LoadMaps().Forget();
+            App.RegisterObserver(HandleApiReadyChanged, App.state.apiReady);
+        }
+
+        private void HandleApiReadyChanged(NodeChangeEventArgs args)
+        {
+            if (App.state.apiReady.value)
+                LoadMaps().Forget(); // This will ultimately be predicated on App.state.roughGrainedLocation
         }
 
         private async UniTask LoadMaps()

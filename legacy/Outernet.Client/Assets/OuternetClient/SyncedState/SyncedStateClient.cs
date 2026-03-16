@@ -63,15 +63,15 @@ namespace Outernet.Client
         {
             var channelOptions = new GrpcChannelOptions()
             {
-                HttpHandler = new YetAnotherHttpHandler() 
-                { 
+                HttpHandler = new YetAnotherHttpHandler()
+                {
                     Http2Only = true
                 },
                 DisposeHttpClient = true
             };
 
             client = await StreamingHubClient.ConnectAsync<ISyncedStateHub, ISyncedStateHubReceiver>(
-                GrpcChannel.ForAddress(App.apiUrl, channelOptions),
+                GrpcChannel.ForAddress($"https://{App.state.userSettings.domain.value}", channelOptions),
                 stateSyncReceiver,
                 StreamingHubClientOptions.CreateWithDefault()
                     .WithClientHeartbeatInterval(TimeSpan.FromSeconds(10))

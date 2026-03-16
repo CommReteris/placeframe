@@ -60,7 +60,7 @@ namespace Outernet.Client
 
         void UpdateIndicator()
         {
-            meshRenderer.enabled = App.state.settings.showIndicators.value;
+            meshRenderer.enabled = App.state.roomSettings.showIndicators.value;
 
             // Consider the indicator as always in view if the system menu says to not animate indicators
             if ((!Settings.animateNodeIndicators && !isUser) || (!Settings.animateUserIndicators && isUser))

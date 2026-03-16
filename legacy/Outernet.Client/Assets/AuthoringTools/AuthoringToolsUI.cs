@@ -16,6 +16,9 @@ using FofX.Stateful;
 using Placeframe.Core;
 using TMPro;
 
+using ObserveThing.StatefulExtensions;
+using Nessle;
+
 namespace Outernet.Client.AuthoringTools
 {
     public class AuthoringToolsUI : MonoBehaviour
@@ -44,6 +47,8 @@ namespace Outernet.Client.AuthoringTools
         private Dictionary<Guid, Foldout> _groupFoldouts = new Dictionary<Guid, Foldout>();
 
         private Guid _lastSelectedElement;
+
+        private IDisposable _loginDialog;
 
         private void Awake()
         {
@@ -211,7 +216,36 @@ namespace Outernet.Client.AuthoringTools
                 }
             );
 
-            layersDropdown.BindLayersDropdown(App.state.layers, App.state.settings.visibleLayers);
+            layersDropdown.BindLayersDropdown(App.state.layers, App.state.roomSettings.visibleLayers);
+
+            App.RegisterObserver(HandleLoggedInChanged, App.state.loggedIn);
+        }
+
+        private void HandleLoggedInChanged(NodeChangeEventArgs args)
+        {
+            if (App.state.loggedIn.value)
+            {
+                _loginDialog?.Dispose();
+                _loginDialog = null;
+            }
+            else
+            {
+                _loginDialog = Nessle.UIBuilder.Canvas(new()
+                {
+                    children = Props.List(UIElements.LoginScreen(new()
+                    {
+                        layout = UIElements.FillParent(),
+                        contentWidthPercent = Props.Value(.33f),
+                        domain = App.state.userSettings.domain.ToObservable(),
+                        username = App.state.userSettings.username.ToObservable(),
+                        password = App.state.userSettings.password.ToObservable(),
+                        onDomainChanged = x => App.state.userSettings.domain.ExecuteSetOrDelay(x),
+                        onPasswordChanged = x => App.state.userSettings.password.ExecuteSetOrDelay(x),
+                        onUsernameChanged = x => App.state.userSettings.username.ExecuteSetOrDelay(x),
+                        loginMethod = Client.Utility.Login
+                    }))
+                });
+            }
         }
 
         private void Update()

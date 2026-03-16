@@ -31,6 +31,7 @@ namespace Outernet.Client.AuthoringTools
         {
             App.RegisterObserver(
                 HandleLocationChanged,
+                App.state.apiReady,
                 App.state.authoringTools.location,
                 App.state.authoringTools.settings.nodeFetchRadius
             );
@@ -43,6 +44,9 @@ namespace Outernet.Client.AuthoringTools
 
         private void HandleLocationChanged(NodeChangeEventArgs args)
         {
+            if (!App.state.apiReady.value)
+                return;
+
             _updateLocationAndContentTask.Cancel();
 
             if (_loadedLocation.Equals(App.state.authoringTools.location.value) &&
