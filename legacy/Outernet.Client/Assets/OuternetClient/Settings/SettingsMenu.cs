@@ -128,7 +128,7 @@ namespace Outernet.Client
                     App.State_Old.settingsGoogleTilesetMode.EnqueueSet((TilesetMode)Enum.Parse(
                         typeof(TilesetMode), googleTilesetMode.options[value].text))),
 
-                visibleLayers.BindLayersDropdown(App.state.layers, App.state.settings.visibleLayers),
+                visibleLayers.BindLayersDropdown(App.state.layers, App.state.roomSettings.visibleLayers),
 
                 App.State_Old.settingsTerrainTilesetMode.Subscribe(settingsTerrainTilesetMode =>
                     terrainTilesetMode.value = terrainTilesetMode.options.FindIndex(option =>
@@ -168,10 +168,10 @@ namespace Outernet.Client
                     App.State_Old.settingsShowPointCloud.EnqueueSet(value)),
 
                 showIndicators.onValueChanged.AsObservable().Subscribe(value =>
-                    App.state.settings.showIndicators.ExecuteSetOrDelay(value)
+                    App.state.roomSettings.showIndicators.ExecuteSetOrDelay(value)
                 ),
 
-                App.state.settings.showIndicators.OnChange(show =>
+                App.state.roomSettings.showIndicators.OnChange(show =>
                     showIndicators.isOn = show
                 ),
 

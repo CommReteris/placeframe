@@ -9,6 +9,11 @@ using System.Linq;
 using FofX.Stateful;
 using Outernet.Shared;
 
+using Cysharp.Threading.Tasks;
+
+using Placeframe.Core;
+
+
 namespace Outernet.Client
 {
     public static class Utility
@@ -261,6 +266,20 @@ namespace Outernet.Client
         public static double3 ToMathematicsDouble3(this Double3 source)
         {
             return new double3(source.x, source.y, source.z);
+        }
+
+        public static async UniTask Login(string domain, string username, string password)
+        {
+            await Auth.Login(
+                $"https://{domain}/auth/realms/placeframe-dev/protocol/openid-connect/token",
+                username,
+                password
+            );
+
+            await VisualPositioningSystem.Login(domain, username, password);
+            await UniTask.SwitchToMainThread();
+
+            App.state.loggedIn.ExecuteSet(true);
         }
     }
 }

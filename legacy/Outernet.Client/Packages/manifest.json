@@ -3,28 +3,25 @@
     {
       "name": "npmjs",
       "url": "https://registry.npmjs.org",
-      "scopes": [
-        "com.magicleap",
-        "org.outernet"
-      ]
+      "scopes": ["com.magicleap", "org.outernet"]
     },
     {
       "name": "UnityNuGet",
       "url": "https://unitynuget-registry.openupm.com",
-      "scopes": [
-        "org.nuget"
-      ]
+      "scopes": ["org.nuget"]
     },
     {
       "name": "Cesium",
       "url": "https://unity.pkg.cesium.com",
-      "scopes": [
-        "com.cesium.unity"
-      ]
+      "scopes": ["com.cesium.unity"]
     }
   ],
   "dependencies": {
     "com.cesium.unity": "1.15.4",
+    "com.fofx.nessle": "https://github.com/outernet-foundation/Nessle.git?path=Assets/Package/Core",
+    "com.fofx.observething": "https://github.com/outernet-foundation/ObserveThing.git?path=Assets/Package/Core",
+    "com.fofx.observething.statefulextensions": "https://github.com/outernet-foundation/ObserveThing.git?path=Assets/Package/StatefulExtensions",
+    "com.fofx.stateful": "https://github.com/epjecha/StatefulUnity.git?path=Assets/Package",
     "com.cysharp.magiconion.client.unity": "https://github.com/Cysharp/MagicOnion.git?path=src/MagicOnion.Client.Unity/Assets/Scripts/MagicOnion.Client.Unity#7.0.2",
     "com.cysharp.r3": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity#1.2.9",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
