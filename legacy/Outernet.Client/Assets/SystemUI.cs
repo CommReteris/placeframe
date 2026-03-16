@@ -84,6 +84,7 @@ namespace Outernet.Client
         {
             return Canvas(new()
             {
+                canvasScaler = { referenceResolution = Value(new Vector2(1510, 850)) },
                 children = List(
                     LoginScreen(new()
                     {
