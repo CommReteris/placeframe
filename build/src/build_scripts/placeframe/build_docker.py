@@ -12,6 +12,8 @@ from common.bash import bash, bash_output
 from common.detect_gpu import GPU_TYPES, Gpu, detect_gpu
 from pydantic_settings import BaseSettings
 
+CROSS_COMPILE_TARGETS = {"zed-capture"}
+
 
 class Settings(BaseSettings):
     wsl_distro_name: str | None = None
@@ -176,18 +178,18 @@ def build(
     command_arguments: list[str] = []
 
     # Determine bake targets
-    targets = [
-        service
-        for service in bake_data["services"]
-        if not any(service.endswith(f"-{g}") for g in GPU_TYPES) or service.endswith(f"-{gpu}")
-    ]
-
-    # Filter to specific targets if requested
     if targets_opt:
-        unknown = set(targets_opt) - set(targets)
+        unknown = set(targets_opt) - set(bake_data["services"])
         if unknown:
-            raise typer.BadParameter(f"Unknown targets: {unknown}. Available: {sorted(targets)}")
-        targets = [t for t in targets if t in targets_opt]
+            raise typer.BadParameter(f"Unknown targets: {unknown}. Available: {sorted(bake_data['services'])}")
+        targets = [t for t in bake_data["services"] if t in set(targets_opt)]
+    else:
+        targets = [
+            service
+            for service in bake_data["services"]
+            if (not any(service.endswith(f"-{g}") for g in GPU_TYPES) or service.endswith(f"-{gpu}"))
+            and service not in CROSS_COMPILE_TARGETS
+        ]
 
     # Configure registry caches in CI mode
     if mode == "ci":

@@ -129,6 +129,43 @@ jobs:
           path: .env.lock
           include-hidden-files: true
 
+  build-zed:
+    needs: [preflight]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    name: build-zed
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - uses: ./.github/actions/setup-uv
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Create builder and login
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker buildx create --use --driver docker-container
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build
+        run: uv run --no-sync build --mode ci --gpu none --targets zed-capture
+
+      - name: Upload .env.lock
+        uses: actions/upload-artifact@v6
+        with:
+          name: env-lock-zed
+          path: .env.lock
+          include-hidden-files: true
+
   unity-preflight:
     needs: [preflight, activate-license, preflight-matrix]
     runs-on: ubuntu-latest
@@ -261,12 +298,13 @@ jobs:
             packages/unity/Placeframe/Assets/Package/*/package.json
 
   commit:
-    needs: [build-docker, publish]
+    needs: [build-docker, build-zed, publish]
     if: >-
       always()
       && !cancelled()
       && github.event_name != 'workflow_dispatch'
       && needs.build-docker.result == 'success'
+      && needs.build-zed.result == 'success'
       && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:

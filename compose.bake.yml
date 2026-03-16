@@ -104,3 +104,12 @@ services:
         <<: *base-args
         TORCH_DEVICE: "rocm"
       tags: [ "ghcr.io/outernet-foundation/placeframe/localizer-rocm:latest" ]
+
+  zed-capture:
+    build:
+      context: .
+      dockerfile: zed/Dockerfile
+      platforms: ["linux/arm64"]
+      args:
+        ZED_BASE_IMAGE: "stereolabs/zed:5.2-runtime-jetson-jp6.1.0"
+      tags: ["ghcr.io/outernet-foundation/placeframe/zed-capture:latest"]
