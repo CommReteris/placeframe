@@ -1,5 +1,5 @@
 {
-  "name": "com.placeframe.api-client",
+  "name": "org.nuget.placeframeapiclient",
   "displayName": "PlaceframeApiClient",
   "version": "0.0.1"
 }

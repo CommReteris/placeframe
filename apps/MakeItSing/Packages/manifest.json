@@ -3,17 +3,12 @@
     {
       "name": "npmjs",
       "url": "https://registry.npmjs.org",
-      "scopes": [
-        "com.magicleap",
-        "org.outernet"
-      ]
+      "scopes": ["com.magicleap", "org.outernet"]
     },
     {
       "name": "UnityNuGet",
       "url": "https://unitynuget-registry.openupm.com",
-      "scopes": [
-        "org.nuget"
-      ]
+      "scopes": ["org.nuget"]
     }
   ],
   "dependencies": {
@@ -28,7 +23,7 @@
     "org.outernet.placeframe": "file:../../../packages/unity/Placeframe/Assets/Package/Core",
     "org.outernet.placeframe.arfoundation": "file:../../../packages/unity/Placeframe/Assets/Package/ARFoundation",
     "org.outernet.placeframe.magicleap": "file:../../../packages/unity/Placeframe/Assets/Package/MagicLeap",
-    "com.placeframe.api-client": "file:../../../packages/generated/csharp/api-client/src/PlaceframeApiClient",
+    "org.nuget.placeframeapiclient": "file:../../../packages/generated/csharp/api-client/src/PlaceframeApiClient",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.collab-proxy": "2.11.2",
     "com.unity.ide.rider": "3.0.38",

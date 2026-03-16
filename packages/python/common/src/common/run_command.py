@@ -36,6 +36,17 @@ def exec_command(command: str | list[str], cwd: Path | None = None, env: dict[st
             sys.exit(e.returncode)
 
 
+def check_command(
+    command: str | list[str], cwd: Path | None = None, env: dict[str, str] | None = None, stream_output: bool = False
+) -> bool:
+    args = _parse_command(command)
+    if stream_output:
+        result = subprocess.run(args, cwd=str(cwd) if cwd else None, env=env)
+    else:
+        result = subprocess.run(args, cwd=str(cwd) if cwd else None, env=env, capture_output=True)
+    return result.returncode == 0
+
+
 def run_command(
     command: str | list[str],
     cwd: Path | None = None,
@@ -53,12 +64,12 @@ def run_command(
         args = command  # Pass original string to shell
 
     if stream_log:
-        print(f"Running (streaming): {command}")
+        print(f"Running (streaming): {command}", flush=True)
         stdout_target = sys.stdout
         stderr_target = sys.stderr
     else:
         if log:
-            print(f"Running command: {command}")
+            print(f"Running command: {command}", flush=True)
         stdout_target = subprocess.PIPE
         stderr_target = subprocess.PIPE
 

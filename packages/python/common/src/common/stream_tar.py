@@ -25,9 +25,7 @@ def stream_tar(base: str | PathLike[str]) -> AsyncIterator[bytes]:
                 for path in base_path.rglob("*"):
                     if not path.is_file():
                         continue
-                    tar_info = tar_file.gettarinfo(
-                        str(path), arcname=str(path.relative_to(base_path))
-                    )
+                    tar_info = tar_file.gettarinfo(str(path), arcname=str(path.relative_to(base_path)))
                     with path.open("rb") as file_object:
                         tar_file.addfile(tar_info, file_object)
         finally:

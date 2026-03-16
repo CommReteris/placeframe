@@ -16,7 +16,7 @@ namespace Outernet.Client
 {
     public class AppSetup : MonoBehaviour
     {
-        private static readonly string AUTH_AUDIENCE = "placeframe-dev";
+        private static readonly string AUTH_AUDIENCE = "placeframe-api";
         public PrefabSystem prefabSystem;
         public SceneReferences sceneReferences;
         public LocalizationMapManager localizationMapManager;
@@ -25,6 +25,7 @@ namespace Outernet.Client
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Initialize()
         {
+            UnityEngine.Debug.Log($"[BuildInfo] {BuildInfo.CommitSha}");
             Logger.Initialize();
 
             UnityEnv env = UnityEnv.GetOrCreateInstance();
@@ -32,6 +33,8 @@ namespace Outernet.Client
             Log.enabledLogGroups = env.enabledLogGroups;
             Log.logLevel = env.logLevel;
             Log.stackTraceLevel = env.stackTraceLevel;
+
+            Log.Info($"Build {BuildInfo.CommitSha}");
         }
 
         private void Awake()
@@ -52,13 +55,6 @@ namespace Outernet.Client
 #endif
 
             UnityEnv env = UnityEnv.GetOrCreateInstance();
-
-            Auth.Initialize(
-                AUTH_AUDIENCE,
-                x => Log.Debug(LogGroup.Default, x),
-                x => Log.Warn(LogGroup.Default, x),
-                x => Log.Error(LogGroup.Default, x)
-            );
 
             Instantiate(prefabSystem, transform);
 

@@ -1,17 +1,5 @@
 {
   "dependencies": {
-    "com.cesium.unity": {
-      "version": "1.15.4",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.mathematics": "1.2.0",
-        "com.unity.test-framework": "1.1.31",
-        "com.unity.shadergraph": "12.1.6",
-        "com.unity.inputsystem": "1.4.2"
-      },
-      "url": "https://unity.pkg.cesium.com"
-    },
     "com.cysharp.magiconion.client.unity": {
       "version": "https://github.com/Cysharp/MagicOnion.git?path=src/MagicOnion.Client.Unity/Assets/Scripts/MagicOnion.Client.Unity#7.0.2",
       "depth": 0,
@@ -100,12 +88,6 @@
     },
     "com.ogment.outernet.shared": {
       "version": "file:../../Outernet.Shared",
-      "depth": 0,
-      "source": "local",
-      "dependencies": {}
-    },
-    "com.placeframe.api-client": {
-      "version": "file:../../../packages/generated/csharp/api-client/src/PlaceframeApiClient",
       "depth": 0,
       "source": "local",
       "dependencies": {}
@@ -514,6 +496,24 @@
       },
       "url": "https://packages.unity.com"
     },
+    "org.nuget.placeframeapiclient": {
+      "version": "file:../../../packages/generated/csharp/api-client/src/PlaceframeApiClient",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
+    "org.outernet.cesium-unity": {
+      "version": "1.15.3-17",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.mathematics": "1.2.0",
+        "com.unity.test-framework": "1.1.31",
+        "com.unity.shadergraph": "12.1.6",
+        "com.unity.inputsystem": "1.4.2"
+      },
+      "url": "https://registry.npmjs.org"
+    },
     "org.outernet.placeframe": {
       "version": "file:../../../packages/unity/Placeframe/Assets/Package/Core",
       "depth": 0,
@@ -523,7 +523,8 @@
         "com.cysharp.r3": "1.2.9",
         "com.unity.xr.arfoundation": "6.0.6",
         "com.unity.mathematics": "1.3.2",
-        "com.unity.cloud.gltfast": "6.15.1"
+        "com.unity.cloud.gltfast": "6.15.1",
+        "org.nuget.placeframeapiclient": "0.1.5"
       }
     },
     "org.outernet.placeframe.arfoundation": {
@@ -531,7 +532,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "org.outernet.placeframe": "1.0.1",
+        "org.outernet.placeframe": "1.0.3",
         "com.cysharp.unitask": "2.5.10",
         "com.cysharp.r3": "1.2.9",
         "com.unity.xr.arfoundation": "6.0.6"
@@ -542,7 +543,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "org.outernet.placeframe": "1.0.1",
+        "org.outernet.placeframe": "1.0.3",
         "com.cysharp.unitask": "2.5.10"
       }
     },

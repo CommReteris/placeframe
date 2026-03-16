@@ -5,12 +5,14 @@
 **/.venv/
 **/*.egg-info
 **/build/
+!/build/
 **/*.sln
 **/*.slnx
 **/bin/
 **/obj/
 **/bin.meta
 **/obj.meta
+.pytest_cache
 .ruff_cache
 .vs
 .act
@@ -19,4 +21,5 @@
 .env.local.lock
 metadata.json
 storage/
-tidy-commits.sh
+tidy-commits.json
+.pnpm-store/

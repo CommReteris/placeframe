@@ -270,12 +270,6 @@ namespace Outernet.Client
 
         public static async UniTask Login(string domain, string username, string password)
         {
-            await Auth.Login(
-                $"https://{domain}/auth/realms/placeframe-dev/protocol/openid-connect/token",
-                username,
-                password
-            );
-
             await VisualPositioningSystem.Login(domain, username, password);
             await UniTask.SwitchToMainThread();
 

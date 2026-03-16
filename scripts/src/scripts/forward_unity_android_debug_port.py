@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 from typing import List, Set
 
-from common.run_command import run_command
+from common.bash import bash_output
 
 PORT_MIN: int = 56000
 PORT_MAX: int = 57000  # exclusive
@@ -40,7 +40,7 @@ def main():
 
 def _adb(serial: str, args: str) -> str:
     # Always target the chosen device (works for USB and Wi-Fi: ip:port)
-    return run_command(f'adb -s "{serial}" {args}')
+    return bash_output(f'adb -s "{serial}" {args}')
 
 
 def _pick_serial() -> str:
@@ -49,7 +49,7 @@ def _pick_serial() -> str:
     if serial:
         return serial
 
-    out = run_command("adb devices")
+    out = bash_output("adb devices")
     serials: list[str] = []
     for line in out.splitlines():
         line = line.strip()
