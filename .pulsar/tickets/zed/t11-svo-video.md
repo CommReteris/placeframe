@@ -1,7 +1,7 @@
 ---
 id: T11
 title: SVO video capture refactor
-status: in-progress
+status: in-review
 depends_on: [T10]
 ---
 
@@ -165,3 +165,12 @@ Same as before, plus `video.svo2`:
 
 **Requires ZED hardware (verify manually later):**
 - SVO recording + extraction works
+
+## Log
+
+- `InitParameters.set_from_svo_file` triggered `reportUnknownMemberType` in basedpyright — resolved by adding a `set_from_svo_file` wrapper in `zed_wrapper.py` (which already suppresses that diagnostic file-wide).
+- `_meter_and_lock` still referenced removed `self._image_buffer_matrix` — replaced with local `settle_buffer = Mat()`.
+
+## Observations
+
+No pre-existing issues noticed.
