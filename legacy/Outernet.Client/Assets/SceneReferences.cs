@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.ARFoundation;
 using CesiumForUnity;
+using UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard;
 
 namespace Outernet.Client
 {
@@ -24,6 +25,7 @@ namespace Outernet.Client
         public static GameObject ArSession => _instance._arSession;
         public static ARAnchorManager AnchorManager => _instance._anchorManager;
         public static Cesium3DTileset GroundTileset => _instance._groundTileset;
+        public static GlobalNonNativeKeyboard GlobalNonNativeKeyboard => _instance._globalNonNativeKeyboard;
 
         [SerializeField]
         private CesiumGeoreference _cesiumGeoreference;
@@ -45,6 +47,9 @@ namespace Outernet.Client
 
         [SerializeField]
         private Cesium3DTileset _groundTileset;
+
+        [SerializeField]
+        private GlobalNonNativeKeyboard _globalNonNativeKeyboard;
 
         private void Awake()
         {

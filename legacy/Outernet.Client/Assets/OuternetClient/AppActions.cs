@@ -496,4 +496,20 @@ namespace Outernet.Client
             layer.layerName.value = _name;
         }
     }
+
+    public class LoadUserSettingsAction : ObservableNodeAction<ClientState>
+    {
+        private string _json;
+
+        public LoadUserSettingsAction(string json)
+        {
+            _json = json;
+        }
+
+        public override void Execute(ClientState target)
+        {
+            target.userSettings.FromJSON(SimpleJSON.JSON.Parse(_json));
+            target.userSettingsLoaded.value = true;
+        }
+    }
 }

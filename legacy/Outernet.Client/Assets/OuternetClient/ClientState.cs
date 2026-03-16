@@ -11,8 +11,17 @@ using Placeframe.Core;
 
 namespace Outernet.Client
 {
+    public class UserSettings : ObservableObject
+    {
+        public ObservablePrimitive<string> domain { get; private set; }
+        public ObservablePrimitive<string> username { get; private set; }
+        public ObservablePrimitive<string> password { get; private set; }
+    }
+
     public class ClientState : ObservableObject
     {
+        public ObservablePrimitive<bool> loggedIn { get; private set; }
+        public ObservablePrimitive<bool> apiReady { get; private set; }
         public ObservablePrimitive<double2> roughGrainedLocation { get; private set; }
         public ObservableDictionary<Guid, NodeState> nodes { get; private set; }
         public ObservableDictionary<Guid, TransformState> transforms { get; private set; }
@@ -20,10 +29,12 @@ namespace Outernet.Client
 
         public AuthoringToolsState authoringTools { get; private set; }
 
-        public SettingsState settings { get; private set; }
+        public ObservablePrimitive<bool> userSettingsLoaded { get; private set; }
+        public UserSettings userSettings { get; private set; }
+        public RoomSettingsState roomSettings { get; private set; }
     }
 
-    public class SettingsState : ObservableObject
+    public class RoomSettingsState : ObservableObject
     {
         public ObservablePrimitive<bool> animateNodeIndicators { get; private set; }
         public ObservablePrimitive<bool> showIndicators { get; private set; }
@@ -77,10 +88,10 @@ namespace Outernet.Client
         protected override void PostInitializeInternal()
         {
             visible.RegisterDerived(
-                _ => visible.value = _clientState.settings.visibleLayers.Contains(layer.value),
+                _ => visible.value = _clientState.roomSettings.visibleLayers.Contains(layer.value),
                 ObservationScope.Self,
                 layer,
-                _clientState.settings.visibleLayers
+                _clientState.roomSettings.visibleLayers
             );
         }
     }

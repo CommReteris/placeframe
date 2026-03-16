@@ -27,7 +27,7 @@ namespace Outernet.Client.AuthoringTools
             }
 
             App.RegisterObserver(HandleSettingsLoadedChanged, App.state.authoringTools.settings.loaded);
-            App.RegisterObserver(HandleSettingsChanged, App.state.authoringTools.settings, App.state.settings.visibleLayers);
+            App.RegisterObserver(HandleSettingsChanged, App.state.authoringTools.settings, App.state.roomSettings.visibleLayers);
             App.RegisterObserver(HandleLocationChanged, App.state.authoringTools.location);
         }
 
@@ -62,7 +62,7 @@ namespace Outernet.Client.AuthoringTools
                 USER_SETTINGS_PATH,
                 SettingsUpgrader.FormatSettings(
                     App.state.authoringTools.settings,
-                    App.state.settings.visibleLayers
+                    App.state.roomSettings.visibleLayers
                 ).ToString()
             );
         }
