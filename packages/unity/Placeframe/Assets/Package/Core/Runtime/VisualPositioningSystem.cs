@@ -93,13 +93,15 @@ namespace Placeframe.Core
 
         public static async UniTask SetLocalizationMaps(double3 ecefPosition, double radius, CancellationToken cancellationToken = default)
         {
-            var maps = await VisualPositioningSystem.GetLocalizationMaps(
+            var maps = await GetLocalizationMaps(
                 positionX: ecefPosition.x,
                 positionY: ecefPosition.y,
                 positionZ: ecefPosition.z,
                 radius: radius,
                 cancellationToken: cancellationToken
             );
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             SetLocalizationMaps(maps.Select(x => x.Id).ToArray());
         }
