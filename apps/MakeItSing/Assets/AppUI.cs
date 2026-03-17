@@ -11,7 +11,6 @@ using FofX.Stateful;
 
 using static Plerion.MakeItSing.UIElements;
 using Placeframe.Core;
-using System;
 using Cysharp.Threading.Tasks;
 
 namespace Plerion.MakeItSing
@@ -23,7 +22,7 @@ namespace Plerion.MakeItSing
 
         private void Awake()
         {
-            _ui = Canvas(new()
+            _ui = PlatformCanvas(new()
             {
                 children = List(
                     Observables.Combine(
@@ -97,6 +96,37 @@ namespace Plerion.MakeItSing
                     )
                 )
             });
+        }
+
+        private IControl PlatformCanvas(CanvasProps props)
+        {
+#if PLERION_MAGIC_LEAP
+            var camera = Camera.main.transform;
+            var position = camera.forward;
+
+            position.y = 0;
+            position = position.normalized * 0.66f;
+            position.y = camera.position.y - .33f;
+
+            props.worldCamera = props.worldCamera ?? Value(Camera.main);
+            props.renderMode = props.renderMode ?? Value(RenderMode.WorldSpace);
+            props.layout.position = props.layout.position ?? Value(Vector2.zero);
+            props.layout.scale = props.layout.scale ?? Value(new Vector2(1f, 1f));
+            props.layout.sizeDelta = props.layout.sizeDelta ?? Value(new Vector2(1280, 720));
+
+            return TransformControl(new()
+            {
+                transform =
+                {
+                    localPosition = Value(position),
+                    localRotation = Value(Quaternion.LookRotation(position - camera.position, Vector3.up)),
+                    localScale = Value(new Vector3(0.001f, 0.001f, 0.001f))
+                },
+                children = List(Canvas(props))
+            });
+#else
+            return Canvas(props);
+#endif
         }
     }
 }

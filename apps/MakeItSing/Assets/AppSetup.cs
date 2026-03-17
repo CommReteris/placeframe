@@ -39,6 +39,7 @@ namespace Plerion.MakeItSing
             gameObject.AddComponent<PhotonConnectionManager>();
             gameObject.AddComponent<SettingsManager>();
             gameObject.AddComponent<AppUI>();
+            gameObject.AddComponent<LocalizationManager>();
 
             App.state.activeRooms.ExecuteAction(x =>
             {

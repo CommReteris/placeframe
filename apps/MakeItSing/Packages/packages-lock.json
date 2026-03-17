@@ -1,5 +1,17 @@
 {
   "dependencies": {
+    "com.cesium.unity": {
+      "version": "1.15.4",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.mathematics": "1.2.0",
+        "com.unity.test-framework": "1.1.31",
+        "com.unity.shadergraph": "12.1.6",
+        "com.unity.inputsystem": "1.4.2"
+      },
+      "url": "https://unity.pkg.cesium.com"
+    },
     "com.cysharp.r3": {
       "version": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity#1.2.9",
       "depth": 0,
@@ -23,7 +35,7 @@
       "dependencies": {
         "com.fofx.observething": "1.0.0"
       },
-      "hash": "c053bfdbd25255a22ea03591a7e0b414708b4b0e"
+      "hash": "7c4aebdcbd8635c6a3c4d5cd3ebac497b3790c8e"
     },
     "com.fofx.observething": {
       "version": "https://github.com/outernet-foundation/ObserveThing.git?path=Assets/Package/Core",

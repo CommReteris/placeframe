@@ -4,33 +4,16 @@ using Nessle;
 using static Nessle.UIBuilder;
 using static Nessle.Props;
 using ObserveThing;
-using ObserveThing.StatefulExtensions;
 using System;
 using UnityEngine.Events;
+using UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard;
+using TMPro;
 
 namespace Plerion.MakeItSing
 {
     public static class UIElements
     {
         public static UIElementSet elements;
-
-        public static LayoutProps GetPlatformLayoutProps()
-        {
-            if (Application.isMobilePlatform)
-            {
-                return FillParentProps();
-            }
-            else
-            {
-                return new LayoutProps()
-                {
-                    anchorMin = Value(new Vector2(0.375f, 0)),
-                    anchorMax = Value(new Vector2(0.625f, 1)),
-                    offsetMin = Value(new Vector2(0, 0)),
-                    offsetMax = Value(new Vector2(0, 0))
-                };
-            }
-        }
 
         public struct LoginUIProps
         {
@@ -60,90 +43,104 @@ namespace Plerion.MakeItSing
                             style = { color = Value(elements.backgroundColor) },
                             layout = FillParentProps()
                         }),
-                        Control(
-                            "PlatformArea",
-                            new()
-                            {
-                                layout = GetPlatformLayoutProps(),
-                                children = List(
-                                    VerticalLayout(new()
+                        VerticalLayout(new()
+                        {
+                            layout = FillParentProps(),
+                            childAlignment = Value(TextAnchor.MiddleCenter),
+                            childControlWidth = Value(true),
+                            childControlHeight = Value(true),
+                            padding = Value(new RectOffset(20, 20, 0, 0)),
+                            spacing = Value(25f),
+                            children = List(
+                                Text(new()
+                                {
+                                    value = Value("Outernet"),
+                                    style =
                                     {
-                                        layout =
+                                        fontSize = Value(40f),
+                                        horizontalAlignment = Value(TMPro.HorizontalAlignmentOptions.Center)
+                                    }
+                                }),
+                                VerticalLayout(new()
+                                {
+                                    layout =
+                                    {
+                                        flexibleWidth = Value(0f),
+                                        preferredWidth = Value(600f)
+                                    },
+                                    spacing = Value(10f),
+                                    childAlignment = Value(TextAnchor.MiddleCenter),
+                                    childControlWidth = Value(true),
+                                    childControlHeight = Value(true),
+                                    children = List(
+                                        LabeledProperty(new()
                                         {
-                                            anchorMin = Value(new Vector2(0f, 0.5f)),
-                                            anchorMax = Value(new Vector2(1f, 0.5f)),
-                                            offsetMin = Value(new Vector2(0, 0)),
-                                            offsetMax = Value(new Vector2(0, 0)),
-                                            fitContentVertical = Value(UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize)
-                                        },
-                                        childAlignment = Value(TextAnchor.MiddleCenter),
-                                        spacing = Value(10f),
-                                        childControlWidth = Value(true),
-                                        childControlHeight = Value(true),
-                                        children = List(
-                                            LabeledProperty(new()
+                                            label = Value("Domain"),
+                                            labelWidth = Value(75f),
+                                            content = Value(InputField(new()
                                             {
-                                                label = Value("Domain"),
-                                                labelWidth = Value(100f),
-                                                content = Value(InputField(new()
-                                                {
-                                                    value = props.domain,
-                                                    layout = { flexibleWidth = Value(true) },
-                                                    onValueChanged = props.onDomainChanged
-                                                }))
-                                            }),
-                                            LabeledProperty(new()
+                                                value = props.domain,
+                                                layout = { flexibleWidth = Value(1f) },
+                                                onValueChanged = props.onDomainChanged
+                                            }))
+                                        }),
+                                        LabeledProperty(new()
+                                        {
+                                            label = Value("Username"),
+                                            labelWidth = Value(75f),
+                                            content = Value(PlatformInputField(new()
                                             {
-                                                label = Value("Username"),
-                                                labelWidth = Value(100f),
-                                                content = Value(InputField(new()
+                                                inputField =
                                                 {
                                                     value = props.username,
-                                                    layout = { flexibleWidth = Value(true) },
+                                                    layout = { flexibleWidth = Value(1f) },
                                                     onValueChanged = props.onUsernameChanged
-                                                }))
-                                            }),
-                                            LabeledProperty(new()
+                                                }
+                                            }))
+                                        }),
+                                        LabeledProperty(new()
+                                        {
+                                            label = Value("Password"),
+                                            labelWidth = Value(75f),
+                                            content = Value(PlatformInputField(new()
                                             {
-                                                label = Value("Password"),
-                                                labelWidth = Value(100f),
-                                                content = Value(InputField(new()
+                                                inputField =
                                                 {
                                                     value = props.password,
-                                                    layout = { flexibleWidth = Value(true) },
+                                                    layout = { flexibleWidth = Value(1f) },
                                                     contentType = Value(TMPro.TMP_InputField.ContentType.Password),
                                                     onValueChanged = props.onPasswordChanged
-                                                }))
-                                            }),
-                                            HorizontalLayout(new()
-                                            {
-                                                childControlHeight = Value(true),
-                                                childControlWidth = Value(true),
-                                                childAlignment = Value(TextAnchor.MiddleCenter),
-                                                children = List(
-                                                    Button(new()
-                                                    {
-                                                        onClick = props.onLoginSelected,
-                                                        content = List(Text(new() { value = Value("Login") }))
-                                                    })
-                                                )
-                                            }),
-                                            Text(new()
-                                            {
-                                                element = { active = props.loginErrorMessage.ObservableSelect(x => !string.IsNullOrEmpty(x)) },
-                                                value = props.loginErrorMessage,
-                                                style =
-                                                {
-                                                    color = Value(Color.red),
-                                                    horizontalAlignment = Value(TMPro.HorizontalAlignmentOptions.Center),
-                                                    verticalAlignment = Value(TMPro.VerticalAlignmentOptions.Baseline)
                                                 }
-                                            })
-                                        )
-                                    })
-                                )
-                            }
-                        )
+                                            }))
+                                        }),
+                                        HorizontalLayout(new()
+                                        {
+                                            childControlHeight = Value(true),
+                                            childControlWidth = Value(true),
+                                            childAlignment = Value(TextAnchor.MiddleCenter),
+                                            children = List(
+                                                Button(new()
+                                                {
+                                                    onClick = props.onLoginSelected,
+                                                    content = List(Text(new() { value = Value("Login") }))
+                                                })
+                                            )
+                                        }),
+                                        Text(new()
+                                        {
+                                            element = { active = props.loginErrorMessage.ObservableSelect(x => !string.IsNullOrEmpty(x)) },
+                                            value = props.loginErrorMessage,
+                                            style =
+                                            {
+                                                color = Value(Color.red),
+                                                horizontalAlignment = Value(TMPro.HorizontalAlignmentOptions.Center),
+                                                verticalAlignment = Value(TMPro.VerticalAlignmentOptions.Baseline)
+                                            }
+                                        })
+                                    )
+                                })
+                            )
+                        })
                     )
                 }
             );
@@ -222,141 +219,159 @@ namespace Plerion.MakeItSing
                             style = { color = Value(elements.backgroundColor) },
                             layout = FillParentProps()
                         }),
-                        Control(
-                            "SafeArea",
-                            new()
-                            {
-                                layout = GetPlatformLayoutProps(),
-                                children = List(
-                                    VerticalLayout(new()
+                        VerticalLayout(new()
+                        {
+                            childControlHeight = Value(true),
+                            childControlWidth = Value(true),
+                            childAlignment = Value(TextAnchor.MiddleCenter),
+                            layout = FillParentProps(),
+                            padding = Value(new RectOffset(20, 20, 0, 0)),
+                            children = List(
+                                Control(
+                                    "SafeArea",
+                                    new()
                                     {
-                                        childControlHeight = Value(true),
-                                        childControlWidth = Value(true),
-                                        spacing = Value(10f),
-                                        childAlignment = Value(TextAnchor.LowerLeft),
-                                        padding = Value(new RectOffset(0, 0, 0, 10)),
                                         layout =
                                         {
-                                            anchorMin = Value(new Vector2(0f, 0.5f)),
-                                            anchorMax = Value(new Vector2(1f, 1f)),
-                                            offsetMin = Value(new Vector2(0f, 0f)),
-                                            offsetMax = Value(new Vector2(0f, 0f)),
-                                            pivot = Value(new Vector2(0.5f, 0f))
+                                            preferredWidth = Value(600f),
+                                            flexibleWidth = Value(0f),
+                                            flexibleHeight = Value(1f)
                                         },
                                         children = List(
-                                            Text(new() { value = Value("Join Room") }),
-                                            LabeledProperty(new()
+                                            VerticalLayout(new()
                                             {
-                                                label = Value("Room Name"),
-                                                labelWidth = Value(100f),
-                                                content = Value(
-                                                    HorizontalLayout(new()
+                                                childControlHeight = Value(true),
+                                                childControlWidth = Value(true),
+                                                spacing = Value(10f),
+                                                childAlignment = Value(TextAnchor.LowerLeft),
+                                                padding = Value(new RectOffset(0, 0, 0, 10)),
+                                                layout =
+                                                {
+                                                    anchorMin = Value(new Vector2(0f, 0.5f)),
+                                                    anchorMax = Value(new Vector2(1f, 1f)),
+                                                    offsetMin = Value(new Vector2(0f, 0f)),
+                                                    offsetMax = Value(new Vector2(0f, 0f)),
+                                                    pivot = Value(new Vector2(0.5f, 0f))
+                                                },
+                                                children = List(
+                                                    Text(new() { value = Value("Join Room") }),
+                                                    LabeledProperty(new()
                                                     {
-                                                        layout = { flexibleWidth = Value(true) },
-                                                        spacing = Value(10f),
-                                                        childAlignment = Value(TextAnchor.MiddleLeft),
-                                                        childControlHeight = Value(true),
-                                                        childControlWidth = Value(true),
-                                                        children = List(
-                                                            InputField(new()
+                                                        label = Value("Room Name"),
+                                                        labelWidth = Value(100f),
+                                                        content = Value(
+                                                            HorizontalLayout(new()
                                                             {
-                                                                value = props.roomName,
-                                                                layout = { flexibleWidth = Value(true) },
-                                                                onValueChanged = x => internalRoomName.value = x
-                                                            }),
-                                                            Button(new()
-                                                            {
-                                                                onClick = () => props.onRoomSelected?.Invoke(internalRoomName.value),
-                                                                content = List(
-                                                                    Text(new() { value = Value("Create") })
+                                                                layout = { flexibleWidth = Value(1f) },
+                                                                spacing = Value(10f),
+                                                                childAlignment = Value(TextAnchor.MiddleLeft),
+                                                                childControlHeight = Value(true),
+                                                                childControlWidth = Value(true),
+                                                                children = List(
+                                                                    PlatformInputField(new()
+                                                                    {
+                                                                        inputField =
+                                                                        {
+                                                                            value = props.roomName,
+                                                                            layout = { flexibleWidth = Value(1f) },
+                                                                            onValueChanged = x => internalRoomName.value = x
+                                                                        }
+                                                                    }),
+                                                                    Button(new()
+                                                                    {
+                                                                        onClick = () => props.onRoomSelected?.Invoke(internalRoomName.value),
+                                                                        content = List(
+                                                                            Text(new() { value = Value("Create") })
+                                                                        )
+                                                                    })
                                                                 )
                                                             })
                                                         )
                                                     })
                                                 )
+                                            }),
+                                            ScrollRect(new()
+                                            {
+                                                horizontal = Value(false),
+                                                vertical = Value(true),
+                                                layout =
+                                                {
+                                                    anchorMin = Value(new Vector2(0, 0f)),
+                                                    anchorMax = Value(new Vector2(1, 0.5f)),
+                                                    offsetMin = Value(new Vector2(0, 0)),
+                                                    offsetMax = Value(new Vector2(0, 0))
+                                                },
+                                                content = Value(VerticalLayout(new()
+                                                {
+                                                    childControlWidth = Value(true),
+                                                    childControlHeight = Value(true),
+                                                    childForceExpandWidth = Value(true),
+                                                    layout =
+                                                    {
+                                                        pivot = Value(new Vector2(0, 1)),
+                                                        anchorMin = Value(new Vector2(0, 1)),
+                                                        anchorMax = Value(new Vector2(1, 1)),
+                                                        offsetMin = Value(new Vector2(0, 0)),
+                                                        offsetMax = Value(new Vector2(0, 0)),
+                                                        fitContentVertical = Value(UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize)
+                                                    },
+                                                    children = List(
+                                                        VerticalLayout(new()
+                                                        {
+                                                            element = { active = props.activeRooms?.ObservableCount().ObservableSelect(x => x > 0) },
+                                                            childControlHeight = Value(true),
+                                                            childControlWidth = Value(true),
+                                                            childForceExpandWidth = Value(true),
+                                                            spacing = Value(10f),
+                                                            children = List(
+                                                                Text(new() { value = Value("Active") }),
+                                                                VerticalLayout(new()
+                                                                {
+                                                                    childControlHeight = Value(true),
+                                                                    childControlWidth = Value(true),
+                                                                    childForceExpandWidth = Value(true),
+                                                                    spacing = Value(10f),
+                                                                    children = props.activeRooms?.ObservableCreate(x => Button(new()
+                                                                    {
+                                                                        content = List(Text(new() { value = Value(x), })),
+                                                                        onClick = () => props.onRoomSelected?.Invoke(x)
+                                                                    }))
+                                                                })
+                                                            )
+                                                        }),
+                                                        VerticalLayout(new()
+                                                        {
+                                                            element = {
+                                                                active = props.recentRooms?.ObservableCount().ObservableSelect(x => x != 0)
+                                                            },
+                                                            childControlHeight = Value(true),
+                                                            childControlWidth = Value(true),
+                                                            spacing = Value(10f),
+                                                            children = List(
+                                                                Text(new() { value = Value("Recent") }),
+                                                                VerticalLayout(new()
+                                                                {
+                                                                    childControlHeight = Value(true),
+                                                                    childControlWidth = Value(true),
+                                                                    childForceExpandWidth = Value(true),
+                                                                    spacing = Value(10f),
+                                                                    children = props.recentRooms?
+                                                                        .ObservableCreate(x => Button(new()
+                                                                        {
+                                                                            content = List(Text(new() { value = Value(x), })),
+                                                                            onClick = () => props.onRoomSelected?.Invoke(x)
+                                                                        }))
+                                                                })
+                                                            )
+                                                        })
+                                                    )
+                                                }))
                                             })
                                         )
-                                    }),
-                                    ScrollRect(new()
-                                    {
-                                        horizontal = Value(false),
-                                        vertical = Value(true),
-                                        layout =
-                                        {
-                                            anchorMin = Value(new Vector2(0, 0f)),
-                                            anchorMax = Value(new Vector2(1, 0.5f)),
-                                            offsetMin = Value(new Vector2(0, 0)),
-                                            offsetMax = Value(new Vector2(0, 0))
-                                        },
-                                        content = Value(VerticalLayout(new()
-                                        {
-                                            childControlWidth = Value(true),
-                                            childControlHeight = Value(true),
-                                            childForceExpandWidth = Value(true),
-                                            layout =
-                                            {
-                                                pivot = Value(new Vector2(0, 1)),
-                                                anchorMin = Value(new Vector2(0, 1)),
-                                                anchorMax = Value(new Vector2(1, 1)),
-                                                offsetMin = Value(new Vector2(0, 0)),
-                                                offsetMax = Value(new Vector2(0, 0)),
-                                                fitContentVertical = Value(UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize)
-                                            },
-                                            children = List(
-                                                VerticalLayout(new()
-                                                {
-                                                    element = { active = props.activeRooms?.ObservableCount().ObservableSelect(x => x > 0) },
-                                                    childControlHeight = Value(true),
-                                                    childControlWidth = Value(true),
-                                                    childForceExpandWidth = Value(true),
-                                                    spacing = Value(10f),
-                                                    children = List(
-                                                        Text(new() { value = Value("Active") }),
-                                                        VerticalLayout(new()
-                                                        {
-                                                            childControlHeight = Value(true),
-                                                            childControlWidth = Value(true),
-                                                            childForceExpandWidth = Value(true),
-                                                            spacing = Value(10f),
-                                                            children = props.activeRooms?.ObservableCreate(x => Button(new()
-                                                            {
-                                                                content = List(Text(new() { value = Value(x), })),
-                                                                onClick = () => props.onRoomSelected?.Invoke(x)
-                                                            }))
-                                                        })
-                                                    )
-                                                }),
-                                                VerticalLayout(new()
-                                                {
-                                                    element = {
-                                                        active = props.recentRooms?.ObservableCount().ObservableSelect(x => x != 0)
-                                                    },
-                                                    childControlHeight = Value(true),
-                                                    childControlWidth = Value(true),
-                                                    spacing = Value(10f),
-                                                    children = List(
-                                                        Text(new() { value = Value("Recent") }),
-                                                        VerticalLayout(new()
-                                                        {
-                                                            childControlHeight = Value(true),
-                                                            childControlWidth = Value(true),
-                                                            childForceExpandWidth = Value(true),
-                                                            spacing = Value(10f),
-                                                            children = props.recentRooms?
-                                                                .ObservableCreate(x => Button(new()
-                                                                {
-                                                                    content = List(Text(new() { value = Value(x), })),
-                                                                    onClick = () => props.onRoomSelected?.Invoke(x)
-                                                                }))
-                                                        })
-                                                    )
-                                                })
-                                            )
-                                        }))
-                                    })
+                                    }
                                 )
-                            }
-                        )
+                            )
+                        })
                     )
                 }
             );
@@ -365,6 +380,50 @@ namespace Plerion.MakeItSing
         public static IControl ConnectingToRoomUI()
         {
             return null;
+        }
+
+        public static IControl TransformControl(TransformControlProps props)
+        {
+            var gameObject = new GameObject("TransformControl");
+            var control = gameObject.AddComponent<TransformControl>();
+            control.Setup(props);
+            return control;
+        }
+
+        public struct PlatformInputFieldProps
+        {
+            public InputFieldProps inputField;
+
+            // The below values are ignored if we're not on magic leap
+            public IValueObservable<bool> useSceneKeyboard;
+            public IValueObservable<XRKeyboard> keyboard;
+            public IValueObservable<bool> updateOnKeyPress;
+            public IValueObservable<bool> alwaysObserveKeyboard;
+            public IValueObservable<bool> monitorInputFieldCharacterLimit;
+            public IValueObservable<bool> clearTextOnSubmit;
+            public IValueObservable<bool> clearTextOnOpen;
+        }
+
+        public static IControl PlatformInputField(PlatformInputFieldProps props)
+        {
+            var inputField = InputField(props.inputField);
+
+#if PLERION_MAGIC_LEAP
+            var keyboardDisplay = inputField.gameObject.AddComponent<XRKeyboardDisplay>();
+            keyboardDisplay.inputField = inputField.gameObject.GetComponent<TMP_InputField>();
+
+            inputField.AddBinding(
+                props.useSceneKeyboard?.Subscribe(x => keyboardDisplay.useSceneKeyboard = x),
+                props.keyboard?.Subscribe(x => keyboardDisplay.keyboard = x),
+                props.updateOnKeyPress?.Subscribe(x => keyboardDisplay.updateOnKeyPress = x),
+                props.alwaysObserveKeyboard?.Subscribe(x => keyboardDisplay.alwaysObserveKeyboard = x),
+                props.monitorInputFieldCharacterLimit?.Subscribe(x => keyboardDisplay.monitorInputFieldCharacterLimit = x),
+                props.clearTextOnSubmit?.Subscribe(x => keyboardDisplay.clearTextOnSubmit = x),
+                props.clearTextOnOpen?.Subscribe(x => keyboardDisplay.clearTextOnOpen = x)
+            );
+#endif
+
+            return inputField;
         }
     }
 }

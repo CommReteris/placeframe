@@ -25,7 +25,7 @@ namespace Plerion.MakeItSing
             {
                 VisualPositioningSystem.StartLocalizing(1f);
             }
-            else
+            else if(!args.initialize)
             {
                 VisualPositioningSystem.StopLocalizing();
             }

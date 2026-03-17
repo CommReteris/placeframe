@@ -1,5 +1,5 @@
-using System.Numerics;
 using FofX.Stateful;
+using Unity.Mathematics;
 
 namespace Plerion.MakeItSing
 {
@@ -22,7 +22,7 @@ namespace Plerion.MakeItSing
         public ObservablePrimitive<bool> isMasterClient { get; private set; }
         public ObservablePrimitive<int> playerID { get; private set; }
         public ObservableList<ObservablePrimitive<string>> activeRooms { get; private set; }
-        public ObservablePrimitive<Vector2> roughGrainedLocation { get; private set; }
+        public ObservablePrimitive<double2> roughGrainedLocation { get; private set; }
 
         protected override void PostInitializeInternal()
         {

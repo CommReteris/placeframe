@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
+using CesiumForUnity;
 
 namespace Plerion.MakeItSing
 {
@@ -20,13 +21,13 @@ namespace Plerion.MakeItSing
         private ARCameraManager _arCameraManager;
 
         [SerializeField]
-        private GameObject[] _controllers;
-
-        [SerializeField]
         private CesiumGeoreference _cesiumGeoreference;
 
         [SerializeField]
         private Cesium3DTileset _groundTileset;
+
+        [SerializeField]
+        private GameObject[] _controllers;
 
         public void Initialize()
         {
