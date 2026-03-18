@@ -77,11 +77,14 @@ namespace Plerion.MakeItSing
                                         {
                                             label = Value("Domain"),
                                             labelWidth = Value(75f),
-                                            content = Value(InputField(new()
+                                            content = Value(PlatformInputField(new()
                                             {
-                                                value = props.domain,
-                                                layout = { flexibleWidth = Value(1f) },
-                                                onValueChanged = props.onDomainChanged
+                                                inputField =
+                                                {
+                                                    value = props.domain,
+                                                    layout = { flexibleWidth = Value(1f) },
+                                                    onValueChanged = props.onDomainChanged
+                                                }
                                             }))
                                         }),
                                         LabeledProperty(new()

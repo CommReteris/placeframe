@@ -12,6 +12,7 @@ using FofX.Stateful;
 using static Plerion.MakeItSing.UIElements;
 using Placeframe.Core;
 using Cysharp.Threading.Tasks;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace Plerion.MakeItSing
 {
@@ -112,9 +113,11 @@ namespace Plerion.MakeItSing
             props.renderMode = props.renderMode ?? Value(RenderMode.WorldSpace);
             props.layout.position = props.layout.position ?? Value(Vector2.zero);
             props.layout.scale = props.layout.scale ?? Value(new Vector2(1f, 1f));
-            props.layout.sizeDelta = props.layout.sizeDelta ?? Value(new Vector2(1280, 720));
+            props.layout.sizeDelta = props.layout.sizeDelta ?? Value(new Vector2(960, 540));
 
-            return TransformControl(new()
+            IControl canvas = default;
+
+            var control = TransformControl(new()
             {
                 transform =
                 {
@@ -122,8 +125,12 @@ namespace Plerion.MakeItSing
                     localRotation = Value(Quaternion.LookRotation(position - camera.position, Vector3.up)),
                     localScale = Value(new Vector3(0.001f, 0.001f, 0.001f))
                 },
-                children = List(Canvas(props))
+                children = List(canvas = Canvas(props))
             });
+
+            canvas.gameObject.AddComponent<TrackedDeviceGraphicRaycaster>();
+
+            return control;
 #else
             return Canvas(props);
 #endif
