@@ -216,12 +216,18 @@ jobs:
       && needs.build-docker.result == 'success'
       && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.PLACEFRAME_CI_APP_ID }}
+          private-key: ${{ secrets.PLACEFRAME_CI_PRIVATE_KEY }}
+
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Download env-lock artifacts
         uses: actions/download-artifact@v6
@@ -240,3 +246,43 @@ jobs:
 
       - name: Commit and push
         run: uv run --no-sync commit-artifacts
+
+  release:
+    needs: [build-unity, build-docker, publish, commit]
+    if: >-
+      github.ref == 'refs/heads/main'
+      && github.event_name != 'workflow_dispatch'
+      && !cancelled()
+      && needs.commit.result == 'success'
+      && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.PLACEFRAME_CI_APP_ID }}
+          private-key: ${{ secrets.PLACEFRAME_CI_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: ./.github/actions/setup-uv
+
+      - name: Pull latest (includes commit job changes)
+        run: git pull --ff-only
+
+      - name: Download Unity build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          pattern: "*-*"
+          path: /tmp/release-artifacts
+          merge-multiple: false
+        continue-on-error: true
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: uv run --no-sync create-release --run-number ${{ github.run_number }}
