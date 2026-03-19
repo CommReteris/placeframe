@@ -72,9 +72,6 @@ namespace Outernet.Client
 
         public void RealUpdate()
         {
-            // TODO EP: Reference this staticly 
-            // MapManager.renderVisualizations = Settings.showPointCloud;
-
             Settings.menuOpen =
                 userRecord.settingsMenuOpen.Value == SettingsMenuState.OpenLeftPalm ||
                 userRecord.settingsMenuOpen.Value == SettingsMenuState.OpenRightPalm;
