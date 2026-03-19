@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Net.Http;
 
 using UnityEngine;
@@ -21,17 +20,6 @@ namespace Outernet.Client
 {
     public class App : FofX.AppBase<ClientState>
     {
-        private class KeycloakHttpHandler : DelegatingHandler
-        {
-            protected override async System.Threading.Tasks.Task<HttpResponseMessage> SendAsync(
-                HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                var token = await Auth.GetOrRefreshToken();
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                return await base.SendAsync(request, cancellationToken);
-            }
-        }
-
         public static DefaultApi API { get; private set; }
 
         public static RoomRecord State_Old => ConnectionManager.State;
@@ -113,7 +101,7 @@ namespace Outernet.Client
             var domain = $"https://{state.userSettings.domain.value}";
 
             API = new DefaultApi(
-                new HttpClient(new KeycloakHttpHandler() { InnerHandler = new HttpClientHandler() })
+                new HttpClient(new AuthHttpHandler() { InnerHandler = new HttpClientHandler() })
                 {
                     BaseAddress = new Uri(domain)
                 },

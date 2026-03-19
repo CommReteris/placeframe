@@ -277,7 +277,7 @@ MonoBehaviour:
         probeVolumeSamplingDebugShader: {fileID: 4800000, guid: bf54e6528c79a224e96346799064c393, type: 3}
         probeVolumeOffsetDebugShader: {fileID: 4800000, guid: db8bd7436dc2c5f4c92655307d198381, type: 3}
         probeSamplingDebugMesh: {fileID: -3555484719484374845, guid: 20be25aac4e22ee49a7db76fb3df6de2, type: 3}
-        numbersDisplayTex: {fileID: 2800000, guid: 73fe53b428c5b3440b7e87ee830b608a, type: 3}
+        numbersDisplayTex: {fileID: 1995842370011243426, guid: 0000000000000000d000000000000000, type: 0}
     - rid: 1148310689734459532
       type: {class: ProbeVolumeGlobalSettings, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
       data:

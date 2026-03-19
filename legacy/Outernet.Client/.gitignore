@@ -13,4 +13,5 @@ Recordings/
 
 .utmp/
 Assets/Resources/PerformanceTestRun*
-Assets/XR/
+Assets/OuternetClient/BuildInfo.generated.cs
+Assets/OuternetClient/BuildInfo.generated.cs.meta
