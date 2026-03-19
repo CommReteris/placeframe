@@ -11,7 +11,7 @@ from datamodels.public_dtos import (
     node_from_batch_create_dto,
     node_to_dto,
 )
-from datamodels.public_tables import Group
+from datamodels.public_tables import Group, Layer
 from litestar import Router, post
 from litestar.di import Provide
 from litestar.exceptions import HTTPException
@@ -55,6 +55,14 @@ async def create_graph(session: AsyncSession, data: CreateGraphRequest) -> Creat
                 HTTP_400_BAD_REQUEST,
                 f"Missing parent dependencies. The following Group IDs were referenced but do not exist in the batch or database: {missing_ids}",
             )
+
+    # Verify that all referenced layer IDs exist in the database
+    layer_ids = {node.layer_id for node in data.nodes if node.layer_id is not None}
+    if layer_ids:
+        result = await session.execute(select(Layer.id).where(Layer.id.in_(layer_ids)))
+        missing = layer_ids - set(result.scalars().all())
+        if missing:
+            raise HTTPException(HTTP_400_BAD_REQUEST, f"The following layer IDs do not exist: {missing}")
 
     # Topologically sort groups to ensure parents are created before children
     sorter: TopologicalSorter[UUID] = TopologicalSorter()

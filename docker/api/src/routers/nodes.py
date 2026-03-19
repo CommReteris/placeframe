@@ -9,7 +9,7 @@ from datamodels.public_dtos import (
     node_from_dto,
     node_to_dto,
 )
-from datamodels.public_tables import Group, Node
+from datamodels.public_tables import Group, Layer, Node
 from litestar import Router, delete, get, patch, post
 from litestar.di import Provide
 from litestar.exceptions import ClientException, NotFoundException
@@ -27,6 +27,11 @@ async def create_node(session: AsyncSession, data: NodeCreate) -> NodeRead:
         if not result.scalar():
             raise ClientException(f"Parent group with id {data.parent_id} does not exist.")
 
+    if data.layer_id is not None:
+        result = await session.execute(select(1).where(Layer.id == data.layer_id))
+        if not result.scalar():
+            raise ClientException(f"Layer with id {data.layer_id} does not exist.")
+
     row = node_from_dto(data)
     session.add(row)
     await session.flush()
@@ -36,10 +41,17 @@ async def create_node(session: AsyncSession, data: NodeCreate) -> NodeRead:
 
 @post("/batch")
 async def create_nodes_batch(session: AsyncSession, data: list[NodeCreate]) -> list[NodeRead]:
-    # 1. Collect unique parent IDs
+    # 1. Collect unique parent IDs and layer IDs
     parent_ids = {n.parent_id for n in data if n.parent_id is not None}
+    layer_ids = {n.layer_id for n in data if n.layer_id is not None}
 
     # 2. Verify existence
+    if layer_ids:
+        result = await session.execute(select(Layer.id).where(Layer.id.in_(layer_ids)))
+        missing = layer_ids - set(result.scalars().all())
+        if missing:
+            raise ClientException(f"The following layer IDs do not exist: {missing}")
+
     if parent_ids:
         stmt = select(Group.id).where(Group.id.in_(parent_ids))
         result = await session.execute(stmt)
@@ -118,6 +130,13 @@ async def get_nodes(
 async def update_nodes(
     session: AsyncSession, data: list[NodeBatchUpdate], allow_missing: bool = False
 ) -> list[NodeRead]:
+    layer_ids = {n.layer_id for n in data if n.layer_id is not None}
+    if layer_ids:
+        result = await session.execute(select(Layer.id).where(Layer.id.in_(layer_ids)))
+        missing = layer_ids - set(result.scalars().all())
+        if missing:
+            raise ClientException(f"The following layer IDs do not exist: {missing}")
+
     rows: list[Node] = []
     for node in data:
         row = await session.get(Node, node.id)
