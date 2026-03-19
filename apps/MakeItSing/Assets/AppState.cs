@@ -1,3 +1,4 @@
+using System;
 using FofX.Stateful;
 using Unity.Mathematics;
 
@@ -19,10 +20,17 @@ namespace Plerion.MakeItSing
         public ObservablePrimitive<bool> loggedIn { get; private set; }
         public ConnectionState nameServerConnection { get; private set; }
         public ConnectionState roomConnection { get; private set; }
-        public ObservablePrimitive<bool> isMasterClient { get; private set; }
-        public ObservablePrimitive<int> playerID { get; private set; }
         public ObservableList<ObservablePrimitive<string>> activeRooms { get; private set; }
         public ObservablePrimitive<double2> roughGrainedLocation { get; private set; }
+
+        public ObservablePrimitive<int> playerID { get; private set; }
+        public ObservablePrimitive<int> masterClientID { get; private set; }
+        public ObservablePrimitive<bool> isMasterClient { get; private set; }
+
+        public ObservablePrimitive<bool> initialSyncComplete { get; private set; }
+        public ObservablePrimitive<bool> inRoomAndSynchronized { get; private set; }
+
+        public SceneState scene { get; private set; }
 
         protected override void PostInitializeInternal()
         {
@@ -38,6 +46,20 @@ namespace Plerion.MakeItSing
                 ObservationScope.All,
                 nameServerConnection.status,
                 roomConnection.connectionString
+            );
+
+            inRoomAndSynchronized.RegisterDerived(
+                _ => inRoomAndSynchronized.value = roomConnection.connected.value && initialSyncComplete.value,
+                ObservationScope.All,
+                roomConnection.connected,
+                initialSyncComplete
+            );
+
+            isMasterClient.RegisterDerived(
+                _ => isMasterClient.value = playerID.value == masterClientID.value,
+                ObservationScope.All,
+                playerID,
+                masterClientID
             );
         }
     }
@@ -79,6 +101,29 @@ namespace Plerion.MakeItSing
 
     public class SceneState : ObservableObject
     {
+        public ObservableDictionary<int, PlayerData> players { get; private set; }
+        public ObservablePrimitiveMap<int, SceneObjectID> playersToAvatars { get; private set; }
+    }
 
+    public class PlayerData : ObservableObject, IKeyedObservableNode<int>
+    {
+        public int playerID { get; private set; }
+        public ObservablePrimitive<bool> initialSyncComplete { get; private set; }
+
+        public void AssignKey(int key)
+            => playerID = key;
+    }
+
+    public struct SceneObjectID
+    {
+        public static SceneObjectID Empty => new SceneObjectID(0);
+
+        public int value { get; }
+        public bool IsEmpty => value == 0;
+
+        public SceneObjectID(int value)
+        {
+            this.value = value;
+        }
     }
 }
