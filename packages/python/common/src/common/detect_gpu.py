@@ -1,24 +1,15 @@
 import shutil
-import subprocess
 from typing import Literal, get_args
 
-from .run_command import run_command
+from .bash import bash_check
 
 Gpu = Literal["auto", "cuda", "rocm", "none"]
 GPU_TYPES = tuple(g for g in get_args(Gpu) if g not in ("auto", "none"))
 
 
 def detect_gpu() -> Gpu:
-    if shutil.which("nvidia-smi"):
-        try:
-            run_command("nvidia-smi", stream_log=False, log=False, verbose_errors=False)
-            return "cuda"
-        except subprocess.CalledProcessError:
-            pass
-    if shutil.which("rocminfo"):
-        try:
-            run_command("rocminfo", stream_log=False, log=False, verbose_errors=False)
-            return "rocm"
-        except subprocess.CalledProcessError:
-            pass
+    if shutil.which("nvidia-smi") and bash_check("nvidia-smi"):
+        return "cuda"
+    if shutil.which("rocminfo") and bash_check("rocminfo"):
+        return "rocm"
     raise RuntimeError("Could not detect GPU type.")

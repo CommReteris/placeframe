@@ -1,0 +1,37 @@
+{
+  "projects": {
+    "Outernet.Client": {
+      "path": "legacy/Outernet.Client",
+      "package": "com.Ogment.OuternetNYC.Beta",
+      "builds": ["android-mobile", "magicleap", "linux64", "win64"],
+      "execute_methods": {
+        "android-mobile": "Outernet.Client.Build.BuildForAndroidMobile",
+        "magicleap": "Outernet.Client.Build.BuildForMagicLeap",
+        "linux64": "Outernet.Client.Build.BuildForLinux64",
+        "win64": "Outernet.Client.Build.BuildForWin64"
+      }
+    },
+    "MapRegistrationTool": {
+      "path": "apps/MapRegistrationTool",
+      "builds": ["linux64", "win64"],
+      "execute_methods": {
+        "linux64": "Placeframe.MapRegistrationTool.Build.BuildForLinux64",
+        "win64": "Placeframe.MapRegistrationTool.Build.BuildForWin64"
+      }
+    },
+    "AndroidMobile": {
+      "path": "apps/AndroidMobile",
+      "package": "com.outernet.captureapp",
+      "builds": ["android-mobile"],
+      "execute_methods": {
+        "android-mobile": "Placeframe.Client.Build.BuildForAndroidMobile"
+      }
+    },
+    "MakeItSing": {
+      "path": "apps/MakeItSing"
+    },
+    "Placeframe": {
+      "path": "packages/unity/Placeframe"
+    }
+  }
+}

@@ -7,7 +7,6 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.116.1",
     "boto3>=1.39.5",
-    "docker>=7.1.0",
     "litestar>=2.19.0",
     "pydantic>=2.12.5",
     "httpx>=0.28.1",

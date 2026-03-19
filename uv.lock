@@ -29,6 +29,7 @@ conflicts = [[
 [manifest]
 members = [
     "auth-initializer",
+    "build-scripts",
     "common",
     "core",
     "database-manager",
@@ -105,19 +106,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e4/a3/20aa7c4e83f2f614e0036300f3c352775dede0655c66814da16c37b661a9/basedpyright-1.38.2.tar.gz", hash = "sha256:b433b2b8ba745ed7520cdc79a29a03682f3fb00346d272ece5944e9e5e5daa92", size = 25277019, upload-time = "2026-02-26T11:18:43.594Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ac/12/736cab83626fea3fe65cdafb3ef3d2ee9480c56723f2fd33921537289a5e/basedpyright-1.38.2-py3-none-any.whl", hash = "sha256:153481d37fd19f9e3adedc8629d1d071b10c5f5e49321fb026b74444b7c70e24", size = 12312475, upload-time = "2026-02-26T11:18:40.373Z" },
-]
-
-[[package]]
-name = "beautifulsoup4"
-version = "4.14.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "soupsieve" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c3/b0/1c6a16426d389813b48d95e26898aff79abbde42ad353958ad95cc8c9b21/beautifulsoup4-4.14.3.tar.gz", hash = "sha256:6292b1c5186d356bba669ef9f7f051757099565ad9ada5dd630bd9de5fa7fb86", size = 627737, upload-time = "2025-11-30T15:08:26.084Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1a/39/47f9197bdd44df24d67ac8893641e16f386c984a0619ef2ee4c51fbbc019/beautifulsoup4-4.14.3-py3-none-any.whl", hash = "sha256:0918bfe44902e6ad8d57732ba310582e98da931428d231a5ecb9e7c703a735bb", size = 107721, upload-time = "2025-11-30T15:08:24.087Z" },
 ]
 
 [[package]]
@@ -213,6 +201,33 @@ wheels = [
 ]
 
 [[package]]
+name = "build-scripts"
+version = "0.1.0"
+source = { editable = "build" }
+dependencies = [
+    { name = "common" },
+    { name = "datamodel-code-generator" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "pyhumps" },
+    { name = "pyyaml" },
+    { name = "sqlalchemy" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "common", editable = "packages/python/common" },
+    { name = "datamodel-code-generator", specifier = ">=0.33.0" },
+    { name = "pydantic", specifier = ">=2.11.7" },
+    { name = "pydantic-settings", specifier = ">=2.9.1" },
+    { name = "pyhumps", specifier = ">=3.8.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "sqlalchemy", specifier = ">=2.0.45" },
+    { name = "typer", specifier = ">=0.17.4" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.1.4"
 source = { registry = "https://pypi.org/simple" }
@@ -297,7 +312,6 @@ source = { editable = "packages/python/common" }
 dependencies = [
     { name = "boto3" },
     { name = "botocore" },
-    { name = "docker" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "litestar" },
@@ -315,7 +329,6 @@ dev = [
 requires-dist = [
     { name = "boto3", specifier = ">=1.39.5" },
     { name = "botocore", specifier = ">=1.42.24" },
-    { name = "docker", specifier = ">=7.1.0" },
     { name = "fastapi", specifier = ">=0.116.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "litestar", specifier = ">=2.19.0" },
@@ -693,21 +706,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d5/7d/5df2650c57d47c57232af5ef4b4fdbff182070421e405e0d62c6cdbfaa87/fsspec-2026.1.0.tar.gz", hash = "sha256:e987cb0496a0d81bba3a9d1cee62922fb395e7d4c3b575e57f547953334fe07b", size = 310496, upload-time = "2026-01-09T15:21:35.562Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/01/c9/97cc5aae1648dcb851958a3ddf73ccd7dbe5650d95203ecb4d7720b4cdbf/fsspec-2026.1.0-py3-none-any.whl", hash = "sha256:cb76aa913c2285a3b49bdd5fc55b1d7c708d7208126b60f2eb8194fe1b4cbdcc", size = 201838, upload-time = "2026-01-09T15:21:34.041Z" },
-]
-
-[[package]]
-name = "gdown"
-version = "5.2.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "beautifulsoup4" },
-    { name = "filelock" },
-    { name = "requests", extra = ["socks"] },
-    { name = "tqdm" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f4/cf/919a9fa16faf8e4572a24d941353edaf4d54e3ddcd048e6c1aeb8c7a9903/gdown-5.2.1.tar.gz", hash = "sha256:247c2ad1f579db5b66b54c04e6a871995fc8fd7021708b950b8ba7b32cf90323", size = 284743, upload-time = "2026-01-11T09:34:01.037Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/21/35dd0a0b7428bd67b12b358d7b4277f693493a3839b071d540a4c8357b78/gdown-5.2.1-py3-none-any.whl", hash = "sha256:391f0480d495fb87644d1a1ee3ddfeb2144e1de31408fbc74f7e3b3ba927052b", size = 18241, upload-time = "2026-01-11T09:34:02.637Z" },
 ]
 
 [[package]]
@@ -1251,9 +1249,9 @@ version = "0.1.0"
 source = { editable = "packages/python/neural-networks" }
 dependencies = [
     { name = "dirtorch" },
-    { name = "gdown" },
     { name = "numpy" },
     { name = "scikit-learn" },
+    { name = "tqdm" },
 ]
 
 [package.optional-dependencies]
@@ -1279,7 +1277,6 @@ rocm = [
 [package.metadata]
 requires-dist = [
     { name = "dirtorch", editable = "packages/python/neural-networks/third-party/deep-image-retrieval" },
-    { name = "gdown", specifier = ">=5.2.0" },
     { name = "lightglue", marker = "extra == 'cpu'", git = "https://github.com/cvg/LightGlue.git" },
     { name = "lightglue", marker = "extra == 'cuda'", git = "https://github.com/cvg/LightGlue.git" },
     { name = "lightglue", marker = "extra == 'rocm'", git = "https://github.com/cvg/LightGlue.git" },
@@ -1292,6 +1289,7 @@ requires-dist = [
     { name = "torchvision", marker = "extra == 'cpu'", specifier = ">=0.24.1", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "neural-networks", extra = "cpu" } },
     { name = "torchvision", marker = "extra == 'cuda'", specifier = ">=0.24.1", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "neural-networks", extra = "cuda" } },
     { name = "torchvision", marker = "extra == 'rocm'", specifier = ">=0.24.1", index = "https://download.pytorch.org/whl/rocm6.4", conflict = { package = "neural-networks", extra = "rocm" } },
+    { name = "tqdm", specifier = ">=4.67.0" },
 ]
 provides-extras = ["cpu", "cuda", "rocm"]
 
@@ -1605,6 +1603,7 @@ source = { virtual = "." }
 [package.dev-dependencies]
 dev = [
     { name = "basedpyright" },
+    { name = "build-scripts" },
     { name = "deptry" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -1617,6 +1616,7 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "basedpyright", specifier = ">=1.28.0" },
+    { name = "build-scripts", editable = "build" },
     { name = "deptry", specifier = ">=0.24.0" },
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
@@ -1635,7 +1635,6 @@ dependencies = [
     { name = "cryptography" },
     { name = "datamodels" },
     { name = "debugpy" },
-    { name = "fastapi" },
     { name = "httpx" },
     { name = "litestar" },
     { name = "numpy" },
@@ -1644,6 +1643,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyjwt" },
+    { name = "scipy" },
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -1664,7 +1664,6 @@ requires-dist = [
     { name = "cryptography", specifier = ">=46.0.3" },
     { name = "datamodels", editable = "packages/generated/python/datamodels" },
     { name = "debugpy", specifier = ">=1.8.16" },
-    { name = "fastapi", specifier = ">=0.116.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "litestar", specifier = ">=2.19.0" },
     { name = "numpy", specifier = ">=2.3.4" },
@@ -1673,6 +1672,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "pydantic-settings", specifier = ">=2.10.1" },
     { name = "pyjwt", specifier = ">=2.10.1" },
+    { name = "scipy", specifier = ">=1.15.3" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.43" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.35.0" },
 ]
@@ -2027,15 +2027,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pysocks"
-version = "1.7.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bd/11/293dd436aea955d45fc4e8a35b6ae7270f5b8e00b53cf6c024c83b657a11/PySocks-1.7.1.tar.gz", hash = "sha256:3f8804571ebe159c380ac6de37643bb4685970655d3bba243530d6558b799aa0", size = 284429, upload-time = "2019-09-20T02:07:35.714Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8d/59/b4572118e098ac8e46e399a1dd0f2d85403ce8bbaad9ec79373ed6badaf9/PySocks-1.7.1-py3-none-any.whl", hash = "sha256:2725bd0a9925919b9b51739eea5f9e2bae91e83288108a9ad338b2e3a4435ee5", size = 16725, upload-time = "2019-09-20T02:06:22.938Z" },
-]
-
-[[package]]
 name = "pytest"
 version = "9.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2243,11 +2234,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/1e/db/4254e3eabe8020b458f1a747140d32277ec7a271daf1d235b70dc0b4e6e3/requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6", size = 64738, upload-time = "2025-08-18T20:46:00.542Z" },
 ]
 
-[package.optional-dependencies]
-socks = [
-    { name = "pysocks" },
-]
-
 [[package]]
 name = "requirements-parser"
 version = "0.13.0"
@@ -2399,22 +2385,16 @@ name = "scripts"
 version = "0.1.0"
 source = { editable = "scripts" }
 dependencies = [
+    { name = "build-scripts" },
     { name = "common" },
-    { name = "datamodel-code-generator" },
-    { name = "pydantic" },
-    { name = "pyhumps" },
-    { name = "sqlalchemy" },
     { name = "typer" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "build-scripts", editable = "build" },
     { name = "common", editable = "packages/python/common" },
-    { name = "datamodel-code-generator", specifier = ">=0.33.0" },
-    { name = "pydantic", specifier = ">=2.11.7" },
-    { name = "pyhumps", specifier = ">=3.8.0" },
-    { name = "sqlalchemy", specifier = ">=2.0.45" },
-    { name = "typer", specifier = ">=0.17.4" },
+    { name = "typer", specifier = ">=0.15" },
 ]
 
 [[package]]
@@ -2451,15 +2431,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a2/87/a6771e1546d97e7e041b6ae58d80074f81b7d5121207425c964ddf5cfdbd/sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc", size = 20372, upload-time = "2024-02-25T23:20:04.057Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e9/44/75a9c9421471a6c4805dbf2356f7c181a29c1879239abab1ea2cc8f38b40/sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2", size = 10235, upload-time = "2024-02-25T23:20:01.196Z" },
-]
-
-[[package]]
-name = "soupsieve"
-version = "2.8.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7b/ae/2d9c981590ed9999a0d91755b47fc74f74de286b0f5cee14c9269041e6c4/soupsieve-2.8.3.tar.gz", hash = "sha256:3267f1eeea4251fb42728b6dfb746edc9acaffc4a45b27e19450b676586e8349", size = 118627, upload-time = "2026-01-20T04:27:02.457Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/46/2c/1462b1d0a634697ae9e55b3cecdcb64788e8b7d63f54d923fcd0bb140aed/soupsieve-2.8.3-py3-none-any.whl", hash = "sha256:ed64f2ba4eebeab06cc4962affce381647455978ffc1e36bb79a545b91f45a95", size = 37016, upload-time = "2026-01-20T04:27:01.012Z" },
 ]
 
 [[package]]
@@ -2666,8 +2637,8 @@ dependencies = [
     { name = "torch", version = "2.9.1+rocm6.4", source = { registry = "https://download.pytorch.org/whl/rocm6.4" }, marker = "(extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-cuda') or (extra != 'extra-15-neural-networks-cuda' and extra == 'extra-15-neural-networks-rocm') or (extra != 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-rocm')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/rocm6.4/torchvision-0.24.1%2Brocm6.4-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:fd183cfb90fd9ed7a952bbe63f51d5da0609d0bc9c6bbfb183a536d808e48cae" },
-    { url = "https://download.pytorch.org/whl/rocm6.4/torchvision-0.24.1%2Brocm6.4-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:478c1553c65b73e058154b2f64a87a954937d12e2025d6b04a36d3d5be362edc" },
+    { url = "https://download-r2.pytorch.org/whl/rocm6.4/torchvision-0.24.1%2Brocm6.4-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:fd183cfb90fd9ed7a952bbe63f51d5da0609d0bc9c6bbfb183a536d808e48cae" },
+    { url = "https://download-r2.pytorch.org/whl/rocm6.4/torchvision-0.24.1%2Brocm6.4-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:478c1553c65b73e058154b2f64a87a954937d12e2025d6b04a36d3d5be362edc" },
 ]
 
 [[package]]
@@ -2683,8 +2654,8 @@ dependencies = [
     { name = "torch", version = "2.10.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-neural-networks-cpu') or (extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-cuda') or (extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-rocm') or (extra == 'extra-15-neural-networks-cuda' and extra == 'extra-15-neural-networks-rocm')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.25.0-cp313-cp313-macosx_12_0_arm64.whl", hash = "sha256:6c444119c6af8fa48b79c59f1529fc15a45a2bbf823cf85f851e7203d84f727f" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.25.0-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:80895a40faa5783ce19ed5a692a54062c7888a385490e866324355f8d59b2eb3" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.25.0-cp313-cp313-macosx_12_0_arm64.whl", hash = "sha256:6c444119c6af8fa48b79c59f1529fc15a45a2bbf823cf85f851e7203d84f727f" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.25.0-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:80895a40faa5783ce19ed5a692a54062c7888a385490e866324355f8d59b2eb3" },
 ]
 
 [[package]]
@@ -2703,12 +2674,12 @@ dependencies = [
     { name = "torch", version = "2.10.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-neural-networks-cpu') or (extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-cuda') or (extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-rocm') or (extra == 'extra-15-neural-networks-cuda' and extra == 'extra-15-neural-networks-rocm')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:fe54cbd5942cd0b26a90f1748f0d4421caf67be35c281c6c3b8573733a03d630" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:90eec299e1f82cfaf080ccb789df3838cb9a54b57e2ebe33852cd392c692de5c" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313-win_amd64.whl", hash = "sha256:783c8fc580bbfc159bff52f4f72cdd538e42b32956e70dffa42b940db114e151" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313t-manylinux_2_28_aarch64.whl", hash = "sha256:e985e12a9a232618e5a43476de5689e4b14989f5da6b93909c57afa57ec27012" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:813f0106eb3e268f3783da67b882458e544c6fb72f946e6ca64b5ed4e62c6a77" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313t-win_amd64.whl", hash = "sha256:9212210f417888e6261c040495180f053084812cf873dedba9fc51ff4b24b2d3" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:fe54cbd5942cd0b26a90f1748f0d4421caf67be35c281c6c3b8573733a03d630" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:90eec299e1f82cfaf080ccb789df3838cb9a54b57e2ebe33852cd392c692de5c" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313-win_amd64.whl", hash = "sha256:783c8fc580bbfc159bff52f4f72cdd538e42b32956e70dffa42b940db114e151" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313t-manylinux_2_28_aarch64.whl", hash = "sha256:e985e12a9a232618e5a43476de5689e4b14989f5da6b93909c57afa57ec27012" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:813f0106eb3e268f3783da67b882458e544c6fb72f946e6ca64b5ed4e62c6a77" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.25.0%2Bcpu-cp313-cp313t-win_amd64.whl", hash = "sha256:9212210f417888e6261c040495180f053084812cf873dedba9fc51ff4b24b2d3" },
 ]
 
 [[package]]
@@ -2727,24 +2698,24 @@ dependencies = [
     { name = "torch", version = "2.10.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-15-neural-networks-cuda' or (extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-rocm')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:12c253520a26483fe3c614f63ff16eca6d9b0b4ebe510699b7d15d88e6c0cd35" },
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:a9c0de893dce9c2913c9c7ae88a916910f92d02b99da149678806d18e8079f29" },
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313-win_amd64.whl", hash = "sha256:e2e0317e3861bba1b5aeba7c1cb4bcd50937cf0bffdbea478619d1f5f73e9050" },
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313t-manylinux_2_28_aarch64.whl", hash = "sha256:58b2971b55c761f1d2491bd80fcc4618ea97d363d387a9dd3aff23220cbee264" },
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:1b6878b043513ea3dea1b90bfb5193455d9b248b8c4d5e66ea9f5d1643a43f13" },
-    { url = "https://download.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313t-win_amd64.whl", hash = "sha256:96cd2ba7b289117873b2a8f4c80605d38118d920b1045f3ce21a9f0ca68a701e" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:12c253520a26483fe3c614f63ff16eca6d9b0b4ebe510699b7d15d88e6c0cd35" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:a9c0de893dce9c2913c9c7ae88a916910f92d02b99da149678806d18e8079f29" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313-win_amd64.whl", hash = "sha256:e2e0317e3861bba1b5aeba7c1cb4bcd50937cf0bffdbea478619d1f5f73e9050" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313t-manylinux_2_28_aarch64.whl", hash = "sha256:58b2971b55c761f1d2491bd80fcc4618ea97d363d387a9dd3aff23220cbee264" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313t-manylinux_2_28_x86_64.whl", hash = "sha256:1b6878b043513ea3dea1b90bfb5193455d9b248b8c4d5e66ea9f5d1643a43f13" },
+    { url = "https://download-r2.pytorch.org/whl/cu128/torchvision-0.25.0%2Bcu128-cp313-cp313t-win_amd64.whl", hash = "sha256:96cd2ba7b289117873b2a8f4c80605d38118d920b1045f3ce21a9f0ca68a701e" },
 ]
 
 [[package]]
 name = "tqdm"
-version = "4.67.1"
+version = "4.67.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-cuda') or (extra == 'extra-15-neural-networks-cpu' and extra == 'extra-15-neural-networks-rocm') or (extra == 'extra-15-neural-networks-cuda' and extra == 'extra-15-neural-networks-rocm')" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737, upload-time = "2024-11-24T20:12:22.481Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/09/a9/6ba95a270c6f1fbcd8dac228323f2777d886cb206987444e4bce66338dd4/tqdm-4.67.3.tar.gz", hash = "sha256:7d825f03f89244ef73f1d4ce193cb1774a8179fd96f31d7e1dcde62092b960bb", size = 169598, upload-time = "2026-02-03T17:35:53.048Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2", size = 78540, upload-time = "2024-11-24T20:12:19.698Z" },
+    { url = "https://files.pythonhosted.org/packages/16/e1/3079a9ff9b8e11b846c6ac5c8b5bfb7ff225eee721825310c91b3b50304f/tqdm-4.67.3-py3-none-any.whl", hash = "sha256:ee1e4c0e59148062281c49d80b25b67771a127c85fc9676d3be5f243206826bf", size = 78374, upload-time = "2026-02-03T17:35:50.982Z" },
 ]
 
 [[package]]
