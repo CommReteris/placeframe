@@ -226,7 +226,10 @@ namespace Outernet.Client
                     App.State_Old.settingsFavThreshold.EnqueueSet(value)),
 
                 App.State_Old.settingsShowPointCloud.Subscribe(settingsShowPointCloud =>
-                    showPointCloud.isOn = settingsShowPointCloud.Value),
+                {
+                    showPointCloud.isOn = settingsShowPointCloud.Value;
+                    VisualPositioningSystem.SetMapVisualizationsVisible(settingsShowPointCloud.Value);
+                }),
 
                 App.State_Old.settingsAnimateNodeIndicators.Subscribe(settingsAnimateIndicators =>
                     animateNodeIndicators.isOn = settingsAnimateIndicators.Value),
