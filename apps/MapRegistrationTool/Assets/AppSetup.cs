@@ -30,10 +30,9 @@ namespace Placeframe.MapRegistrationTool
             Prefabs.Initialize("Prefabs");
             var defaultRaycaster = Camera.main.gameObject.AddComponent<DefaultRaycaster>();
 
-            UnityEnv env = UnityEnv.GetOrCreateInstance();
             VisualPositioningSystem.Initialize(
                 null,
-                env.placeframeAuthAudience,
+                "placeframe-api",
                 message => Debug.Log(message),
                 message => Debug.LogWarning(message),
                 message => Debug.LogError(message)

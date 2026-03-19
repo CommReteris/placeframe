@@ -124,8 +124,11 @@ namespace Placeframe.Core
                 // Localize this client using each new CameraFrame
                 .SubscribeAwait(
                     async (data, cancellationToken) => await Localize(data.cameraConfig, data.frame, cancellationToken),
+                    // Localize throws for expected rejections (low inliers, small adjustment, no results)
+                    onErrorResume: exception => LogDebug(exception.Message),
+                    onCompleted: _ => { },
                     // Skip frames if they pile up
-                    AwaitOperation.Drop
+                    awaitOperation: AwaitOperation.Drop
                 );
         }
 

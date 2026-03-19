@@ -1,0 +1,242 @@
+name: Placeframe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, dev]
+    paths-ignore:
+      - ".env.lock"
+      - "build/versions.json"
+      - "packages/unity/Placeframe/Assets/Package/Core/package.json"
+      - "packages/unity/Placeframe/Assets/Package/ARFoundation/package.json"
+      - "packages/unity/Placeframe/Assets/Package/MagicLeap/package.json"
+  pull_request:
+    branches: [main, dev]
+    paths-ignore:
+      - ".env.lock"
+      - "build/versions.json"
+      - "packages/unity/Placeframe/Assets/Package/Core/package.json"
+      - "packages/unity/Placeframe/Assets/Package/ARFoundation/package.json"
+      - "packages/unity/Placeframe/Assets/Package/MagicLeap/package.json"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CACHE_REGISTRY: ghcr.io/${{ github.repository }}/cache
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-uv
+        with:
+          save-cache: "true"
+
+      - name: Preflight checks and codegen staleness
+        run: uv run --no-sync preflight
+
+  activate-license:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    container:
+      image: unityci/editor:6000.0.66f1-linux-il2cpp-3
+      volumes:
+        - /usr/local/lib/android:/to_clean/android
+        - /usr/share/dotnet:/to_clean/dotnet
+        - /usr/local/.ghcup:/to_clean/ghcup
+        - /usr/share/swift:/to_clean/swift
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-uv
+
+      - name: Activate Unity license
+        run: uv run --no-sync activate-unity-license --oras-push
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+
+  matrix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      build-matrix: ${{ steps.generate.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-uv
+
+      - name: Generate build matrix
+        id: generate
+        run: echo "matrix=$(uv run --no-sync unity-matrix)" >> "$GITHUB_OUTPUT"
+
+  build-docker:
+    needs: [preflight]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [common, cuda, rocm]
+    name: build-docker (${{ matrix.variant }})
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - uses: ./.github/actions/setup-uv
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run --no-sync build-docker --variant ${{ matrix.variant }}
+
+      - name: Upload .env.lock
+        uses: actions/upload-artifact@v6
+        with:
+          name: env-lock-${{ matrix.variant }}
+          path: .env.lock
+          include-hidden-files: true
+
+  build-unity:
+    needs: [preflight, activate-license, matrix]
+    if: >-
+      !cancelled()
+      && needs.preflight.result == 'success'
+      && needs.activate-license.result == 'success'
+    name: ${{ matrix.project-name }} (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    container:
+      image: unityci/editor:6000.0.66f1-${{ matrix.module }}-3
+      volumes:
+        - /usr/local/lib/android:/to_clean/android
+        - /usr/share/dotnet:/to_clean/dotnet
+        - /usr/local/.ghcup:/to_clean/ghcup
+        - /usr/share/swift:/to_clean/swift
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.build-matrix) }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-uv
+
+      - name: Cache UPM packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/Unity/upm
+          key: unity-upm-${{ hashFiles(format('{0}/Packages/manifest.json', matrix.project)) }}
+          restore-keys: |
+            unity-upm-
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          uv run --no-sync build-unity \
+            --project ${{ matrix.project-name }} \
+            --project-path ${{ matrix.project }} \
+            --platform ${{ matrix.platform }} \
+            --cache-key ${{ matrix.cache-key }} \
+            --run-number ${{ github.run_number }} \
+            --branch ${{ github.head_ref || github.ref_name }} \
+            --registry "$CACHE_REGISTRY"
+
+      - name: Upload Build Artifacts
+        if: success()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.project-name }}-${{ matrix.platform }}
+          path: /tmp/unity-builds/
+          if-no-files-found: ignore
+
+      - name: Upload Build Report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.project-name }}-${{ matrix.platform }}-build-report
+          path: ${{ matrix.project }}/Build/**/BuildReport.json
+          if-no-files-found: ignore
+
+  publish:
+    needs: [build-unity]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - uses: ./.github/actions/setup-uv
+
+      - name: Publish packages
+        id: publish
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: uv run --no-sync publish-packages
+
+      - name: Upload publish artifacts
+        if: steps.publish.outputs.published == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: versions
+          path: |
+            build/versions.json
+            packages/unity/Placeframe/Assets/Package/*/package.json
+
+  commit:
+    needs: [build-docker, publish]
+    if: >-
+      always()
+      && !cancelled()
+      && github.event_name != 'workflow_dispatch'
+      && needs.build-docker.result == 'success'
+      && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Download env-lock artifacts
+        uses: actions/download-artifact@v6
+        with:
+          pattern: env-lock-*
+          path: /tmp/env-locks
+
+      - name: Download publish artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: versions
+          path: .
+        continue-on-error: true
+
+      - uses: ./.github/actions/setup-uv
+
+      - name: Commit and push
+        run: uv run --no-sync commit-artifacts

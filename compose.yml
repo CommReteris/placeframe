@@ -1,9 +1,11 @@
 name: placeframe
 
+include:
+  - compose.postgres.yml
+
 volumes:
   uv_cache:
   minio_data:
-  postgres_data:
   cloudbeaver_data:
   auth_data:
   keycloak_import:
@@ -59,26 +61,6 @@ services:
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY:?err}"
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY:?err}"
-
-  postgres:
-    x-image-ref: docker.io/postgis/postgis:16-3.4-alpine
-    image: "${POSTGRES_IMAGE:?err}"
-    ports:
-      - "55432:5432"
-    expose:
-      - "5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/entrypoint-wrapper.sh:/usr/local/bin/entrypoint-wrapper.sh:ro
-    entrypoint: /usr/local/bin/entrypoint-wrapper.sh
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -q -h localhost -p 5432 -U $${POSTGRES_USER} -d postgres" ]
-      interval: 1s
-      timeout: 1s
-      retries: 30
-    environment:
-      POSTGRES_USER: "${POSTGRES_ADMIN_USER:?err}"
-      POSTGRES_PASSWORD: "${POSTGRES_ADMIN_PASSWORD:?err}"
 
   initialize-cloudbeaver:
     x-image-ref: ghcr.io/outernet-foundation/placeframe/cloudbeaver-initializer:latest

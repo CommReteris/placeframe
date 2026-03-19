@@ -71,6 +71,9 @@ namespace Placeframe.Core
             Action<string> logError
         )
         {
+            if (string.IsNullOrEmpty(authAudience))
+                throw new ArgumentException("authAudience must not be null or empty", nameof(authAudience));
+
             AuthAudience = authAudience;
             LogInfo = logInfo;
             LogWarning = logWarning;
@@ -119,8 +122,9 @@ namespace Placeframe.Core
 
             if (!response.IsSuccessStatusCode)
             {
-                Error($"[Auth] Token error: {(int)response.StatusCode} {response.ReasonPhrase} {body}");
-                throw new Exception("Login failed");
+                var message = $"Login failed: {(int)response.StatusCode} {response.ReasonPhrase} {body}";
+                Error($"[Auth] {message}");
+                throw new Exception(message);
             }
 
             var parsed = JsonConvert.DeserializeObject<TokenResponse>(body);

@@ -12,6 +12,7 @@ namespace Outernet.Client
     {
         public static Serilog.Core.Logger logger { get; private set; }
         public static ILogHandler defaultUnityLogHandler;
+        [ThreadStatic] internal static bool emittingToUnity;
 
         private static string _deviceName;
         public static string DeviceName => _deviceName;
@@ -25,9 +26,7 @@ namespace Outernet.Client
             logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Enrich.With<Enricher>()
-                // #if UNITY_EDITOR
                 .WriteTo.Unity()
-                // #endif
                 .WriteTo.Loki()
                 .CreateLogger();
 
@@ -47,8 +46,8 @@ namespace Outernet.Client
             // Disable Unity's stack trace generation, since we generate our own stack traces
             Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
             Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
-            // Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.None);
-            // Application.SetStackTraceLogType(LogType.Exception, StackTraceLogType.None);
+            Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.None);
+            Application.SetStackTraceLogType(LogType.Exception, StackTraceLogType.None);
             Application.SetStackTraceLogType(LogType.Assert, StackTraceLogType.None);
 
             subscriptions = Disposable.Combine(
@@ -119,30 +118,31 @@ namespace Outernet.Client
             }
         }
 
+        // Benign errors from third-party native code that we can't fix at source.
+        // Downgrade to Log so they don't pollute error tracking.
+        static LogType SuppressBenignErrors(LogType type, string message)
+        {
+            if ((type == LogType.Exception || type == LogType.Error) &&
+                (message.Contains("Error: MLCamera.InternalGetFramePose failed to get camera frame pose. Reason: MLResult_PoseNotFound") ||
+                message.Contains("Error: MLCVCameraGetFramePose in the Magic Leap API failed. Reason: MLResult_PoseNotFound") ||
+                message.Contains("Error: XrBeginPlaneDetection in the Magic Leap API failed. Reason: SpaceNotLocatableEXT") ||
+                // ARCore's native ARPresto plugin passes GL_TEXTURE_EXTERNAL_OES to a GL
+                // call that doesn't accept it during camera texture init on Mali GPUs.
+                // The error is inside the precompiled ARPresto.aar — we can't fix it.
+                // It fires once at startup and ARCore recovers; no visible impact.
+                message.Contains("OPENGL NATIVE PLUG-IN ERROR: GL_INVALID_ENUM")))
+            {
+                return LogType.Log;
+            }
+            return type;
+        }
+
         [InnerFramesHiddenFromStackTrace]
         static void UnityLogMessageReceived(string condition, string _, LogType type)
         {
-#if UNITY_EDITOR
-            // In player builds, because we use a custom log handler and don't forward logs to Unity's default log handler,
-            // this callback will only ever be called when native code logs a message (example: assigning a Vector3 containing NaNs 
-            // to a transform's position logs an error from native code, completely bypassing the managed log handler).
+            if (emittingToUnity) return;
 
-            // In the editor, we do forward logs back to Unity's default log handler so that we can see them in the editor console, 
-            // so we need to check whether that is where this log message came from, and only if it isn't do we know it came from 
-            // native code and should be forwarded to our logging system.
-
-            // This does mean that logs from native code will result duplicate messages in the editor console, but I see no way to 
-            // avoid that without suffering other, worse drawbacks.
-
-            if (new System.Diagnostics.StackTrace(false)
-                .GetFrames()
-                .Any(frame =>
-                    frame.GetMethod().DeclaringType == typeof(Log) &&
-                    frame.GetMethod().Name == "LogBase"))
-            {
-                return;
-            }
-#endif
+            type = SuppressBenignErrors(type, condition);
 
             switch (type)
             {
@@ -152,7 +152,7 @@ namespace Outernet.Client
                 case LogType.Error:
                     Log.Error(condition);
                     break;
-                // Treat all native logs as possible bugs, since they might be (example: calling Quaternion.LookRotation with 
+                // Treat all native logs as possible bugs, since they might be (example: calling Quaternion.LookRotation with
                 // Vector3.zero is almost certainly a mistake, but results in native code logging a message of type LogType.Log)
                 case LogType.Warning:
                 case LogType.Log:
@@ -167,14 +167,7 @@ namespace Outernet.Client
             public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
             {
                 string message = string.Format(format, args);
-
-                if ((logType == LogType.Exception || logType == LogType.Error) &&
-                    (message.Contains("Error: MLCamera.InternalGetFramePose failed to get camera frame pose. Reason: MLResult_PoseNotFound") ||
-                    message.Contains("Error: MLCVCameraGetFramePose in the Magic Leap API failed. Reason: MLResult_PoseNotFound") ||
-                    message.Contains("Error: XrBeginPlaneDetection in the Magic Leap API failed. Reason: SpaceNotLocatableEXT")))
-                {
-                    logType = LogType.Log;
-                }
+                logType = SuppressBenignErrors(logType, message);
 
                 switch (logType)
                 {

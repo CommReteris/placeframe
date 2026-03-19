@@ -1,5 +1,5 @@
 {
-  "name": "com.placeframe.zed-client",
+  "name": "org.nuget.placeframezedclient",
   "displayName": "PlaceframeZedClient",
   "version": "0.0.1"
 }

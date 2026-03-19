@@ -34,47 +34,50 @@ class AuthMiddleware(AbstractAuthenticationMiddleware):
 
         token = authorization.split(" ", 1)[1].strip()
 
+        # Parse header
         try:
-            # Parse header
-            try:
-                header = get_unverified_header(token)
-            except Exception:
-                raise NotAuthorizedException("Malformed header")
+            header = get_unverified_header(token)
+        except Exception as exception:
+            raise NotAuthorizedException(f"Malformed header: {exception}")
 
-            # Get key ID
-            kid = header.get("kid")
-            if not isinstance(kid, str):
-                raise NotAuthorizedException("Missing key id")
+        # Get key ID
+        kid = header.get("kid")
+        if not isinstance(kid, str):
+            raise NotAuthorizedException("Missing key id")
 
-            # Get key algorithm (default to RS256 if missing)
-            alg = header.get("alg")
-            if not isinstance(alg, str):
-                alg = "RS256"
+        # Get key algorithm (default to RS256 if missing)
+        alg = header.get("alg")
+        if not isinstance(alg, str):
+            alg = "RS256"
 
-            # Prevent concurrent refreshes
-            async with self._lock:
-                # Get json web key by ID
-                json_web_key = self._keys.get(kid)
+        # Prevent concurrent refreshes
+        async with self._lock:
+            # Get json web key by ID
+            json_web_key = self._keys.get(kid)
 
-                # Refresh if missing or expired
-                if not json_web_key or time() >= self._expires_at:
+            # Refresh if missing or expired
+            if not json_web_key or time() >= self._expires_at:
+                try:
                     async with AsyncClient() as client:
                         resp = await client.get(str(settings.auth_certs_url), timeout=5)
                         resp.raise_for_status()
                         json_web_key_set = resp.json()
+                except Exception as exception:
+                    raise NotAuthorizedException(f"JWKS fetch failed: {exception}")
 
-                    self._keys = {key["kid"]: key for key in json_web_key_set.get("keys", []) if "kid" in key}
-                    self._expires_at = time() + self._time_to_live
+                self._keys = {key["kid"]: key for key in json_web_key_set.get("keys", []) if "kid" in key}
+                self._expires_at = time() + self._time_to_live
 
-                    json_web_key = self._keys.get(kid)
+                json_web_key = self._keys.get(kid)
 
-                if json_web_key is None:
-                    raise NotAuthorizedException("Unknown key id")
+            if json_web_key is None:
+                raise NotAuthorizedException("Unknown key id")
 
-                # Get public key
-                public_key = PyJWK.from_dict(json_web_key).key
+            # Get public key
+            public_key = PyJWK.from_dict(json_web_key).key
 
-            # Decode and validate json web token
+        # Decode and validate json web token
+        try:
             claims: dict[str, Any] = decode(
                 token,
                 public_key,
@@ -86,15 +89,10 @@ class AuthMiddleware(AbstractAuthenticationMiddleware):
             )
 
         except ExpiredSignatureError as exception:
-            raise NotAuthorizedException(f"Token expired: {str(exception)}" if exception else "Token expired")
+            raise NotAuthorizedException(f"Token expired: {exception}")
 
         except InvalidTokenError as exception:
-            raise NotAuthorizedException(f"Invalid token: {str(exception)}" if exception else "Invalid token")
-
-        except Exception as exception:
-            raise NotAuthorizedException(
-                f"Unknown exception: {str(exception)}" if exception else "Authentication error"
-            )
+            raise NotAuthorizedException(f"Invalid token: {exception}")
 
         if "sub" not in claims:
             raise NotAuthorizedException("Missing subject claim")

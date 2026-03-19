@@ -1,7 +1,4 @@
-using System;
-using System.IO;
 using UnityEngine;
-using dotenv.net;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,9 +14,7 @@ namespace Outernet.Client
         public LogLevel logLevel = LogLevel.Info;
         public LogLevel stackTraceLevel = LogLevel.Warn;
 
-        public string dotEnvPath;
         public string placeframeDomain;
-        public string placeframeAuthAudience;
 
         public static UnityEnv GetOrCreateInstance()
         {
@@ -46,80 +41,6 @@ namespace Outernet.Client
             }
 
             return _instance;
-        }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            // Called when you change fields (like dotEnvPath) in the inspector and hit save.
-            if (!Application.isPlaying && _instance != null)
-            {
-                ReloadFromDotEnv();
-                EditorUtility.SetDirty(this);
-            }
-        }
-#endif
-
-
-        private static void ReloadFromDotEnv()
-        {
-            if (!string.IsNullOrEmpty(_instance.dotEnvPath))
-            {
-                try
-                {
-                    DotEnv.Load(
-                        new DotEnvOptions(
-                            envFilePaths: new[]
-                            {
-                                Path.GetFullPath(
-                                    Path.Combine(
-                                        Directory.GetParent(Application.dataPath)!.FullName,
-                                        _instance.dotEnvPath
-                                    )
-                                ),
-                            },
-                            ignoreExceptions: false
-                        )
-                    );
-
-                    var publicDomain = Environment.GetEnvironmentVariable("PUBLIC_DOMAIN");
-
-                    if (string.IsNullOrEmpty(publicDomain))
-                    {
-                        throw new Exception("PUBLIC_DOMAIN is not set in the .env file.");
-                    }
-
-                    var authAudience = Environment.GetEnvironmentVariable("AUTH_AUDIENCE");
-
-                    if (string.IsNullOrEmpty(authAudience))
-                    {
-                        throw new Exception("AUTH_AUDIENCE is not set in the .env file.");
-                    }
-
-                    _instance.placeframeDomain = publicDomain;
-                    _instance.placeframeAuthAudience = authAudience;
-                }
-                catch (Exception exception)
-                {
-                    Debug.LogError($"Failed to load .env file at {_instance.dotEnvPath}: {exception.Message}");
-                }
-            }
-        }
-
-        private static void ApplyEnvironmentVariable(string key, ref string field)
-        {
-            string value = Environment.GetEnvironmentVariable(key);
-
-            if (string.IsNullOrEmpty(value))
-            {
-                Debug.LogError(
-                    $"UnityEnv: required environment variable '{key}' is missing or empty. "
-                        + $"Keeping existing value '{field ?? "<null>"}'."
-                );
-                return;
-            }
-
-            field = value;
         }
     }
 }

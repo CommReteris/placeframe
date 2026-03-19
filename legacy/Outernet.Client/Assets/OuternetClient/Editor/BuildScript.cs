@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using Unity.Plastic.Newtonsoft.Json;
+using System.Text.RegularExpressions;
 using UnityEditor;
-using UnityEditor.Build.Reporting;
+using UnityEditor.Build;
 using UnityEditor.XR.Management;
 using UnityEditor.XR.Management.Metadata;
 using UnityEngine;
@@ -20,7 +17,6 @@ using MagicLeap.OpenXR.Features.LocalizationMaps;
 using MagicLeap.OpenXR.Features.MarkerUnderstanding;
 using MagicLeap.OpenXR.Features.Planes;
 using MagicLeap.OpenXR.Features.UserCalibration;
-using UnityEditor.Build;
 
 namespace Outernet.Client
 {
@@ -28,14 +24,51 @@ namespace Outernet.Client
     {
         public static void BuildForMagicLeap()
         {
+            PlayerSettings.productName = "Outernet.Client";
             ConfigureForMagicLeap();
-            BuildMain("MagicLeap");
+            BuildMain();
         }
 
         public static void BuildForAndroidMobile()
         {
+            PlayerSettings.productName = "Outernet.Client";
             ConfigureForAndroidMobile();
-            BuildMain("AndroidMobile");
+            BuildMain();
+        }
+
+        public static void BuildForLinux64()
+        {
+            PlayerSettings.productName = "Outernet.Client";
+            ConfigureForLinux64();
+            string sanitizedName = Regex.Replace(PlayerSettings.productName, @"[^a-zA-Z0-9._-]", "_");
+            string outputPath = $"Build/{sanitizedName}";
+            Directory.CreateDirectory("Build");
+
+            Placeframe.BuildUtility.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = new[] { "Assets/OuternetClient/Main.unity" },
+                locationPathName = outputPath,
+                target = BuildTarget.StandaloneLinux64,
+                targetGroup = BuildTargetGroup.Standalone,
+            });
+        }
+
+        public static void BuildForWin64()
+        {
+            PlayerSettings.productName = "Outernet.AuthoringTool";
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
+            ConfigureForWin64();
+            string sanitizedName = Regex.Replace(PlayerSettings.productName, @"[^a-zA-Z0-9._-]", "_");
+            string outputPath = $"Build/{sanitizedName}.exe";
+            Directory.CreateDirectory("Build");
+
+            Placeframe.BuildUtility.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = new[] { "Assets/OuternetClient/Main.unity" },
+                locationPathName = outputPath,
+                target = BuildTarget.StandaloneWindows64,
+                targetGroup = BuildTargetGroup.Standalone,
+            });
         }
 
         // [MenuItem("Build/MagicLeap", priority = 0)]
@@ -82,7 +115,18 @@ namespace Outernet.Client
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.X86_64;
             EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.DXT;
             GraphicsSettings.defaultRenderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/MagicLeap_PipelineAsset.asset");
-            QualitySettings.renderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/MagicLeap_PipelineAsset.asset");
+        }
+
+        [MenuItem("Build/Configure/Linux64", priority = 12)]
+        public static void ConfigureForLinux64()
+        {
+            GraphicsSettings.defaultRenderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/Linux_PipelineAsset.asset");
+        }
+
+        [MenuItem("Build/Configure/Win64", priority = 13)]
+        public static void ConfigureForWin64()
+        {
+            GraphicsSettings.defaultRenderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/Windows_PipelineAsset.asset");
         }
 
         [MenuItem("Build/Configure/AndroidMobile", priority = 11)]
@@ -98,7 +142,6 @@ namespace Outernet.Client
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.ASTC;
             GraphicsSettings.defaultRenderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/AndroidMobile_PipelineAsset.asset");
-            QualitySettings.renderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/AndroidMobile_PipelineAsset.asset");
         }
 
         private static void StartBuild(string platform)
@@ -139,99 +182,20 @@ namespace Outernet.Client
         //     }
         // }
 
-        private static void BuildMain(string platform)
+        private static void BuildMain()
         {
-            try
+            Directory.CreateDirectory("Build");
+            string sanitizedName = Regex.Replace(PlayerSettings.productName, @"[^a-zA-Z0-9._-]", "_");
+            string outputPath = $"Build/{sanitizedName}.apk";
+
+            Placeframe.BuildUtility.BuildPlayer(new BuildPlayerOptions
             {
-                // Set the log handler to suppress specific messages
-                // UnityEngine.Debug.unityLogger.logHandler = new LogHandler();
-
-                string buildTarget = "Android";
-                string outputPath = $"Build/{platform}/";
-                if (buildTarget == "Android")
-                {
-                    outputPath += "OgmentUnity.apk";
-                }
-
-                // Perform the build
-                BuildReport report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
-                {
-                    scenes = new string[] { "Assets/OuternetClient/Main.unity" },
-                    locationPathName = outputPath,
-                    target = (BuildTarget)Enum.Parse(typeof(BuildTarget), buildTarget),
-                    targetGroup = (BuildTargetGroup)Enum.Parse(typeof(BuildTargetGroup), buildTarget),
-                    options = BuildOptions.Development
-                });
-
-                // Write the build report to a file
-                SerializableBuildReport serializableReport = new SerializableBuildReport();
-                serializableReport.result = report.summary.result.ToString();
-                (serializableReport.steps, serializableReport.messages) = BuildStepTree(new List<BuildStep>(report.steps), -1);
-                File.WriteAllText($"Build/{platform}/BuildReport.json", JsonConvert.SerializeObject(serializableReport, Formatting.Indented));
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError(e);
-            }
-        }
-
-        [Serializable]
-        public class SerializableBuildReport
-        {
-            public string result;
-            public List<Step> steps;
-            public List<Message> messages;
-        }
-
-        [Serializable]
-        public class Step
-        {
-            public string name;
-            public string duration;
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] public List<Step> steps;
-
-        }
-
-        [Serializable]
-        public class Message
-        {
-            public string content;
-            public string type;
-            public string step;
-        }
-
-        private static (List<Step>, List<Message>) BuildStepTree(List<BuildStep> reportBuildSteps, int depth)
-        {
-            List<Step> steps = new List<Step>();
-            List<Message> messages = new List<Message>();
-
-            while (reportBuildSteps.Count > 0)
-            {
-                if (reportBuildSteps[0].depth <= depth) break;
-
-                BuildStep reportBuildStep = reportBuildSteps[0];
-                reportBuildSteps.RemoveAt(0);
-
-                messages.AddRange(reportBuildStep.messages
-                    .Select(m => new Message
-                    {
-                        content = m.content,
-                        type = m.type.ToString(),
-                        step = reportBuildStep.name
-                    }));
-
-                var (subSteps, subMessages) = BuildStepTree(reportBuildSteps, reportBuildStep.depth);
-                messages.AddRange(subMessages);
-
-                steps.Add(new Step
-                {
-                    name = reportBuildStep.name,
-                    duration = reportBuildStep.duration.TotalSeconds.ToString(),
-                    steps = subSteps.Count > 0 ? subSteps : null
-                });
-            }
-
-            return (steps, messages);
+                scenes = new string[] { "Assets/OuternetClient/Main.unity" },
+                locationPathName = outputPath,
+                target = BuildTarget.Android,
+                targetGroup = BuildTargetGroup.Android,
+                options = BuildOptions.Development
+            });
         }
     }
 }

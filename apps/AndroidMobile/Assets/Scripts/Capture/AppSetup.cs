@@ -39,8 +39,7 @@ namespace Placeframe.Client
 
             gameObject.AddComponent<App>();
 
-            var env = UnityEnv.GetOrCreateInstance();
-            App.state.placeframeAuthAudience.ExecuteSet(env.placeframeAuthAudience);
+            App.state.placeframeAuthAudience.ExecuteSet("placeframe-api");
 
             Instantiate(localizationManager);
             Instantiate(localizationMapManager);

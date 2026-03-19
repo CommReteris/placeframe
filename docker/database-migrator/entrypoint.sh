@@ -26,7 +26,7 @@ encode_opts() {
 ENC_OPTS="$(encode_opts "$EXTRA_PGOPTIONS")"
 OWNER_DSN="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?options=${ENC_OPTS}"
 
-args=(apply --from-dsn "$OWNER_DSN" --to-dir "/app/${DATABASE_SCHEMA_DIR}" --skip-confirm-prompt)
+args=(apply --from-dsn "$OWNER_DSN" --to-dir "${APP_DIR:-/app}/${DATABASE_SCHEMA_DIR}" --skip-confirm-prompt)
 
 if [[ -n "${ALLOWED_HAZARDS}" ]]; then
   args+=(--allow-hazards "$ALLOWED_HAZARDS")
