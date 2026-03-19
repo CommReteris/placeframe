@@ -3,7 +3,7 @@ import tempfile
 from getpass import getpass
 from pathlib import Path
 
-from common.run_command import run_command
+from common.bash import bash
 from typer import Option, run
 
 zed_project = Path(__file__).parent
@@ -38,13 +38,13 @@ def cli(host: str = Option(..., help="The host address for the Zed application."
                 tar.add(item, arcname=Path("packages/core") / item.name)
 
     print("Uploading")
-    run_command(f"scp {tarball_path} {host}:{remote_tarball_path}")
-    run_command(f'scp "{install_script_path}" {host}:/tmp/install.sh')
+    bash(f"scp {tarball_path} {host}:{remote_tarball_path}")
+    bash(f'scp "{install_script_path}" {host}:/tmp/install.sh')
 
     pwd = getpass(f"sudo password for {host}: ")  # not echoed
 
     print("Installing")
-    run_command(f'ssh -tt {host} sudo bash /tmp/install.sh "{remote_tarball_path}"', stream_log=True, stdin_text=pwd)
+    bash(f'ssh -tt {host} sudo bash /tmp/install.sh "{remote_tarball_path}"', stdin_text=pwd)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from build_metrics import _compute_inlier_coverage
+from localize.build_metrics import _compute_inlier_coverage
 
 
 class TestComputeInlierCoverage:

@@ -6,7 +6,7 @@ dependencies = []
 
 
 [dependency-groups]
-dev = ["scripts", "basedpyright>=1.28.0", "deptry>=0.24.0", "ruff>=0.14.11", "pytest>=8.0.0", "pytest-asyncio>=0.24.0"]
+dev = ["build-scripts", "scripts", "basedpyright>=1.28.0", "deptry>=0.24.0", "ruff>=0.14.11", "pytest>=8.0.0", "pytest-asyncio>=0.24.0"]
 
 [tool.uv.workspace]
 members = [
@@ -24,6 +24,7 @@ members = [
     "packages/generated/python/datamodels",
     "packages/generated/python/api-client",
     "packages/generated/python/localizer-client",
+    "build",
     "scripts",
     "zed",
 ]
@@ -41,6 +42,7 @@ datamodels = { workspace = true }
 placeframe-localizer-client = { workspace = true }
 placeframe_api_client = { workspace = true }
 dirtorch = { workspace = true }
+build-scripts = { workspace = true }
 scripts = { workspace = true }
 lightglue = { git = "https://github.com/cvg/LightGlue.git" }
 pybind11-stubgen = { git = "https://github.com/sarlinpe/pybind11-stubgen", rev = "sarlinpe/fix-2024-08" }
@@ -48,6 +50,8 @@ pybind11-stubgen = { git = "https://github.com/sarlinpe/pybind11-stubgen", rev =
 [tool.basedpyright]
 typeCheckingMode = "strict"
 include = [
+    "build/**/src/**/*.py",
+    "build/**/src/**/*.pyi",
     "zed/**/src/**/*.py",
     "zed/**/src/**/*.pyi",
     "docker/**/src/**/*.py",
@@ -58,10 +62,19 @@ include = [
     "scripts/**/src/**/*.pyi",
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["build/tests", "packages/python/common/tests"]
+
 [tool.ruff]
 target-version = "py313"
 line-length = 120
 preview = true
+extend-exclude = [
+    "packages/generated/python/api-client",
+    "packages/generated/python/localizer-client",
+    "packages/python/neural-networks/third-party/deep-image-retrieval/vendored",
+    "typings",
+]
 
 [tool.ruff.lint]
 extend-select = ["I"]

@@ -7,8 +7,8 @@ requires-python = ">=3.13"
 dependencies = [
     "dirtorch",
     "scikit-learn>=1.7.2",
-    "gdown>=5.2.0",
     "numpy>=2.4.0",
+    "tqdm>=4.67.0",
 ]
 
 [project.optional-dependencies]
@@ -30,7 +30,10 @@ rocm = [
 exclude = ["third-party"]
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["torchvision", "pytorch-triton-rocm"]
+# torchvision: imported by lightglue, not directly by neural_networks
+# pytorch-triton-rocm: runtime dependency of torch on ROCm, no direct import
+# tqdm: imported by vendored dirtorch (excluded from deptry scan)
+DEP002 = ["torchvision", "pytorch-triton-rocm", "tqdm"]
 
 [tool.uv.sources]
 torch = [
