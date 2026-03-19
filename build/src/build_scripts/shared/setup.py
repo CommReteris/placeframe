@@ -121,6 +121,7 @@ def install_node(version: str, registry_url: str | None = None) -> None:
     filename = match.group(1)
     prefix = "sudo " if sudo else ""
     bash(f"curl -fsSLO https://nodejs.org/dist/latest-v{version}.x/{filename}")
+    bash(f"{prefix}rm -rf /usr/local/lib/node_modules/npm")
     bash(f"{prefix}tar -xJf {filename} -C /usr/local --strip-components=1")
     Path(filename).unlink()
     if registry_url:
