@@ -1,0 +1,21 @@
+name: Release PR
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  ensure-release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Ensure release PR exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: uv run ensure-release-pr
