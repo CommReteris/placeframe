@@ -35,21 +35,16 @@ namespace Outernet.Client
 
         public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
-            // If the log event has an exception, enrich with exception details
             if (logEvent.Exception != null)
             {
                 logEvent.AddPropertyIfAbsent(new LogEventProperty("exception", SerilogException(logEvent.Exception)));
-
-                // If the log event is an uncaught exception, we have no more information to add
-                // logEvent.Properties.TryGetValue("logGroup", out var logGroup);
-                // if ((string)((ScalarValue)logGroup).Value == "UncaughtException") return;
             }
 
             logEvent.AddPropertyIfAbsent(new LogEventProperty("messageTemplate", new ScalarValue(logEvent.MessageTemplate.Text)));
             logEvent.AddPropertyIfAbsent(new LogEventProperty("message", new ScalarValue(logEvent.MessageTemplate.Render(logEvent.Properties))));
             logEvent.AddPropertyIfAbsent(new LogEventProperty("deviceName", new ScalarValue(Logger.DeviceName)));
 
-            var room = ConnectionManager.RoomConnectionRequested.Value;
+            var room = ConnectionManager.RoomConnectionRequested?.Value;
             if (room != null)
             {
                 logEvent.AddOrUpdateProperty(propertyFactory.CreateProperty("room", room));
@@ -59,7 +54,6 @@ namespace Outernet.Client
                 .OfType<PropertyToken>()
                 .Where(token => token.Format != null);
 
-            // If the message template contained formatting tokens, enrich with the rendered properties
             if (propertyTokens.Any())
             {
                 logEvent.AddPropertyIfAbsent(new LogEventProperty("properties", new SequenceValue(propertyTokens.Select(token =>
@@ -70,7 +64,6 @@ namespace Outernet.Client
                 }))));
             }
 
-            // If the log level is greater than or equal to the configured stack trace level, enrich with the stack trace
             if (logLevelMap[logEvent.Level] >= Log.stackTraceLevel)
             {
                 logEvent.AddPropertyIfAbsent(new LogEventProperty("stackTrace", SerilogStackTrace()));
@@ -119,23 +112,12 @@ namespace Outernet.Client
                 ? new StackTrace(exception, true)
                 : new StackTrace(true);
 
-            var frames = stackTrace.GetFrames().AsEnumerable();
-            // var lastHiddenFrame = frames
-            //     .Select((value, index) => new { value, index })
-            //     .LastOrDefault(frame =>
-            //         frame.value.GetMethod() != null &&
-            //         frame.value.GetMethod().GetCustomAttributes(typeof(InnerFramesHiddenFromStackTraceAttribute), false).Length > 0);
-
-            // if (lastHiddenFrame != null)
-            // {
-            //     frames = frames.Skip(lastHiddenFrame.index + 1);
-            // }
+            var frames = (stackTrace.GetFrames() ?? Array.Empty<StackFrame>()).AsEnumerable();
 
             return new SequenceValue(frames.Select(frame =>
             {
                 var method = frame.GetMethod();
 
-                // If we couldn't determine the method name, enrich with a method signature of "<unknown method>"
                 if (method == null)
                 {
                     return new DictionaryValue(new Dictionary<ScalarValue, LogEventPropertyValue>
@@ -148,14 +130,13 @@ namespace Outernet.Client
                 var methodSignature = BuildMethodName(method);
                 methodSignature += methodParameters.Length == 0 ? "()" : $"({string.Join(", ", methodParameters.Select(parameter => parameter.ParameterType.Name))})";
 
-                // Enrich with the method signature
                 var properties = new Dictionary<ScalarValue, LogEventPropertyValue>
                 {
                     { methodSignatureKey, new ScalarValue(methodSignature) }
                 };
 
-                // Enrich with the file name and line number, if available
                 var fileName = frame.GetFileName();
+
                 if (fileName != null && fileName != string.Empty)
                 {
                     fileName = Path.GetFullPath(fileName);
@@ -179,17 +160,16 @@ namespace Outernet.Client
             var methodName = method.Name;
             var type = method.DeclaringType;
 
-            // If this is a generic method, append the generic arguments to the method name
             if (method.IsGenericMethod)
             {
-                methodName += $"<{string.Join(", ", method.GetGenericArguments().Select(arg => arg.Name))}>";
+                var genericArgs = method.GetGenericArguments();
+                methodName += $"<{string.Join(", ", genericArgs.Select(arg => arg.Name))}>";
             }
 
             if (type != null)
             {
                 var typeName = type.Name;
 
-                // If this is a lambda method, use a less cryptic name
                 if (typeName.StartsWith("<>c"))
                 {
                     var match = anonymousFunctionRegex.Match(methodName);
@@ -198,7 +178,6 @@ namespace Outernet.Client
                     return $"{BuildTypeName(type.DeclaringType)}.{enclosingMethodName}+[Anonymous_{lambdaIndex}]";
                 }
 
-                // If this is an async state machine method, use a less cryptic name
                 if (typeName.Contains("d__"))
                 {
                     var match = asyncStateMachineRegex.Match(typeName);
@@ -216,35 +195,11 @@ namespace Outernet.Client
         {
             string typeName = type.Name;
 
-            // If this is a generic type, append the generic arguments to the type name
-            // if (type.IsGenericType)
-            // {
-            //     // Remove the backtick and the number of generic arguments from the type name
-            //     typeName = typeName.Substring(0, typeName.IndexOf('`'));
-
-            //     var genericArgs = type.GetGenericArguments()
-            //         .Select(arg =>
-            //         {
-            //             // If this generic argument is an async state machine, use a less cryptic name
-            //             if (arg.Name.Contains("d__"))
-            //             {
-            //                 var match = asyncStateMachineRegex.Match(arg.Name);
-            //                 var methodName = match.Groups["method"].Value;
-            //                 return $"{methodName}+[AsyncStateMachine]";
-            //             }
-            //             return arg.Name;
-            //         });
-
-            //     typeName += $"<{string.Join(", ", genericArgs)}>";
-            // }
-
-            // If this is a nested type, prepend the declaring type name
             if (type.IsNested)
             {
                 return $"{BuildTypeName(type.DeclaringType)}+{typeName}";
             }
 
-            // If this type is in a namespace, prepend the namespace
             if (type.Namespace != null)
             {
                 return $"{type.Namespace}.{typeName}";
@@ -254,4 +209,3 @@ namespace Outernet.Client
         }
     }
 }
-

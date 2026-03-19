@@ -17,7 +17,7 @@
     }
   ],
   "dependencies": {
-    "com.cesium.unity": "1.15.4",
+    "org.outernet.cesium-unity": "1.15.3-18",
     "com.fofx.nessle": "https://github.com/outernet-foundation/Nessle.git?path=Assets/Package/Core",
     "com.fofx.observething": "https://github.com/outernet-foundation/ObserveThing.git?path=Assets/Package/Core",
     "com.fofx.observething.statefulextensions": "https://github.com/outernet-foundation/ObserveThing.git?path=Assets/Package/StatefulExtensions",
@@ -32,7 +32,7 @@
     "org.outernet.placeframe": "file:../../../packages/unity/Placeframe/Assets/Package/Core",
     "org.outernet.placeframe.arfoundation": "file:../../../packages/unity/Placeframe/Assets/Package/ARFoundation",
     "org.outernet.placeframe.magicleap": "file:../../../packages/unity/Placeframe/Assets/Package/MagicLeap",
-    "com.placeframe.api-client": "file:../../../packages/generated/csharp/api-client/src/PlaceframeApiClient",
+    "org.nuget.placeframeapiclient": "file:../../../packages/generated/csharp/api-client/src/PlaceframeApiClient",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.cloud.gltfast": "6.14.1",
     "com.unity.collab-proxy": "2.11.2",

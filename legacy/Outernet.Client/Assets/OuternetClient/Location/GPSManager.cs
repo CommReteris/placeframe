@@ -61,12 +61,24 @@ namespace Outernet.Client.Location
 
         private async UniTask LocationService(float desiredAccuracy, float updateDistance, CancellationToken cancellationToken = default)
         {
-            Debug.Log("EP: STARTING LOCATION SERVICE");
 #if UNITY_ANDROID
             if (!Permission.HasUserAuthorizedPermission(Permission.FineLocation))
+            {
                 Permission.RequestUserPermission(Permission.FineLocation);
+
+                while (!cancellationToken.IsCancellationRequested &&
+                    !Permission.HasUserAuthorizedPermission(Permission.FineLocation))
+                {
+                    await UniTask.WaitForEndOfFrame();
+                }
+
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
+                if (!Permission.HasUserAuthorizedPermission(Permission.FineLocation))
+                    throw new System.Exception("User denied location permission");
+            }
 #endif
-            Debug.Log("EP: GOT PERMISSION");
             Input.location.Start(desiredAccuracy, updateDistance);
 
             while (!cancellationToken.IsCancellationRequested &&
