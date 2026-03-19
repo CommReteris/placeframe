@@ -15,28 +15,56 @@ REPO_ROOT = Path.cwd()
 STATE_FILE = REPO_ROOT / "build" / "versions.json"
 ARTIFACT_DIR = Path("/tmp/release-artifacts")
 
+# Artifact directory prefixes to skip (not release deliverables)
+SKIP_PREFIXES = ("env-lock-", "versions")
+SKIP_SUFFIXES = ("-build-report",)
+
 
 def _bump_patch(version: str) -> str:
     major, minor, patch = version.split(".")
     return f"{major}.{minor}.{int(patch) + 1}"
 
 
-def _zip_artifacts() -> list[Path]:
-    """Zip each artifact directory into a .zip archive. Returns list of zip paths."""
-    zips: list[Path] = []
+def _package_artifacts() -> list[Path]:
+    """Prepare release assets from downloaded CI artifacts.
+
+    Single-file artifacts (.apk, .exe, etc.) are attached directly.
+    Multi-file artifacts (e.g. linux64 builds) are zipped.
+    """
+    assets: list[Path] = []
     if not ARTIFACT_DIR.is_dir():
         print("No release artifacts directory found")
-        return zips
+        return assets
 
     for entry in sorted(ARTIFACT_DIR.iterdir()):
         if not entry.is_dir():
             continue
-        zip_path = ARTIFACT_DIR / entry.name
-        shutil.make_archive(str(zip_path), "zip", entry)
-        zips.append(zip_path.with_suffix(".zip"))
-        print(f"  Zipped: {entry.name}.zip")
+        if any(entry.name.startswith(p) for p in SKIP_PREFIXES):
+            print(f"  Skipping: {entry.name} (not a release artifact)")
+            continue
+        if any(entry.name.endswith(s) for s in SKIP_SUFFIXES):
+            print(f"  Skipping: {entry.name} (not a release artifact)")
+            continue
 
-    return zips
+        files = [f for f in entry.rglob("*") if f.is_file()]
+        if not files:
+            print(f"  Skipping: {entry.name} (empty)")
+            continue
+
+        if len(files) == 1:
+            # Single file — attach directly
+            asset = ARTIFACT_DIR / files[0].name
+            shutil.copy2(files[0], asset)
+            assets.append(asset)
+            print(f"  Asset: {files[0].name}")
+        else:
+            # Multiple files — zip the directory
+            zip_path = ARTIFACT_DIR / entry.name
+            shutil.make_archive(str(zip_path), "zip", entry)
+            assets.append(zip_path.with_suffix(".zip"))
+            print(f"  Asset: {entry.name}.zip ({len(files)} files)")
+
+    return assets
 
 
 @app.command()
@@ -62,13 +90,13 @@ def main(run_number: int = typer.Option(..., help="GitHub Actions run number")) 
         bash(f"git push origin {tag}")
 
     with ci_step("Package artifacts"):
-        zips = _zip_artifacts()
-        if zips:
-            print(f"  {len(zips)} artifact(s) ready for upload")
+        assets = _package_artifacts()
+        if assets:
+            print(f"  {len(assets)} asset(s) ready for upload")
         else:
-            print("  No Unity build artifacts to attach")
+            print("  No build artifacts to attach")
 
     with ci_step("Create GitHub Release"):
-        zip_args = " ".join(f'"{z}"' for z in zips)
-        bash(f"gh release create {tag} --title {tag} --generate-notes {zip_args}")
+        asset_args = " ".join(f'"{a}"' for a in assets)
+        bash(f"gh release create {tag} --title {tag} --generate-notes {asset_args}")
         print(f"  Release created: {tag}")
