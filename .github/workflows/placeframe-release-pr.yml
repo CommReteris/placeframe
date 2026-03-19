@@ -4,18 +4,22 @@ on:
   push:
     branches: [dev]
 
-permissions:
-  pull-requests: write
-
 jobs:
   ensure-release-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.PLACEFRAME_CI_APP_ID }}
+          private-key: ${{ secrets.PLACEFRAME_CI_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v5
 
       - uses: astral-sh/setup-uv@v6
 
       - name: Ensure release PR exists
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: uv run ensure-release-pr
