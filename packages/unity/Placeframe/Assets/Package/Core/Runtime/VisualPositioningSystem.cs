@@ -31,6 +31,7 @@ namespace Placeframe.Core
         private static IDisposable _localizationSubscription;
         private static HashSet<Guid> _maps = new HashSet<Guid>();
         private static LocalizationMapManager _localizationMapManager;
+        private static bool _visualizationsVisible = true;
         private static ICameraProvider _cameraProvider;
         private static double4x4 _unityFromEcefTransform = double4x4.identity;
         private static double4x4 _ecefFromUnityTransform = math.inverse(_unityFromEcefTransform);
@@ -40,6 +41,12 @@ namespace Placeframe.Core
         public static double4x4 EcefToUnityWorldTransform => _unityFromEcefTransform;
         public static double4x4 UnityWorldToEcefTransform => _ecefFromUnityTransform;
         public static event Action OnEcefToUnityWorldTransformUpdated;
+
+        public static void SetMapVisualizationsVisible(bool visible)
+        {
+            _visualizationsVisible = visible;
+            _localizationMapManager?.SetVisible(visible);
+        }
 
         internal static void LogDebug(string message) => _logCallback?.Invoke(message);
 
@@ -88,7 +95,7 @@ namespace Placeframe.Core
             _localizationMapManager = localizationMapManager;
 
             foreach (var map in _maps)
-                _localizationMapManager.AddMap(map, _localizationSubscription != null);
+                _localizationMapManager.AddMap(map, _visualizationsVisible);
         }
 
         public static void AddLocalizationMap(Guid mapId)
@@ -96,7 +103,7 @@ namespace Placeframe.Core
             if (!_maps.Add(mapId))
                 throw new InvalidOperationException($"Map {mapId} is already added");
 
-            _localizationMapManager?.AddMap(mapId, _localizationSubscription != null);
+            _localizationMapManager?.AddMap(mapId, _visualizationsVisible);
         }
 
         public static void RemoveLocalizationMap(Guid mapId)
@@ -111,8 +118,6 @@ namespace Placeframe.Core
         {
             if (_localizationSubscription != null)
                 throw new InvalidOperationException("VisualPositioningSystem is already localizing");
-
-            _localizationMapManager.SetVisible(true);
 
             _localizationSubscription = _cameraProvider
                 // Get camera configuration asynchronously
@@ -136,8 +141,6 @@ namespace Placeframe.Core
         {
             if (_localizationSubscription == null)
                 throw new InvalidOperationException("VisualPositioningSystem is not localizing");
-
-            _localizationMapManager.SetVisible(false);
 
             _localizationSubscription.Dispose();
             _localizationSubscription = null;
