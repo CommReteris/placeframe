@@ -187,7 +187,6 @@ jobs:
         id: publish
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: uv run --no-sync publish-packages
 
   commit:

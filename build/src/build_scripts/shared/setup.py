@@ -125,5 +125,4 @@ def install_node(version: str, registry_url: str | None = None) -> None:
     bash(f"{prefix}tar -xJf {filename} -C /usr/local --strip-components=1")
     Path(filename).unlink()
     if registry_url:
-        scope = registry_url.replace("https:", "").replace("http:", "")
-        (Path.home() / ".npmrc").write_text(f"{scope}:_authToken=${{NODE_AUTH_TOKEN}}\n")
+        (Path.home() / ".npmrc").write_text(f"registry={registry_url}\n")
