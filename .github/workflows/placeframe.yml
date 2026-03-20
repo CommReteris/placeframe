@@ -130,9 +130,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # Workaround: fetch-tags is broken with shallow clones (actions/checkout#1471)
-      - run: git fetch --tags origin
-
       - uses: ./.github/actions/setup-uv
 
       - name: Cache UPM packages
