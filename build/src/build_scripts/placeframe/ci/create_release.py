@@ -39,15 +39,16 @@ def _package_artifacts() -> list[Path]:
             continue
 
         if len(files) == 1:
-            asset = ARTIFACT_DIR / files[0].name
+            asset = ARTIFACT_DIR / f"{entry.name}{files[0].suffix}"
             shutil.copy2(files[0], asset)
             assets.append(asset)
-            print(f"  Asset: {files[0].name}")
+            print(f"  Asset: {asset.name}")
         else:
             zip_path = ARTIFACT_DIR / entry.name
             shutil.make_archive(str(zip_path), "zip", entry)
-            assets.append(zip_path.with_suffix(".zip"))
-            print(f"  Asset: {entry.name}.zip ({len(files)} files)")
+            asset = zip_path.parent / f"{zip_path.name}.zip"
+            assets.append(asset)
+            print(f"  Asset: {asset.name} ({len(files)} files)")
 
     return assets
 
