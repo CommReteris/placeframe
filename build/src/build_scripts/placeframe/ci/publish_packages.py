@@ -4,9 +4,10 @@ import hashlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
+from subprocess import CalledProcessError
 
 import typer
-from common.bash import bash
+from common.bash import bash, bash_output
 from pydantic_settings import BaseSettings
 
 from ...shared.ci_step import ci_step
@@ -48,6 +49,18 @@ PACKAGES: dict[str, PackageConfig] = {
     "arfoundation": PackageConfig(path=UNITY_PACKAGE_ROOT / "ARFoundation", depends_on="core"),
     "magicleap": PackageConfig(path=UNITY_PACKAGE_ROOT / "MagicLeap", depends_on="core"),
 }
+
+
+def npm_publish(cwd: Path) -> None:
+    """Run npm publish, tolerating 'already exists' errors for idempotency."""
+    try:
+        bash_output("npm publish --access public --provenance", cwd=cwd)
+    except CalledProcessError as e:
+        stderr = e.stderr or ""
+        if "EPUBLISHCONFLICT" in stderr or "cannot publish over existing version" in stderr:
+            print("  Version already published, skipping (idempotent)")
+        else:
+            raise
 
 
 def patch_package_json(package_path: Path, version: str, dependency_updates: dict[str, str] | None = None) -> None:
@@ -134,7 +147,8 @@ def main(dry_run: bool = typer.Option(False, help="Plan publishes without execut
             nuget_api_key = settings.nuget_api_key
             bash(
                 f"dotnet nuget push ./nupkg/*.nupkg --api-key {nuget_api_key}"
-                " --source https://api.nuget.org/v3/index.json",
+                " --source https://api.nuget.org/v3/index.json"
+                " --skip-duplicate",
                 cwd=nuget_path,
             )
 
@@ -143,19 +157,19 @@ def main(dry_run: bool = typer.Option(False, help="Plan publishes without execut
             patch_package_json(
                 PACKAGES["core"].path, versions["core"], {"org.nuget.placeframeapiclient": versions["api-client"]}
             )
-            bash("npm publish --access public --provenance", cwd=PACKAGES["core"].path)
+            npm_publish(PACKAGES["core"].path)
 
     if publish["arfoundation"]:
         with ci_step("Publish ARFoundation"):
             dependency_updates = {"org.outernet.placeframe": versions["core"]} if publish["core"] else {}
             patch_package_json(PACKAGES["arfoundation"].path, versions["arfoundation"], dependency_updates)
-            bash("npm publish --access public --provenance", cwd=PACKAGES["arfoundation"].path)
+            npm_publish(PACKAGES["arfoundation"].path)
 
     if publish["magicleap"]:
         with ci_step("Publish MagicLeap"):
             dependency_updates = {"org.outernet.placeframe": versions["core"]} if publish["core"] else {}
             patch_package_json(PACKAGES["magicleap"].path, versions["magicleap"], dependency_updates)
-            bash("npm publish --access public --provenance", cwd=PACKAGES["magicleap"].path)
+            npm_publish(PACKAGES["magicleap"].path)
 
     app_state: dict[str, dict[str, str]] = dict(state.get("apps", {}))
     with ci_step("Compute app versions"):

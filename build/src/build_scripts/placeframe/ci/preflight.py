@@ -30,6 +30,8 @@ def main() -> None:
             DATABASE_SCHEMA_DIR="database",
             ALLOWED_HAZARDS="HAS_UNTRACKABLE_DEPENDENCIES",
         )
+        # Kill any leftover containers to avoid port collisions on shared runners
+        bash("docker compose --env-file .env.lock -f compose.postgres.yml down --volumes --remove-orphans")
         bash("docker compose --env-file .env.lock -f compose.postgres.yml up -d --wait")
         gopath = bash_output("go env GOPATH").strip()
         gopath_bin = Path(gopath) / "bin"

@@ -185,7 +185,6 @@ namespace Outernet.Client.AuthoringTools
 
         public override void Execute(ClientState target)
         {
-            target.userSettings.FromJSON(_json["userSettings"]);
             target.authoringTools.settings.FromJSON(_json["authoringToolsSettings"]);
             target.roomSettings.visibleLayers.FromJSON(_json["visibleLayers"]);
             target.authoringTools.settings.loaded.value = true;

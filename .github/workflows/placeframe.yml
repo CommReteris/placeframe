@@ -3,7 +3,7 @@ name: Placeframe
 on:
   workflow_dispatch:
   push:
-    branches: [main, dev]
+    branches: [main]
     paths-ignore:
       - ".env.lock"
       - "build/versions.json"
