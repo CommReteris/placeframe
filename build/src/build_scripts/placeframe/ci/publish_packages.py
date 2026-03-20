@@ -39,12 +39,15 @@ class PackageConfig:
 
 
 PACKAGES: dict[str, PackageConfig] = {
-    "api-client": PackageConfig(
+    "placeframe-api-client": PackageConfig(
         path=REPO_ROOT / "packages" / "generated" / "csharp" / "api-client" / "src" / "PlaceframeApiClient"
     ),
-    "core": PackageConfig(path=UNITY_PACKAGE_ROOT / "Core"),
-    "arfoundation": PackageConfig(path=UNITY_PACKAGE_ROOT / "ARFoundation", depends_on="core"),
-    "magicleap": PackageConfig(path=UNITY_PACKAGE_ROOT / "MagicLeap", depends_on="core"),
+    "placeframe-zed-client": PackageConfig(
+        path=REPO_ROOT / "packages" / "generated" / "csharp" / "zed-client" / "src" / "PlaceframeZedClient"
+    ),
+    "placeframe-core": PackageConfig(path=UNITY_PACKAGE_ROOT / "Core"),
+    "placeframe-arfoundation": PackageConfig(path=UNITY_PACKAGE_ROOT / "ARFoundation", depends_on="placeframe-core"),
+    "placeframe-magicleap": PackageConfig(path=UNITY_PACKAGE_ROOT / "MagicLeap", depends_on="placeframe-core"),
 }
 
 
@@ -111,10 +114,11 @@ def main(dry_run: bool = typer.Option(False, help="Plan publishes without execut
             "### Publish Plan",
             "| Package | Publish | Version |",
             "|---|---|---|",
-            f"| NuGet (PlaceframeApiClient) | {publish['api-client']} | {versions['api-client']} |",
-            f"| Core | {publish['core']} | {versions['core']} |",
-            f"| ARFoundation | {publish['arfoundation']} | {versions['arfoundation']} |",
-            f"| MagicLeap | {publish['magicleap']} | {versions['magicleap']} |",
+            f"| NuGet (PlaceframeApiClient) | {publish['placeframe-api-client']} | {versions['placeframe-api-client']} |",
+            f"| NuGet (PlaceframeZedClient) | {publish['placeframe-zed-client']} | {versions['placeframe-zed-client']} |",
+            f"| Core | {publish['placeframe-core']} | {versions['placeframe-core']} |",
+            f"| ARFoundation | {publish['placeframe-arfoundation']} | {versions['placeframe-arfoundation']} |",
+            f"| MagicLeap | {publish['placeframe-magicleap']} | {versions['placeframe-magicleap']} |",
         ]
         summary = "\n".join(summary_lines)
         print(summary)
@@ -131,36 +135,47 @@ def main(dry_run: bool = typer.Option(False, help="Plan publishes without execut
             print("Dry run — skipping publish")
             return
 
-    if publish["api-client"]:
-        with ci_step("Publish NuGet"):
-            nuget_path = PACKAGES["api-client"].path
-            bash(f"dotnet pack -c Release -p:Version={versions['api-client']} -o ./nupkg", cwd=nuget_path)
-            nuget_api_key = settings.nuget_api_key
-            bash(
-                f"dotnet nuget push ./nupkg/*.nupkg --api-key {nuget_api_key}"
-                " --source https://api.nuget.org/v3/index.json"
-                " --skip-duplicate",
-                cwd=nuget_path,
-            )
+    nuget_api_key = settings.nuget_api_key
+    for nuget_name in ["placeframe-api-client", "placeframe-zed-client"]:
+        if publish[nuget_name]:
+            with ci_step(f"Publish NuGet ({nuget_name})"):
+                nuget_path = PACKAGES[nuget_name].path
+                bash(f"dotnet pack -c Release -p:Version={versions[nuget_name]} -o ./nupkg", cwd=nuget_path)
+                bash(
+                    f"dotnet nuget push ./nupkg/*.nupkg --api-key {nuget_api_key}"
+                    " --source https://api.nuget.org/v3/index.json"
+                    " --skip-duplicate",
+                    cwd=nuget_path,
+                )
 
-    if publish["core"]:
+    if publish["placeframe-core"]:
         with ci_step("Publish Core"):
             with ephemeral_patch(
-                PACKAGES["core"].path, versions["core"], {"org.nuget.placeframeapiclient": versions["api-client"]}
+                PACKAGES["placeframe-core"].path,
+                versions["placeframe-core"],
+                {"org.nuget.placeframeapiclient": versions["placeframe-api-client"]},
             ):
-                npm_publish(PACKAGES["core"].path)
+                npm_publish(PACKAGES["placeframe-core"].path)
 
-    if publish["arfoundation"]:
+    if publish["placeframe-arfoundation"]:
         with ci_step("Publish ARFoundation"):
-            dependency_updates = {"org.outernet.placeframe": versions["core"]} if publish["core"] else {}
-            with ephemeral_patch(PACKAGES["arfoundation"].path, versions["arfoundation"], dependency_updates):
-                npm_publish(PACKAGES["arfoundation"].path)
+            dependency_updates = (
+                {"org.outernet.placeframe": versions["placeframe-core"]} if publish["placeframe-core"] else {}
+            )
+            with ephemeral_patch(
+                PACKAGES["placeframe-arfoundation"].path, versions["placeframe-arfoundation"], dependency_updates
+            ):
+                npm_publish(PACKAGES["placeframe-arfoundation"].path)
 
-    if publish["magicleap"]:
+    if publish["placeframe-magicleap"]:
         with ci_step("Publish MagicLeap"):
-            dependency_updates = {"org.outernet.placeframe": versions["core"]} if publish["core"] else {}
-            with ephemeral_patch(PACKAGES["magicleap"].path, versions["magicleap"], dependency_updates):
-                npm_publish(PACKAGES["magicleap"].path)
+            dependency_updates = (
+                {"org.outernet.placeframe": versions["placeframe-core"]} if publish["placeframe-core"] else {}
+            )
+            with ephemeral_patch(
+                PACKAGES["placeframe-magicleap"].path, versions["placeframe-magicleap"], dependency_updates
+            ):
+                npm_publish(PACKAGES["placeframe-magicleap"].path)
 
     app_publish: dict[str, str] = {}
     with ci_step("Compute app versions"):
