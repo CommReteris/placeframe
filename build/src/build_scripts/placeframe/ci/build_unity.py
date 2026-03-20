@@ -16,6 +16,7 @@ from ...shared.setup import configure_git, free_disk_space, install_dotnet
 from ...shared.setup_oras import install_oras
 from ..projects import load_unity_projects
 from ..unity import prepare_unity_project, unity_batchmode_command
+from .git_tags import APP_TAG_PREFIXES, get_latest_tag_version
 
 
 class Settings(BaseSettings):
@@ -89,11 +90,9 @@ def main(
         command = unity_batchmode_command(unity_project_path)
         command += f" {platform_config['build_flag']} -executeMethod {execute_method}"
 
-        state_file = Path.cwd() / "build" / "versions.json"
-        state = json.loads(state_file.read_text())
-        application_entry = state.get("apps", {}).get(project)
-        if application_entry:
-            version = application_entry["version"]
+        tag_prefix = APP_TAG_PREFIXES.get(project)
+        if tag_prefix:
+            version = get_latest_tag_version(f"{tag_prefix}-v") or "0.0.0"
             full_version = f"{version}-dev+{run_number}" if branch != "main" else f"{version}+{run_number}"
             version_file = unity_project_path / ".build-version.json"
             version_file.write_text(json.dumps({"version": full_version, "runNumber": run_number}))

@@ -35,7 +35,7 @@ def main() -> None:
 
         bash('git config user.name "github-actions[bot]"')
         bash('git config user.email "github-actions[bot]@users.noreply.github.com"')
-        bash("git add .env.lock build/versions.json packages/unity/Placeframe/Assets/Package/*/package.json")
+        bash("git add .env.lock")
 
         if not bash_check("git diff --cached --quiet"):
             bash('git commit -m "ci: update locks and versions"')

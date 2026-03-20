@@ -30,10 +30,9 @@ def bash_output(command: str, *, cwd: Path | None = None, stdin_text: str | None
             raise
 
         if process.returncode != 0:
-            error = CalledProcessError(process.returncode, command)
-            error.stdout = stdout
-            error.stderr = stderr
-            raise error
+            if stderr:
+                print(stderr, file=sys.stderr, end="")
+            raise CalledProcessError(process.returncode, command, output=stdout, stderr=stderr)
 
         return stdout or ""
 
