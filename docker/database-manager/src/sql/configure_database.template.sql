@@ -41,6 +41,7 @@ REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC;
 GRANT  USAGE, SELECT                 ON ALL SEQUENCES IN SCHEMA public TO {api_user};
 
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC;
+GRANT  EXECUTE                       ON ALL FUNCTIONS IN SCHEMA public TO {owner};
 GRANT  EXECUTE                       ON ALL FUNCTIONS IN SCHEMA public TO {api_user};
 
 ----------------------------------------------------------------------
