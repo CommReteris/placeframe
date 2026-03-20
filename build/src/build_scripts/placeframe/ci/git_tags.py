@@ -6,8 +6,8 @@ from common.bash import bash, bash_check, bash_output
 
 APP_TAG_PREFIXES: dict[str, str] = {
     "Outernet.Client": "outernet-client",
-    "MapRegistrationTool": "mapregistrationtool",
-    "AndroidMobile": "androidmobile",
+    "MapRegistrationTool": "map-registration-tool",
+    "AndroidMobile": "android-mobile",
 }
 
 

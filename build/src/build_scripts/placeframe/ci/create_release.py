@@ -7,7 +7,6 @@ import typer
 from common.bash import bash
 
 from ...shared.ci_step import ci_step
-from .git_tags import create_and_push_tag, get_latest_tag_version
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -16,11 +15,6 @@ ARTIFACT_DIR = Path("/tmp/release-artifacts")
 # Artifact directory prefixes to skip (not release deliverables)
 SKIP_PREFIXES = ("env-lock-", "versions")
 SKIP_SUFFIXES = ("-build-report",)
-
-
-def _bump_patch(version: str) -> str:
-    major, minor, patch = version.split(".")
-    return f"{major}.{minor}.{int(patch) + 1}"
 
 
 def _package_artifacts() -> list[Path]:
@@ -60,16 +54,7 @@ def _package_artifacts() -> list[Path]:
 
 @app.command()
 def main(run_number: int = typer.Option(..., help="GitHub Actions run number")) -> None:
-    with ci_step("Read release version"):
-        current_version = get_latest_tag_version("release-v") or "0.0.0"
-        new_version = _bump_patch(current_version)
-        tag = f"v{new_version}"
-        print(f"  Current: {current_version}")
-        print(f"  New:     {new_version} (run #{run_number})")
-
-    with ci_step("Create release tag"):
-        create_and_push_tag(tag)
-        create_and_push_tag(f"release-v{new_version}")
+    tag = f"build-{run_number}"
 
     with ci_step("Package artifacts"):
         assets = _package_artifacts()
