@@ -14,6 +14,7 @@ dependencies = [
     "pydantic-settings>=2.12.0",
     "pydantic>=2.12.5",
     "cryptography>=46.0.3",
+    "uvicorn>=0.35.0",
 ]
 
 [dependency-groups]
@@ -34,7 +35,7 @@ neural-networks-rocm = ["neural-networks[rocm]"]
 # directly in this package would lead to dependency conflicts; we therefore must ignore deptry's check for this specific package
 DEP003 = ["torch"]
 DEP004 = ["neural_networks"]
-DEP002 = ["cryptography"]
+DEP002 = ["cryptography", "uvicorn"]
 
 [build-system]
 requires = ["hatchling"]

@@ -6,6 +6,7 @@ from typing import Any, NoReturn, cast
 from common.token_manager import TokenManager
 from placeframe_api_client import ApiClient, ApiException, Configuration, DefaultApi, OrchestrationStatus
 
+from .health import get_health_state, start_health_server
 from .run_reconstruction import load_models, run_reconstruction
 from .settings import get_settings
 
@@ -16,6 +17,8 @@ settings = get_settings()
 
 async def worker_loop() -> None:
     print("Reconstructor Worker Started")
+    health = get_health_state()
+    health.started = True
 
     auth = TokenManager(str(settings.auth_token_url), settings.auth_client_id, Path(settings.private_key_path))
     configuration = Configuration(host=str(settings.api_internal_url))
@@ -25,12 +28,14 @@ async def worker_loop() -> None:
         while True:
             try:
                 token = await auth.get_token()
+                health.record_token_ok()
                 configuration.access_token = token
                 cast(dict[Any, Any], api_client.default_headers)["Authorization"] = f"Bearer {token}"
 
                 try:
                     lease = await api.request_lease()
                 except ApiException as e:
+                    health.record_poll()
                     status = cast(int | None, e.status)
                     if status == 404:
                         await sleep(POLL_INTERVAL_SECONDS)
@@ -40,6 +45,7 @@ async def worker_loop() -> None:
                         await sleep(POLL_INTERVAL_SECONDS)
                         continue
 
+                health.record_poll()
                 lease_id = lease.reconstruction_id
                 reconstruction_id = lease.reconstruction_id
                 capture_id = lease.capture_session_id
@@ -56,10 +62,13 @@ async def worker_loop() -> None:
 
                     await api.complete_lease(lease_id, OrchestrationStatus.FAILED)
 
+                health.record_poll()
+
             except CancelledError:
                 print("Worker loop cancelled. Shutting down...")
                 break
             except Exception as e:
+                health.record_auth_failure()
                 print(f"[Critical Worker Error] {e}")
                 await sleep(POLL_INTERVAL_SECONDS)
 
@@ -70,6 +79,7 @@ def handle_sigterm(signum: int, frame: Any) -> NoReturn:
 
 def main() -> None:
     load_models(settings.max_keypoints_per_image)
+    start_health_server()
 
     # Register the signal handler for graceful Docker shutdowns
     signal(SIGTERM, handle_sigterm)
