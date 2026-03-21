@@ -197,7 +197,8 @@ def build(
 
     # Configure registry caches in CI mode
     if mode == "ci":
-        cache_registry = os.environ.get("BUILD_CACHE_REGISTRY", bake_data["x-registry-cache"]).lower()
+        cache_registry: str = os.environ.get("BUILD_CACHE_REGISTRY") or bake_data["x-registry-cache"]
+        cache_registry = cache_registry.lower()
         for target in targets:
             target_cache = f"{cache_registry}:{target}"
             command_arguments.append(
