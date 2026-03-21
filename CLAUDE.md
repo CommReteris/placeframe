@@ -92,6 +92,14 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. The default dev 
 - All Python packages use `src/<package>/` layout with `py.typed` marker.
 - Pydantic v2 for data validation everywhere; async/await throughout all services.
 - The `deptry-check` command enforces that all imports match declared dependencies. Per-rule exceptions for platform-specific packages (CUDA/ROCm) are documented in each `pyproject.toml`.
+- **No shell scripts.** All scripting is Python. CI workflow steps should be one command (two at most). If there's a condition, a loop, or any real logic, it belongs in a Python script invoked via `uv run`, not inline shell in a workflow YAML.
+- **No docstrings.** Do not add docstrings to any function, class, or module — including new files. Comments are allowed only where the logic isn't self-evident.
+- **No inline imports.** All imports at module level. No `from x import y` inside functions or methods.
+
+## Docker Build Context
+
+- **`.dockerignore` is an allowlist.** It uses `*` (ignore everything) then `!` entries to whitelist paths Docker can see. This file is the single source of truth for which files affect Docker image builds and for the `CONTEXT_SHA` image tag. Adding a COPY for a path not in the allowlist fails the build loudly (self-correcting). Extra entries cause unnecessary rebuilds (safe failure mode). When adding a new directory that a Dockerfile COPYs, add a `!` entry to `.dockerignore`.
+- **BuildKit does not expose which context files a build uses.** Despite computing this internally (`FollowPaths` in the LLB solver), there is no API or CLI to query it ([moby/buildkit#1181](https://github.com/moby/buildkit/issues/1181), open since 2019). This is why we use the `.dockerignore` allowlist approach rather than inferring build inputs from Docker.
 
 ## Initial Setup
 
