@@ -116,7 +116,7 @@ def _build_release_notes(context_sha: str) -> str:
 def _next_release_tag(repo: str) -> str:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     existing = bash_output(
-        f'gh release list --repo {repo} --json tagName --jq "[.[].tagName] | map(select(startswith("{today}"))) | length"'
+        f"gh release list --repo {repo} --json tagName --jq '[.[].tagName] | map(select(startswith(\"{today}\"))) | length'"
     ).strip()
     count = int(existing) if existing else 0
     return f"{today}.{count + 1}" if count > 0 else today
