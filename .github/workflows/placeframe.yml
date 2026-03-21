@@ -5,10 +5,7 @@ on:
   push:
     branches: [dev]
   pull_request:
-    branches: [main, dev]
-
-# Skip duplicate runs triggered by the CI bot creating/updating the release PR
-if: github.actor != 'placeframe-ci[bot]'
+    branches: [dev]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
