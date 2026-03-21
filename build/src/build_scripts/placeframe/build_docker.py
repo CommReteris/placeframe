@@ -191,8 +191,9 @@ def build(
 
     # Configure registry caches in CI mode
     if mode == "ci":
+        cache_registry = os.environ.get("BUILD_CACHE_REGISTRY", bake_data["x-registry-cache"])
         for target in targets:
-            target_cache = f"{bake_data['x-registry-cache']}:{target}"
+            target_cache = f"{cache_registry}:{target}"
             command_arguments.append(
                 f"--set {target}.cache-to+=type=registry,ref={target_cache},mode=max,image-manifest=true,oci-mediatypes=true"
             )
