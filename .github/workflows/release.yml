@@ -55,4 +55,4 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: uv run --no-sync create-release --run-number ${{ github.run_number }}
+        run: uv run --no-sync create-release
