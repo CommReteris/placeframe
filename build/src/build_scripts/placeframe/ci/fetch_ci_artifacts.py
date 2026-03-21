@@ -17,31 +17,39 @@ SKIP_SUFFIXES = ("-build-report",)
 
 
 class Settings(BaseSettings):
+    github_sha: str
     github_repository: str
     github_output: str | None = None
 
 
 @app.command()
-def main() -> None:
+def main(
+    ci_run_id: str | None = typer.Option(None, "--ci-run-id", help="Override CI run lookup with a known run ID."),
+) -> None:
     settings = Settings.model_validate({})
     repo = settings.github_repository
-    sha = bash_output("git rev-parse HEAD^2").strip()
 
-    with ci_step("Find successful CI run"):
-        run_id = bash_output(
-            f'gh api "/repos/{repo}/actions/workflows/placeframe.yml/runs?head_sha={sha}&status=success"'
-            " --jq '.workflow_runs[0].id // empty'"
-        ).strip()
+    if ci_run_id:
+        run_id = ci_run_id
+        print(f"  Using override CI run: {run_id}")
+    else:
+        sha = bash_output(f'gh api "/repos/{repo}/git/commits/{settings.github_sha}" --jq ".parents[1].sha"').strip()
 
-        if not run_id:
-            print(f"::error::No successful CI run found for SHA {sha}. Cannot release untested code.")
-            raise typer.Exit(code=1)
+        with ci_step("Find successful CI run"):
+            run_id = bash_output(
+                f'gh api "/repos/{repo}/actions/workflows/placeframe.yml/runs?head_sha={sha}&status=success"'
+                " --jq '.workflow_runs[0].id // empty'"
+            ).strip()
 
-        print(f"  CI run: {run_id}")
+            if not run_id:
+                print(f"::error::No successful CI run found for SHA {sha}. Cannot release untested code.")
+                raise typer.Exit(code=1)
 
-        if settings.github_output:
-            with open(settings.github_output, "a") as f:
-                f.write(f"run_id={run_id}\n")
+            print(f"  CI run: {run_id}")
+
+    if settings.github_output:
+        with open(settings.github_output, "a") as f:
+            f.write(f"run_id={run_id}\n")
 
     with ci_step("Download artifacts"):
         bash(f"gh run download {run_id} --repo {repo} --dir {ARTIFACT_DIR}")
