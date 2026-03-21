@@ -4,12 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths-ignore:
-      - ".env.lock"
   pull_request:
     branches: [main, dev]
-    paths-ignore:
-      - ".env.lock"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -99,13 +95,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: uv run --no-sync build-docker --variant ${{ matrix.variant }}
 
-      - name: Upload .env.lock
-        uses: actions/upload-artifact@v6
-        with:
-          name: env-lock-${{ matrix.variant }}
-          path: .env.lock
-          include-hidden-files: true
-
   build-unity:
     needs: [preflight, activate-license, matrix]
     if: >-
@@ -192,46 +181,13 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: uv run --no-sync publish-packages
 
-  commit:
-    needs: [build-docker, publish]
-    if: >-
-      always()
-      && !cancelled()
-      && github.event_name != 'workflow_dispatch'
-      && needs.build-docker.result == 'success'
-      && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate app token
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.PLACEFRAME_CI_APP_ID }}
-          private-key: ${{ secrets.PLACEFRAME_CI_PRIVATE_KEY }}
-
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-          token: ${{ steps.app-token.outputs.token }}
-
-      - name: Download env-lock artifacts
-        uses: actions/download-artifact@v6
-        with:
-          pattern: env-lock-*
-          path: /tmp/env-locks
-
-      - uses: ./.github/actions/setup-uv
-
-      - name: Commit and push
-        run: uv run --no-sync commit-artifacts
-
   release:
-    needs: [build-unity, build-docker, publish, commit]
+    needs: [build-unity, build-docker, publish]
     if: >-
       github.ref == 'refs/heads/main'
       && github.event_name != 'workflow_dispatch'
       && !cancelled()
-      && needs.commit.result == 'success'
+      && needs.build-docker.result == 'success'
       && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
@@ -248,9 +204,6 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - uses: ./.github/actions/setup-uv
-
-      - name: Pull latest (includes commit job changes)
-        run: git pull --ff-only
 
       - name: Download Unity build artifacts
         uses: actions/download-artifact@v6
