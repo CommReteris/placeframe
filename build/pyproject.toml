@@ -11,6 +11,7 @@ dependencies = [
   "sqlalchemy>=2.0.45",
   "typer>=0.17.4",
   "pyyaml>=6.0",
+  "pathspec>=1.0.4",
 ]
 
 [tool.deptry.per_rule_ignores]
@@ -31,10 +32,10 @@ build-docker = "build_scripts.placeframe.ci.build_docker:ci_app"
 build-unity = "build_scripts.placeframe.ci.build_unity:app"
 codegen-cesium = "build_scripts.cesium.codegen:app"
 combine-cesium = "build_scripts.cesium.combine:app"
-commit-artifacts = "build_scripts.placeframe.ci.commit_artifacts:app"
 create-release = "build_scripts.placeframe.ci.create_release:app"
 deptry-check = "build_scripts.placeframe.deptry_check:main"
 ensure-release-pr = "build_scripts.placeframe.ci.ensure_release_pr:app"
+fetch-ci-artifacts = "build_scripts.placeframe.ci.fetch_ci_artifacts:app"
 down = "build_scripts.placeframe.down:app"
 generate-clients = "build_scripts.placeframe.generate_clients:app"
 generate-datamodels = "build_scripts.placeframe.generate_datamodels:main"
