@@ -16,7 +16,7 @@ x-base-args: &base-args
   CADDY_DIGEST: "${CADDY_DIGEST:-}"
   POSTGRES_BOOKWORM_DIGEST: "${POSTGRES_BOOKWORM_DIGEST:-}"
 
-x-registry-cache: ghcr.io/outernet-foundation/placeframe/build-cache
+x-registry-cache: ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/build-cache
 
 services:
   initialize-cloudbeaver:
@@ -25,8 +25,8 @@ services:
       dockerfile: docker/cloudbeaver-initializer/Dockerfile
       args: *base-args
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/cloudbeaver-initializer:latest"
-        - "ghcr.io/outernet-foundation/placeframe/cloudbeaver-initializer:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/cloudbeaver-initializer:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/cloudbeaver-initializer:${CONTEXT_SHA}"
 
   create-database:
     build:
@@ -34,8 +34,8 @@ services:
       dockerfile: docker/database-manager/Dockerfile
       args: *base-args
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/database-manager:latest"
-        - "ghcr.io/outernet-foundation/placeframe/database-manager:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/database-manager:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/database-manager:${CONTEXT_SHA}"
 
   auth-initializer:
     build:
@@ -43,8 +43,8 @@ services:
       dockerfile: docker/auth-initializer/Dockerfile
       args: *base-args
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/auth-initializer:latest"
-        - "ghcr.io/outernet-foundation/placeframe/auth-initializer:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/auth-initializer:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/auth-initializer:${CONTEXT_SHA}"
 
   gateway:
     build:
@@ -52,8 +52,8 @@ services:
       dockerfile: docker/gateway/Dockerfile
       args: *base-args
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/gateway:latest"
-        - "ghcr.io/outernet-foundation/placeframe/gateway:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/gateway:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/gateway:${CONTEXT_SHA}"
 
   migrate-database:
     build:
@@ -61,8 +61,8 @@ services:
       dockerfile: docker/database-migrator/Dockerfile
       args: *base-args
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/database-migrator:latest"
-        - "ghcr.io/outernet-foundation/placeframe/database-migrator:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/database-migrator:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/database-migrator:${CONTEXT_SHA}"
 
   api:
     build:
@@ -71,8 +71,8 @@ services:
       target: dev
       args: *base-args
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/api:latest"
-        - "ghcr.io/outernet-foundation/placeframe/api:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/api:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/api:${CONTEXT_SHA}"
 
   state-sync:
     build:
@@ -80,8 +80,8 @@ services:
       dockerfile: docker/state-sync/Dockerfile
       args: *base-args
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/state-sync:latest"
-        - "ghcr.io/outernet-foundation/placeframe/state-sync:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/state-sync:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/state-sync:${CONTEXT_SHA}"
 
   reconstructor-cuda:
     build:
@@ -91,8 +91,8 @@ services:
         <<: *base-args
         TORCH_DEVICE: "cuda"
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/reconstructor-cuda:latest"
-        - "ghcr.io/outernet-foundation/placeframe/reconstructor-cuda:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/reconstructor-cuda:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/reconstructor-cuda:${CONTEXT_SHA}"
 
   localizer-cuda:
     build:
@@ -102,8 +102,8 @@ services:
         <<: *base-args
         TORCH_DEVICE: "cuda"
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/localizer-cuda:latest"
-        - "ghcr.io/outernet-foundation/placeframe/localizer-cuda:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/localizer-cuda:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/localizer-cuda:${CONTEXT_SHA}"
 
   reconstructor-rocm:
     build:
@@ -113,8 +113,8 @@ services:
         <<: *base-args
         TORCH_DEVICE: "rocm"
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/reconstructor-rocm:latest"
-        - "ghcr.io/outernet-foundation/placeframe/reconstructor-rocm:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/reconstructor-rocm:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/reconstructor-rocm:${CONTEXT_SHA}"
 
   localizer-rocm:
     build:
@@ -124,5 +124,5 @@ services:
         <<: *base-args
         TORCH_DEVICE: "rocm"
       tags:
-        - "ghcr.io/outernet-foundation/placeframe/localizer-rocm:latest"
-        - "ghcr.io/outernet-foundation/placeframe/localizer-rocm:${CONTEXT_SHA}"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/localizer-rocm:latest"
+        - "ghcr.io/${GHCR_REPO:-outernet-foundation/placeframe}/localizer-rocm:${CONTEXT_SHA}"
