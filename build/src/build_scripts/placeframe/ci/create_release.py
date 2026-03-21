@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import typer
-from common.bash import bash
+from common.bash import bash, bash_output
 from pydantic_settings import BaseSettings
 
 from ...shared.ci_step import ci_step
@@ -18,32 +19,22 @@ ARTIFACT_DIR = Path("/tmp/release-artifacts")
 SKIP_PREFIXES = ("env-lock-", "versions")
 SKIP_SUFFIXES = ("-build-report",)
 
-GHCR_BASE = "ghcr.io/outernet-foundation/placeframe"
 GHCR_URL = "https://github.com/orgs/outernet-foundation/packages?repo_name=placeframe"
 
-NUGET_PACKAGES: dict[str, str] = {
-    "placeframe-api-client": "PlaceframeApiClient",
-    "placeframe-zed-client": "PlaceframeZedClient",
-}
-NPM_PACKAGES: dict[str, str] = {
-    "placeframe-core": "org.outernet.placeframe",
-    "placeframe-arfoundation": "org.outernet.placeframe.arfoundation",
-    "placeframe-magicleap": "org.outernet.placeframe.magicleap",
+APP_DISPLAY_NAMES: dict[str, str] = {
+    "LegacyOuternetClient": "Legacy Outernet Client",
+    "LegacyOuternetEditor": "Legacy Outernet Editor",
+    "MapRegistrationTool": "Map Registration Tool",
+    "CaptureTool": "Capture Tool",
 }
 
-DOCKER_SERVICES = [
-    "api",
-    "state-sync",
-    "auth-initializer",
-    "cloudbeaver-initializer",
-    "database-manager",
-    "database-migrator",
-    "gateway",
-    "localizer-cuda",
-    "localizer-rocm",
-    "reconstructor-cuda",
-    "reconstructor-rocm",
-]
+PACKAGES: dict[str, dict[str, str]] = {
+    "placeframe-api-client": {"nuget": "PlaceframeApiClient", "npm": "org.nuget.placeframeapiclient"},
+    "placeframe-zed-client": {"nuget": "PlaceframeZedClient", "npm": "org.nuget.placeframezedclient"},
+    "placeframe-core": {"npm": "org.outernet.placeframe"},
+    "placeframe-arfoundation": {"npm": "org.outernet.placeframe.arfoundation"},
+    "placeframe-magicleap": {"npm": "org.outernet.placeframe.magicleap"},
+}
 
 
 class Settings(BaseSettings):
@@ -91,40 +82,50 @@ def _build_release_notes(context_sha: str) -> str:
 
     lines.append("## Docker images")
     lines.append("")
-    lines.append(f"All images tagged `{context_sha}` on [GHCR]({GHCR_URL}).")
-    lines.append("")
-    for service in DOCKER_SERVICES:
-        lines.append(f"- `{GHCR_BASE}/{service}:{context_sha}`")
+    lines.append(f"All images tagged [`{context_sha}`]({GHCR_URL}) on GHCR.")
     lines.append("")
 
     lines.append("## Packages")
     lines.append("")
     lines.append("| Package | Version | Registry |")
     lines.append("|---|---|---|")
-    for tag_prefix, nuget_name in NUGET_PACKAGES.items():
+    for tag_prefix, registries in PACKAGES.items():
         version = get_latest_tag_version(f"{tag_prefix}-v") or "—"
-        url = f"https://www.nuget.org/packages/{nuget_name}/{version}" if version != "—" else ""
-        link = f"[NuGet]({url})" if url else "NuGet"
-        lines.append(f"| {nuget_name} | {version} | {link} |")
-    for tag_prefix, npm_name in NPM_PACKAGES.items():
-        version = get_latest_tag_version(f"{tag_prefix}-v") or "—"
-        url = f"https://www.npmjs.com/package/{npm_name}/v/{version}" if version != "—" else ""
-        link = f"[npm]({url})" if url else "npm"
-        lines.append(f"| {npm_name} | {version} | {link} |")
+        links: list[str] = []
+        if "nuget" in registries:
+            name = registries["nuget"]
+            url = f"https://www.nuget.org/packages/{name}/{version}" if version != "—" else ""
+            links.append(f"[NuGet]({url})" if url else "NuGet")
+        if "npm" in registries:
+            name = registries["npm"]
+            url = f"https://www.npmjs.com/package/{name}/v/{version}" if version != "—" else ""
+            links.append(f"[npm]({url})" if url else "npm")
+        display = list(registries.values())[0]
+        lines.append(f"| {display} | {version} | {', '.join(links)} |")
 
     for app_name, tag_prefix in APP_TAG_PREFIXES.items():
         version = get_latest_tag_version(f"{tag_prefix}-v")
         if version:
-            lines.append(f"| {app_name} | {version} | — |")
+            display = APP_DISPLAY_NAMES.get(app_name, app_name)
+            lines.append(f"| {display} | {version} | — |")
 
     lines.append("")
     return "\n".join(lines)
 
 
+def _next_release_tag(repo: str) -> str:
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    existing = bash_output(
+        f'gh release list --repo {repo} --json tagName --jq "[.[].tagName] | map(select(startswith("{today}"))) | length"'
+    ).strip()
+    count = int(existing) if existing else 0
+    return f"{today}.{count + 1}" if count > 0 else today
+
+
 @app.command()
-def main(run_number: int = typer.Option(..., help="GitHub Actions run number")) -> None:
+def main() -> None:
     settings = Settings.model_validate({})
-    tag = f"build-{run_number}"
+    tag = _next_release_tag(settings.github_repository)
 
     with ci_step("Compute context SHA"):
         context_sha = compute_context_sha(Path.cwd())
