@@ -17,7 +17,6 @@ SKIP_SUFFIXES = ("-build-report",)
 
 
 class Settings(BaseSettings):
-    github_sha: str
     github_repository: str
     github_output: str | None = None
 
@@ -26,7 +25,7 @@ class Settings(BaseSettings):
 def main() -> None:
     settings = Settings.model_validate({})
     repo = settings.github_repository
-    sha = settings.github_sha
+    sha = bash_output("git rev-parse HEAD^2").strip()
 
     with ci_step("Find successful CI run"):
         run_id = bash_output(
