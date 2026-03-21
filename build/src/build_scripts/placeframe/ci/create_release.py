@@ -21,6 +21,13 @@ SKIP_SUFFIXES = ("-build-report",)
 
 GHCR_URL = "https://github.com/orgs/outernet-foundation/packages?repo_name=placeframe"
 
+APP_DISPLAY_NAMES: dict[str, str] = {
+    "LegacyOuternetClient": "Legacy Outernet Client",
+    "LegacyOuternetEditor": "Legacy Outernet Editor",
+    "MapRegistrationTool": "Map Registration Tool",
+    "CaptureTool": "Capture Tool",
+}
+
 PACKAGES: dict[str, dict[str, str]] = {
     "placeframe-api-client": {"nuget": "PlaceframeApiClient", "npm": "org.nuget.placeframeapiclient"},
     "placeframe-zed-client": {"nuget": "PlaceframeZedClient", "npm": "org.nuget.placeframezedclient"},
@@ -99,7 +106,8 @@ def _build_release_notes(context_sha: str) -> str:
     for app_name, tag_prefix in APP_TAG_PREFIXES.items():
         version = get_latest_tag_version(f"{tag_prefix}-v")
         if version:
-            lines.append(f"| {app_name} | {version} | — |")
+            display = APP_DISPLAY_NAMES.get(app_name, app_name)
+            lines.append(f"| {display} | {version} | — |")
 
     lines.append("")
     return "\n".join(lines)

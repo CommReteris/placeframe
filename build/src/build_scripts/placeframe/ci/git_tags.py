@@ -5,9 +5,10 @@ from pathlib import Path
 from common.bash import bash, bash_check, bash_output
 
 APP_TAG_PREFIXES: dict[str, str] = {
-    "Outernet.Client": "outernet-client",
+    "LegacyOuternetClient": "legacy-outernet-client",
+    "LegacyOuternetEditor": "legacy-outernet-editor",
     "MapRegistrationTool": "map-registration-tool",
-    "AndroidMobile": "android-mobile",
+    "CaptureTool": "capture-tool",
 }
 
 
