@@ -12,6 +12,8 @@ from common.bash import bash, bash_output
 from common.detect_gpu import GPU_TYPES, Gpu, detect_gpu
 from pydantic_settings import BaseSettings
 
+from .context_sha import compute_context_sha
+
 
 class Settings(BaseSettings):
     wsl_distro_name: str | None = None
@@ -118,6 +120,9 @@ def build(
         None, "--targets", "-t", help="Build only these services (from compose.bake.yml)."
     ),
 ) -> None:
+    context_sha = compute_context_sha(Path.cwd())
+    os.environ["CONTEXT_SHA"] = context_sha
+
     # Read bake, compose, and lock files
     bake_data: dict[str, Any] = yaml.safe_load(BAKE_FILE.read_text(encoding="utf-8"))
     compose_data: dict[str, Any] = _load_compose(COMPOSE_FILE)
@@ -227,15 +232,9 @@ def build(
     if baked_images.keys() != set(targets):
         raise RuntimeError("Baked images do not match target images; something went wrong during the bake.")
 
-    # Lock digests for baked images
-    for name in baked_images:
-        image_ref = f"{baked_images[name]['image.name']}"
-        if mode != "local":
-            image_ref += f"@{baked_images[name]['containerimage.digest']}"
-        local_lock_data[name.upper().replace("-", "_") + "_IMAGE"] = image_ref
-
-    # Write lock
-    _write_lock_file(LOCK_FILE if mode == "ci" else LOCAL_LOCK_FILE, local_lock_data)
+    if mode == "local":
+        local_lock_data["CONTEXT_SHA"] = context_sha
+        _write_lock_file(LOCAL_LOCK_FILE, local_lock_data)
 
 
 def main() -> None:

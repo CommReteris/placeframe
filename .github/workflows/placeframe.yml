@@ -3,13 +3,9 @@ name: Placeframe
 on:
   workflow_dispatch:
   push:
-    branches: [main]
-    paths-ignore:
-      - ".env.lock"
+    branches: [dev]
   pull_request:
     branches: [main, dev]
-    paths-ignore:
-      - ".env.lock"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -99,13 +95,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: uv run --no-sync build-docker --variant ${{ matrix.variant }}
 
-      - name: Upload .env.lock
-        uses: actions/upload-artifact@v6
-        with:
-          name: env-lock-${{ matrix.variant }}
-          path: .env.lock
-          include-hidden-files: true
-
   build-unity:
     needs: [preflight, activate-license, matrix]
     if: >-
@@ -169,37 +158,9 @@ jobs:
           path: ${{ matrix.project }}/Build/**/BuildReport.json
           if-no-files-found: ignore
 
-  publish:
-    needs: [build-unity]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: main
-
-      # Workaround: fetch-tags is broken with shallow clones (actions/checkout#1471)
-      - run: git fetch --tags origin
-
-      - uses: ./.github/actions/setup-uv
-
-      - name: Publish packages
-        id: publish
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: uv run --no-sync publish-packages
-
-  commit:
-    needs: [build-docker, publish]
-    if: >-
-      always()
-      && !cancelled()
-      && github.event_name != 'workflow_dispatch'
-      && needs.build-docker.result == 'success'
-      && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+  ensure-release-pr:
+    needs: [build-docker, build-unity]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     steps:
       - name: Generate app token
@@ -210,57 +171,10 @@ jobs:
           private-key: ${{ secrets.PLACEFRAME_CI_PRIVATE_KEY }}
 
       - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-          token: ${{ steps.app-token.outputs.token }}
-
-      - name: Download env-lock artifacts
-        uses: actions/download-artifact@v6
-        with:
-          pattern: env-lock-*
-          path: /tmp/env-locks
 
       - uses: ./.github/actions/setup-uv
 
-      - name: Commit and push
-        run: uv run --no-sync commit-artifacts
-
-  release:
-    needs: [build-unity, build-docker, publish, commit]
-    if: >-
-      github.ref == 'refs/heads/main'
-      && github.event_name != 'workflow_dispatch'
-      && !cancelled()
-      && needs.commit.result == 'success'
-      && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate app token
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.PLACEFRAME_CI_APP_ID }}
-          private-key: ${{ secrets.PLACEFRAME_CI_PRIVATE_KEY }}
-
-      - uses: actions/checkout@v5
-        with:
-          ref: main
-          token: ${{ steps.app-token.outputs.token }}
-
-      - uses: ./.github/actions/setup-uv
-
-      - name: Pull latest (includes commit job changes)
-        run: git pull --ff-only
-
-      - name: Download Unity build artifacts
-        uses: actions/download-artifact@v6
-        with:
-          pattern: "*-*"
-          path: /tmp/release-artifacts
-          merge-multiple: false
-        continue-on-error: true
-
-      - name: Create GitHub Release
+      - name: Ensure release PR exists
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: uv run --no-sync create-release --run-number ${{ github.run_number }}
+        run: uv run --no-sync ensure-release-pr
