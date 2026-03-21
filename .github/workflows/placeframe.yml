@@ -3,7 +3,7 @@ name: Placeframe
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [dev]
   pull_request:
     branches: [main, dev]
 
@@ -158,37 +158,9 @@ jobs:
           path: ${{ matrix.project }}/Build/**/BuildReport.json
           if-no-files-found: ignore
 
-  publish:
-    needs: [build-unity]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: main
-
-      # Workaround: fetch-tags is broken with shallow clones (actions/checkout#1471)
-      - run: git fetch --tags origin
-
-      - uses: ./.github/actions/setup-uv
-
-      - name: Publish packages
-        id: publish
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: uv run --no-sync publish-packages
-
-  release:
-    needs: [build-unity, build-docker, publish]
-    if: >-
-      github.ref == 'refs/heads/main'
-      && github.event_name != 'workflow_dispatch'
-      && !cancelled()
-      && needs.build-docker.result == 'success'
-      && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+  ensure-release-pr:
+    needs: [build-docker, build-unity]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     steps:
       - name: Generate app token
@@ -199,21 +171,10 @@ jobs:
           private-key: ${{ secrets.PLACEFRAME_CI_PRIVATE_KEY }}
 
       - uses: actions/checkout@v5
-        with:
-          ref: main
-          token: ${{ steps.app-token.outputs.token }}
 
       - uses: ./.github/actions/setup-uv
 
-      - name: Download Unity build artifacts
-        uses: actions/download-artifact@v6
-        with:
-          pattern: "*-*"
-          path: /tmp/release-artifacts
-          merge-multiple: false
-        continue-on-error: true
-
-      - name: Create GitHub Release
+      - name: Ensure release PR exists
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: uv run --no-sync create-release --run-number ${{ github.run_number }}
+        run: uv run --no-sync ensure-release-pr
