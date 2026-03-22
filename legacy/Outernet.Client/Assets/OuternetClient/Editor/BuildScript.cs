@@ -24,21 +24,21 @@ namespace Outernet.Client
     {
         public static void BuildForMagicLeap()
         {
-            PlayerSettings.productName = "Outernet.Client";
+            PlayerSettings.productName = "Legacy Outernet Client";
             ConfigureForMagicLeap();
             BuildMain();
         }
 
         public static void BuildForAndroidMobile()
         {
-            PlayerSettings.productName = "Outernet.Client";
+            PlayerSettings.productName = "Legacy Outernet Client";
             ConfigureForAndroidMobile();
             BuildMain();
         }
 
         public static void BuildForLinux64()
         {
-            PlayerSettings.productName = "Outernet.Client";
+            PlayerSettings.productName = "Legacy Outernet Editor";
             ConfigureForLinux64();
             string sanitizedName = Regex.Replace(PlayerSettings.productName, @"[^a-zA-Z0-9._-]", "_");
             string outputPath = $"Build/{sanitizedName}";
@@ -55,7 +55,7 @@ namespace Outernet.Client
 
         public static void BuildForWin64()
         {
-            PlayerSettings.productName = "Outernet.AuthoringTool";
+            PlayerSettings.productName = "Legacy Outernet Editor";
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
             ConfigureForWin64();
             string sanitizedName = Regex.Replace(PlayerSettings.productName, @"[^a-zA-Z0-9._-]", "_");

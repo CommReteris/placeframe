@@ -3,6 +3,11 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      ci-run-id:
+        description: "Override: use this CI run ID instead of looking up by SHA"
+        required: false
 
 concurrency:
   group: release
@@ -39,7 +44,7 @@ jobs:
         id: fetch-ci-artifacts
         env:
           GH_TOKEN: ${{ github.token }}
-        run: uv run --no-sync fetch-ci-artifacts
+        run: uv run --no-sync fetch-ci-artifacts ${{ inputs.ci-run-id && format('--ci-run-id {0}', inputs.ci-run-id) || '' }}
 
       - name: Publish packages
         env:
@@ -50,4 +55,4 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: uv run --no-sync create-release --run-number ${{ github.run_number }}
+        run: uv run --no-sync create-release
