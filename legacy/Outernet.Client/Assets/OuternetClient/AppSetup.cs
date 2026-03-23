@@ -58,6 +58,7 @@ namespace Outernet.Client
 
             Instantiate(prefabSystem, transform);
 
+            gameObject.AddComponent<UINavigationHelper>();
             gameObject.AddComponent<App>();
             gameObject.AddComponent<Platform>();
 

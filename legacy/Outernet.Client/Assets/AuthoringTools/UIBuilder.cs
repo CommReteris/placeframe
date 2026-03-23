@@ -648,6 +648,49 @@ namespace Outernet.Client.AuthoringTools
             return control;
         }
 
+        public static ValueControl<double3> LatLongHeightControl(string label = null, LabelType labelType = LabelType.None, bool interactable = true, params Attribute[] attributes)
+        {
+            var longControl = DoubleControl("long", LabelType.Tight, interactable: interactable);
+            var latControl = DoubleControl("lat", LabelType.Tight, interactable: interactable);
+            var heightControl = DoubleControl("height", LabelType.Tight, interactable: interactable);
+
+            var control = HandleLabel(
+                label,
+                labelType,
+                LabelType.Adaptive,
+                VerticalLayout(latControl, longControl, heightControl)
+            ).gameObject.AddComponent<Double3ValueControl>();
+
+            bool pushingChanges = false;
+
+            Action handleChildChanged = () =>
+            {
+                if (pushingChanges)
+                    return;
+
+                control.value = new double3(
+                    longControl.value,
+                    latControl.value,
+                    heightControl.value
+                );
+            };
+
+            longControl.onValueChanged += handleChildChanged;
+            latControl.onValueChanged += handleChildChanged;
+            heightControl.onValueChanged += handleChildChanged;
+
+            control.onValueChanged += () =>
+            {
+                pushingChanges = true;
+                longControl.value = control.value.x;
+                latControl.value = control.value.y;
+                heightControl.value = control.value.z;
+                pushingChanges = false;
+            };
+
+            return control;
+        }
+
         public static ValueControl<Quaternion> QuaternionControl(string label = null, LabelType labelType = LabelType.None, bool interactable = true, params Attribute[] attributes)
         {
             var xControl = FloatControl("x", LabelType.Tight, interactable: interactable);
