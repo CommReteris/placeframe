@@ -34,9 +34,8 @@ def compute_context_sha(repo_root: Path) -> str:
             ["git", "update-index", "--index-info"],
             cwd=str(repo_root),
             env=env,
-            input=index_input,
+            input=index_input.encode(),
             capture_output=True,
-            text=True,
             check=True,
         )
         result = subprocess.run(
