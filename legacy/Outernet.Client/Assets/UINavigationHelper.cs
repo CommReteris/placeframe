@@ -19,7 +19,11 @@ namespace Outernet.Client
                 if (selectable == null)
                     return;
 
-                var next = selectable.FindSelectableOnDown();
+                var next = selectable.FindSelectableOnRight();
+
+                if (next == null)
+                    next = selectable.FindSelectableOnDown();
+
                 if (next == null)
                     return;
 

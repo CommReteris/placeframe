@@ -227,6 +227,7 @@ namespace Outernet.Client.AuthoringTools
             {
                 _loginDialog?.Dispose();
                 _loginDialog = null;
+                gameObject.SetActive(true);
             }
             else
             {
@@ -245,6 +246,8 @@ namespace Outernet.Client.AuthoringTools
                         loginMethod = Client.Utility.Login
                     }))
                 });
+
+                gameObject.SetActive(false);
             }
         }
 
