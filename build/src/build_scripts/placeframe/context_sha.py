@@ -10,23 +10,33 @@ import pathspec
 
 def compute_context_sha(repo_root: Path) -> str:
     repo_root = repo_root.resolve()
-    all_files = subprocess.run(
-        ["git", "ls-files"], cwd=str(repo_root), capture_output=True, text=True, check=True
+
+    tree_entries = subprocess.run(
+        ["git", "ls-tree", "-r", "HEAD"], cwd=str(repo_root), capture_output=True, text=True, check=True
     ).stdout.splitlines()
 
     dockerignore = repo_root / ".dockerignore"
     spec = pathspec.PathSpec.from_lines("gitignore", dockerignore.read_text().splitlines())
-    visible_files = [f for f in all_files if not spec.match_file(f)]
+
+    index_info_lines: list[str] = []
+    for entry in tree_entries:
+        meta, path = entry.split("\t", 1)
+        if spec.match_file(path):
+            continue
+        mode, _type, obj_hash = meta.split()
+        index_info_lines.append(f"{mode} {obj_hash}\t{path}")
+
+    index_input = "\n".join(index_info_lines) + "\n" if index_info_lines else ""
 
     with TemporaryDirectory() as tmpdir:
         env = {**os.environ, "GIT_INDEX_FILE": str(Path(tmpdir) / "index")}
-        pathspec_file = Path(tmpdir) / "pathspec"
-        pathspec_file.write_text("\n".join(visible_files) + "\n")
         subprocess.run(
-            ["git", "add", "--force", f"--pathspec-from-file={pathspec_file}"],
+            ["git", "update-index", "--index-info"],
             cwd=str(repo_root),
             env=env,
+            input=index_input,
             capture_output=True,
+            text=True,
             check=True,
         )
         result = subprocess.run(

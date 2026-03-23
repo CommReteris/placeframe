@@ -77,3 +77,33 @@ class TestComputeContextSha:
 
         sha_after = compute_context_sha(repo)
         assert sha_before == sha_after
+
+    def test_should_not_change_from_uncommitted_edits(self, repo: Path):
+        sha_before = compute_context_sha(repo)
+
+        (repo / "docker" / "app.py").write_text("print('uncommitted')")
+
+        sha_after = compute_context_sha(repo)
+        assert sha_before == sha_after
+
+    def test_should_preserve_file_modes(self, repo: Path):
+        subprocess.run(
+            ["git", "update-index", "--chmod=+x", "docker/app.py"],
+            cwd=str(repo),
+            capture_output=True,
+            check=True,
+        )
+        subprocess.run(["git", "commit", "-m", "chmod"], cwd=str(repo), capture_output=True, check=True)
+
+        sha_with_exec = compute_context_sha(repo)
+
+        subprocess.run(
+            ["git", "update-index", "--chmod=-x", "docker/app.py"],
+            cwd=str(repo),
+            capture_output=True,
+            check=True,
+        )
+        subprocess.run(["git", "commit", "-m", "unchmod"], cwd=str(repo), capture_output=True, check=True)
+
+        sha_without_exec = compute_context_sha(repo)
+        assert sha_with_exec != sha_without_exec
