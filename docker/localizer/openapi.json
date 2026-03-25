@@ -19,6 +19,18 @@
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/LocalizationRequest"
+              },
+              "encoding": {
+                "reconstruction_ids": {
+                  "contentType": "application/json",
+                  "explode": false,
+                  "allowReserved": false
+                },
+                "camera_config": {
+                  "contentType": "application/json",
+                  "explode": false,
+                  "allowReserved": false
+                }
               }
             }
           },

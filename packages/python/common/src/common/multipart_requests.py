@@ -26,6 +26,9 @@ def multipart_json_list(value: str | list[str]) -> str:
     if "," in value and not value.lstrip().startswith("["):
         return json.dumps([part.strip() for part in value.split(",")])
 
+    if not value.lstrip().startswith("["):
+        return json.dumps([value])
+
     return value
 
 

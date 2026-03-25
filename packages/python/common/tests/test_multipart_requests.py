@@ -38,13 +38,37 @@ def _multipart_route(data: Annotated[_MultipartRoutePayload, Body(media_type=Req
     del data
 
 
-def test_multipart_request_model_parses_csv_uuid_lists() -> None:
-    first_id = uuid4()
-    second_id = uuid4()
+@pytest.fixture
+def uuid_list_input(request: pytest.FixtureRequest) -> tuple[str | list[str], list[UUID]]:
+    a, b = uuid4(), uuid4()
+    formats: dict[str, tuple[str | list[str], list[UUID]]] = {
+        "single-uuid-in-list": ([str(a)], [a]),
+        "bare-uuid-string": (str(a), [a]),
+        "json-array-single": ([f'["{a}"]'], [a]),
+        "json-array-multiple": ([f'["{a}","{b}"]'], [a, b]),
+        "csv-string": ([f"{a},{b}"], [a, b]),
+        "multi-format-list": ([str(a), str(b)], [a, b]),
+    }
+    return formats[request.param]
 
-    payload = _MultipartUuidListPayload.model_validate({"reconstruction_ids": [f"{first_id},{second_id}"]})
 
-    assert payload.reconstruction_ids == [first_id, second_id]
+@pytest.mark.parametrize(
+    "uuid_list_input",
+    [
+        "single-uuid-in-list",
+        "bare-uuid-string",
+        "json-array-single",
+        "json-array-multiple",
+        "csv-string",
+        "multi-format-list",
+    ],
+    indirect=True,
+)
+def test_multipart_request_model_parses_uuid_list(uuid_list_input: tuple[str | list[str], list[UUID]]) -> None:
+    raw_input, expected = uuid_list_input
+    payload = _MultipartUuidListPayload.model_validate({"reconstruction_ids": raw_input})
+
+    assert payload.reconstruction_ids == expected
 
 
 def test_multipart_request_model_parses_json_objects_from_single_part_lists() -> None:
