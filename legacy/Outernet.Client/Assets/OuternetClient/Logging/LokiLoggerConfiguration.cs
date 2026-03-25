@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Cysharp.Net.Http;
 using Newtonsoft.Json.Linq;
+using Placeframe.Core;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Events;
@@ -60,14 +61,11 @@ namespace Outernet.Client
 
     static class LokiLoggerConfiguration
     {
-        static string lokiUserId = "961726";
-        static string lokiAccessToken = "glc_eyJvIjoiMTE4OTQ0OSIsIm4iOiJzdGFjay0xMDAzOTQ2LWludGVncmF0aW9uLXBsZXJpb24tbG9raS1hY2Nlc3MtdG9rZW4iLCJrIjoiMmxvQklxNHE5OTJYM2NnZTg2Q2s1NExJIiwibSI6eyJyIjoicHJvZC11cy1lYXN0LTAifX0=";
-
-        public static LoggerConfiguration Loki(this LoggerSinkConfiguration loggerConfiguration)
+        public static LoggerConfiguration Loki(this LoggerSinkConfiguration loggerConfiguration, string domain)
         {
             return loggerConfiguration.GrafanaLoki(
-                "https://logs-prod-006.grafana.net",
-                httpClient: new BearerTokenAuthenticatedHttpClient($"{lokiUserId}:{lokiAccessToken}"),
+                $"https://{domain}",
+                httpClient: new KeycloakAuthenticatedHttpClient(),
                 labels: new List<LokiLabel> {
                     new LokiLabel() { Key = "app", Value = "outernet-client" },
                     new LokiLabel() {
@@ -86,15 +84,13 @@ namespace Outernet.Client
                 textFormatter: new LokiJsonTextFormatter());
         }
 
-        class BearerTokenAuthenticatedHttpClient : BaseLokiHttpClient
+        class KeycloakAuthenticatedHttpClient : BaseLokiHttpClient
         {
-            public BearerTokenAuthenticatedHttpClient(string bearerToken)
-            {
-                HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            }
-
             public override async Task<HttpResponseMessage> PostAsync(string requestUri, Stream contentStream)
             {
+                var token = await Auth.GetOrRefreshToken();
+                HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
                 using var content = new StreamContent(contentStream);
                 content.Headers.Add("Content-Type", "application/json");
 
