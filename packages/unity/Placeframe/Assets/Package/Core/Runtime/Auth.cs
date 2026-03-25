@@ -108,6 +108,7 @@ namespace Placeframe.Core
                             ["client_id"] = AuthAudience,
                             ["username"] = Username,
                             ["password"] = Password,
+                            ["scope"] = "openid",
                         }
                     )
                 );
@@ -167,6 +168,7 @@ namespace Placeframe.Core
                                 ["grant_type"] = "refresh_token",
                                 ["client_id"] = AuthAudience,
                                 ["refresh_token"] = tokenResponse.refresh_token,
+                                ["scope"] = "openid",
                             }
                         )
                     );

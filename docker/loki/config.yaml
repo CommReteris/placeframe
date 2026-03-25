@@ -1,0 +1,33 @@
+auth_enabled: false
+server:
+  http_listen_port: 3100
+common:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+    replication_factor: 1
+  path_prefix: /loki
+storage_config:
+  aws:
+    endpoint: minio:9000
+    bucketnames: loki
+    access_key_id: ${MINIO_ACCESS_KEY}
+    secret_access_key: ${MINIO_SECRET_KEY}
+    s3forcepathstyle: true
+    insecure: true
+ingester:
+  lifecycler:
+    ring:
+      replication_factor: 1
+schema_config:
+  configs:
+    - from: "2024-01-01"
+      store: tsdb
+      object_store: s3
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+limits_config:
+  retention_period: 720h

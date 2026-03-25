@@ -5,17 +5,22 @@ requires-python = ">=3.13"
 dependencies = [
   "common",
   "datamodel-code-generator>=0.33.0",
+  "psycopg[binary]>=3.2.10",
   "pydantic>=2.11.7",
   "pydantic-settings>=2.9.1",
   "pyhumps>=3.8.0",
+  "sqlacodegen==3.2.0",
   "sqlalchemy>=2.0.45",
   "typer>=0.17.4",
   "pyyaml>=6.0",
   "pathspec>=1.0.4",
 ]
 
+[tool.deptry]
+known_first_party = ["build_scripts"]
+
 [tool.deptry.per_rule_ignores]
-DEP002 = ["datamodel-code-generator"]
+DEP002 = ["datamodel-code-generator", "psycopg"]
 
 [build-system]
 requires = ["hatchling"]

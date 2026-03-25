@@ -1,5 +1,4 @@
 import json
-import re
 import sys
 from ast import ClassDef, parse, unparse
 from enum import Enum
@@ -11,13 +10,14 @@ from textwrap import dedent
 from typing import Any
 
 from common.bash import bash
-from humps import pascalize
 from pydantic import create_model
 from pydantic.alias_generators import to_snake
-from sqlalchemy import inspect as sa_inspect
+from sqlalchemy import MetaData, create_engine, inspect as sa_inspect
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.sql.sqltypes import Enum as SAEnum
 from typer import run
+
+from build_scripts.placeframe.sqlacodegen_generator import PlaceframeDeclarativeGenerator
 
 DATABASE = "placeframe"
 DATAMODELS_PATH = Path(__file__).parents[4] / "packages" / "generated" / "python" / "datamodels"
@@ -26,27 +26,24 @@ DATAMODELS_PATH = Path(__file__).parents[4] / "packages" / "generated" / "python
 def cli():
     port = environ.get("POSTGRES_PORT", "55432")
     service_dsn = f"postgresql+psycopg://{DATABASE}_api_user:password@localhost:{port}/{DATABASE}"
-    _generate_datamodels_for_schema("public", DATAMODELS_PATH / "src" / "datamodels", service_dsn)
-    _generate_datamodels_for_schema("auth", DATAMODELS_PATH / "src" / "datamodels", service_dsn)
+    engine = create_engine(service_dsn)
+    _generate_datamodels_for_schema("public", DATAMODELS_PATH / "src" / "datamodels", engine)
+    _generate_datamodels_for_schema("auth", DATAMODELS_PATH / "src" / "datamodels", engine)
+    engine.dispose()
     bash(f"uv pip install {DATAMODELS_PATH.resolve().as_posix()}")
 
 
-def _generate_datamodels_for_schema(database_schema: str, models_path: Path, service_dsn: str) -> None:
+def _generate_datamodels_for_schema(database_schema: str, models_path: Path, engine: Any) -> None:
     generated_table_models_path = models_path / f"{database_schema}_tables.py"
     generated_dto_models_path = models_path / f"{database_schema}_dtos.py"
     generated_table_models_path.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Generating table models for schema: {database_schema}")
 
-    bash(
-        f'uvx --from "sqlacodegen==3.1.1" --with "psycopg[binary]" sqlacodegen '
-        f"--schema {database_schema} "
-        f"--options use_inflect "
-        f"{service_dsn} "
-        f'--outfile "{generated_table_models_path}"'
-    )
-
-    _post_process_generated_enums(generated_table_models_path)
+    metadata = MetaData()
+    metadata.reflect(engine, schema=database_schema, views=True)
+    generator = PlaceframeDeclarativeGenerator(metadata, engine, ["use_inflect"])
+    generated_table_models_path.write_text(generator.generate())
 
     # Format generated table models
     bash(f"uv run ruff check --fix --select I,F401 {generated_table_models_path}")
@@ -235,83 +232,6 @@ def _generate_datamodels_for_schema(database_schema: str, models_path: Path, ser
         # Format generated DTO models
         bash(f"uv run ruff check --fix --select I,F401 {generated_dto_models_path}")
         bash(f"uv run ruff format {generated_dto_models_path}")
-
-
-# vibe code gemini 3
-def _post_process_generated_enums(file_path: Path) -> None:
-    """
-    Parses the generated SQLAlchemy file, converts inline Enum definitions
-    into strict Python Enum classes, injects a fully typed helper for values_callable,
-    and rewrites the file.
-    """
-    content = file_path.read_text()
-
-    # 1. Ensure 'import enum' is present
-    if "import enum" not in content:
-        content = "import enum\n" + content
-
-    # 2. Regex to capture the inline Enum definition (handles both Mapped[str] and Mapped[Optional[str]])
-    pattern = re.compile(
-        r"(\w+): Mapped\[(?:Optional\[)?str\]?\] = mapped_column\(Enum\((.*?), name=['\"](\w+)['\"]\)(.*?)\)"
-    )
-
-    # Explicitly type the list accumulator
-    enum_definitions: list[str] = []
-
-    def replacer(match: re.Match[str]) -> str:
-        full_match: str = match.group(0)
-        col_name: str = match.group(1)
-        values_raw: str = match.group(2)
-        enum_db_name: str = match.group(3)
-        rest_of_args: str = match.group(4)
-
-        is_optional = "Optional[str]" in full_match
-
-        # Clean up values
-        enum_values: list[str] = [val.strip().strip("'\"") for val in values_raw.split(",")]
-
-        # Generate Class Name
-        class_name: str = str(pascalize(enum_db_name))
-
-        # Build strict Python Enum Class
-        class_lines: list[str] = [f"class {class_name}(enum.Enum):"]
-
-        for v in enum_values:
-            if not v:
-                continue
-            key: str = v.upper().replace("-", "_").replace(" ", "_")
-            class_lines.append(f"    {key} = '{v}'")
-
-        enum_definitions.append("\n".join(class_lines) + "\n")
-
-        # Return the new column definition with values_callable
-        mapped_type = f"Optional[{class_name}]" if is_optional else class_name
-        return f"{col_name}: Mapped[{mapped_type}] = mapped_column(Enum({class_name}, name='{enum_db_name}', values_callable=enum_values){rest_of_args})"
-
-    # 3. Apply the replacement
-    new_content = pattern.sub(replacer, content)
-
-    # 4. Insert the new Enum classes AND the typed helper function
-    if enum_definitions:
-        # CHANGE: Added strict type annotations to the injected helper
-        # x: list[enum.Enum] -> inputs are Enums
-        # -> list[str]       -> outputs are the string values
-        # str(e.value)       -> explicit cast ensures the return type matches
-        enum_definitions.insert(
-            0, "def enum_values(x: list[enum.Enum]) -> list[str]:\n    return [str(e.value) for e in x]\n"
-        )
-
-        lines = new_content.splitlines()
-        insert_idx = 0
-        for i, line in enumerate(lines):
-            if line.startswith("import ") or line.startswith("from "):
-                insert_idx = i
-
-        lines.insert(insert_idx + 2, "\n".join(enum_definitions))
-
-        new_content = "\n".join(lines)
-        file_path.write_text(new_content)
-        print(f"Post-processed Enums in {file_path.name}")
 
 
 def main():

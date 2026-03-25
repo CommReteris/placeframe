@@ -29,6 +29,7 @@ app = typer.Typer(add_completion=False)
 def up(
     use_lock: bool = typer.Option(False, "--locked", "-l", help="Use .env.lock even if .env.local.lock exists."),
     attached: bool = typer.Option(False, "--attached", "-a", help="Run in foreground (not detached)"),
+    quiet_pull: bool = typer.Option(False, "--quiet-pull", "-q", help="Suppress docker compose pull progress output"),
     gpu: Gpu = typer.Option("auto", "--gpu", help="auto|cuda|rocm|none"),
 ) -> None:
     if not LOCK_FILE.exists() and not LOCAL_LOCK_FILE.exists():
@@ -51,6 +52,8 @@ def up(
         "up"
     )
 
+    if quiet_pull:
+        command += " --quiet-pull"
     if not attached:
         command += " -d"
 

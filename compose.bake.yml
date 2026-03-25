@@ -83,6 +83,22 @@ services:
         - "ghcr.io/outernet-foundation/placeframe/state-sync:latest"
         - "ghcr.io/outernet-foundation/placeframe/state-sync:${CONTEXT_SHA}"
 
+  neural-networks-base-cuda:
+    build:
+      context: .
+      dockerfile: docker/neural-networks-base/Dockerfile
+      args:
+        <<: *base-args
+        TORCH_DEVICE: "cuda"
+
+  neural-networks-base-rocm:
+    build:
+      context: .
+      dockerfile: docker/neural-networks-base/Dockerfile
+      args:
+        <<: *base-args
+        TORCH_DEVICE: "rocm"
+
   reconstructor-cuda:
     build:
       context: .
@@ -93,6 +109,8 @@ services:
       tags:
         - "ghcr.io/outernet-foundation/placeframe/reconstructor-cuda:latest"
         - "ghcr.io/outernet-foundation/placeframe/reconstructor-cuda:${CONTEXT_SHA}"
+      additional_contexts:
+        neural-networks-base: "target:neural-networks-base-cuda"
 
   localizer-cuda:
     build:
@@ -104,6 +122,8 @@ services:
       tags:
         - "ghcr.io/outernet-foundation/placeframe/localizer-cuda:latest"
         - "ghcr.io/outernet-foundation/placeframe/localizer-cuda:${CONTEXT_SHA}"
+      additional_contexts:
+        neural-networks-base: "target:neural-networks-base-cuda"
 
   reconstructor-rocm:
     build:
@@ -115,6 +135,8 @@ services:
       tags:
         - "ghcr.io/outernet-foundation/placeframe/reconstructor-rocm:latest"
         - "ghcr.io/outernet-foundation/placeframe/reconstructor-rocm:${CONTEXT_SHA}"
+      additional_contexts:
+        neural-networks-base: "target:neural-networks-base-rocm"
 
   localizer-rocm:
     build:
@@ -126,3 +148,5 @@ services:
       tags:
         - "ghcr.io/outernet-foundation/placeframe/localizer-rocm:latest"
         - "ghcr.io/outernet-foundation/placeframe/localizer-rocm:${CONTEXT_SHA}"
+      additional_contexts:
+        neural-networks-base: "target:neural-networks-base-rocm"

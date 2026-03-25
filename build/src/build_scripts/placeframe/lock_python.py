@@ -60,6 +60,9 @@ def lock_python(
         bash("uv lock")
 
     # Phase 2: per-service pylock exports
+    nn_base_dir = Path.cwd() / "docker" / "neural-networks-base"
+    seen_nn_groups: set[str] = set()
+
     with (Path.cwd() / "pyproject.toml").open("rb") as file:
         workspace_toml = load(file)
 
@@ -79,6 +82,11 @@ def lock_python(
 
         for group in groups:
             if group == "dev":
+                continue
+            if group.startswith("neural-networks-"):
+                if group not in seen_nn_groups:
+                    stale |= _export_pylock(check, nn_base_dir, package_name, group=group)
+                    seen_nn_groups.add(group)
                 continue
             stale |= _export_pylock(check, member_dir, package_name, group=group)
 

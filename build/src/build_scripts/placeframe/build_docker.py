@@ -183,8 +183,9 @@ def build(
     # Determine bake targets
     targets = [
         service
-        for service in bake_data["services"]
-        if not any(service.endswith(f"-{g}") for g in GPU_TYPES) or service.endswith(f"-{gpu}")
+        for service, config in bake_data["services"].items()
+        if config.get("build", {}).get("tags")
+        and (not any(service.endswith(f"-{g}") for g in GPU_TYPES) or service.endswith(f"-{gpu}"))
     ]
 
     # Filter to specific targets if requested
@@ -229,7 +230,7 @@ def build(
 
     # Sanity check
     baked_images: dict[str, Any] = json.loads(METADATA_PATH.read_text()) if METADATA_PATH.exists() else {}
-    if baked_images.keys() != set(targets):
+    if not set(targets) <= baked_images.keys():
         raise RuntimeError("Baked images do not match target images; something went wrong during the bake.")
 
     if mode == "local":

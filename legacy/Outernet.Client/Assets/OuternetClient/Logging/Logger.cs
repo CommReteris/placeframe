@@ -27,7 +27,6 @@ namespace Outernet.Client
                 .MinimumLevel.Verbose()
                 .Enrich.With<Enricher>()
                 .WriteTo.Unity()
-                .WriteTo.Loki()
                 .CreateLogger();
 
             // Use a custom Unity log handler to pipe to Serilog any messages that are logged
@@ -76,6 +75,18 @@ namespace Outernet.Client
 
             // Log uncaught exceptions thrown by R3 subscriptions
             ObservableSystem.RegisterUnhandledExceptionHandler(exception => Log.Error(LogGroup.UncaughtException, exception, "R3 subscription unhandled exception"));
+        }
+
+        public static void EnableLoki(string domain)
+        {
+            var previous = logger;
+            logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .Enrich.With<Enricher>()
+                .WriteTo.Unity()
+                .WriteTo.Loki(domain)
+                .CreateLogger();
+            previous.Dispose();
         }
 
         public static void Terminate()

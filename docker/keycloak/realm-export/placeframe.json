@@ -29,6 +29,15 @@
       ]
     },
     {
+      "clientId": "placeframe-grafana",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["${PUBLIC_URL}/grafana/login/generic_oauth"],
+      "webOrigins": ["${PUBLIC_URL}"]
+    },
+    {
       "clientId": "placeframe-worker",
       "enabled": true,
       "clientAuthenticatorType": "client-jwt",

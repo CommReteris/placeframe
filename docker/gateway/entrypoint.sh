@@ -34,8 +34,21 @@ cat > /etc/caddy/Caddyfile <<EOF
         reverse_proxy keycloak:8080 {
             header_up X-Forwarded-Proto https
             # Shell expands this to "58080" (or whatever you set)
-            header_up X-Forwarded-Port ${PUBLIC_PORT} 
+            header_up X-Forwarded-Port ${PUBLIC_PORT}
         }
+    }
+
+    # Grafana
+    handle /grafana/* {
+        reverse_proxy grafana:3000
+    }
+
+    # Loki (log ingestion from Unity clients, authenticated via Keycloak)
+    handle /loki/* {
+        forward_auth keycloak:8080 {
+            uri /realms/placeframe-dev/protocol/openid-connect/userinfo
+        }
+        reverse_proxy loki:3100
     }
 
     # API Service
