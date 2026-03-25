@@ -109,19 +109,19 @@ All API endpoints require an OAuth2 Bearer token from Keycloak. The default dev 
 
 ## Claude Code Environment Notes
 
-When running in a containerized Claude Code environment (no GPU, no ngrok):
+When running in a containerized Claude Code environment (COI sandbox):
 
 1. **Install prerequisites**: `uv` may not be pre-installed. Install with `curl -LsSf https://astral.sh/uv/install.sh | sh` and ensure `~/.local/bin` is on PATH. Java (JDK 11+) is required for `generate-clients` — install with `sudo apt-get install -y default-jre-headless`.
-2. **Create `.env` from sample**: `cp .env.sample .env` — set `PUBLIC_DOMAIN=localhost`, `NGROK_AUTHTOKEN=dummy`, and clear `COMPOSE_PROFILES=` (remove `ngrok`).
-3. **Use `--gpu none`**: This environment has no GPU. Use `uv run up --gpu none` and `uv run down --gpu none`.
-4. **Use long timeouts for Docker commands**: `uv run up`, `uv run down`, and any `docker compose` commands may need to pull images on first run. Always use `timeout: 600000` (10 minutes) on these Bash calls.
+2. **`.env` is pre-configured**: The `.env` file is mounted from the host with real credentials (ngrok authtoken, etc.). Do not overwrite it.
+3. **GPU is available**: This environment has GPU passthrough. `uv run up` auto-detects CUDA and includes the GPU compose file. The first run may take several minutes to pull CUDA images (~5GB). **Always use `uv run up --quiet-pull`** — the default pull progress output floods the terminal. Always use `timeout: 600000` (10 minutes) on these Bash calls.
+4. **Docker registry auth**: Docker must be authenticated to `ghcr.io` to pull private placeframe images. The COI `agent-shell` script configures this automatically via `GITHUB_TOKEN`. If pulls hang silently, check `~/.docker/config.json` exists and contains `ghcr.io` credentials.
 5. **Migrations run automatically**: `uv run up` starts a `migrate-database` container that has `pg-schema-diff` installed and runs migrations inside Docker. You do NOT need to install `pg-schema-diff` locally or run `uv run migrate-database` separately — just `uv run up` and wait for the migrator container to finish.
 6. **Never run bare `docker compose` commands**: The compose setup requires multiple `--env-file` flags (`.env` + `.env.lock`) and GPU-specific compose files. Always use the `uv run` wrapper scripts (`uv run up`, `uv run down`, etc.) which assemble the correct command. Running `docker compose` directly will fail with missing variable errors.
 7. **Full generation pipeline order** (after schema or API route changes):
-   - `uv run up --gpu none` (starts postgres, runs migrations automatically)
+   - `uv run up --quiet-pull` (starts postgres, runs migrations automatically)
    - `uv run generate-datamodels` (needs live postgres)
    - `uv sync --all-packages` (required if any `pyproject.toml` changed; slow but necessary)
    - `uv run generate-lock-files` (must precede generate-clients)
    - `uv run generate-clients --config openapi-projects.json --project docker/api` (localizer can't dump spec without GPU/PyTorch)
 8. **Don't `uv sync` inside a service directory**: Running `uv sync` in e.g. `docker/api/` clobbers the workspace venv. Always sync from the repo root with `uv sync --all-packages`, then re-run `uv run generate-lock-files`.
-9. **Tests**: `uv run pytest` will show collection errors for `docker/localizer/tests/` and `dirtorch/test_dir.py` — these require PyTorch which is not available without a GPU. This is expected.
+9. **Tests**: `uv run pytest` from repo root. Collection errors for `docker/localizer/tests/` and `dirtorch/test_dir.py` may occur if PyTorch is not installed in the workspace venv (it's only in the Docker images).
