@@ -98,7 +98,7 @@ t_geography_columns = Table(
 t_geometry_columns = Table(
     "geometry_columns",
     Base.metadata,
-    Column("f_table_catalog", String(256)),
+    Column("f_table_catalog", String(256, "C")),
     Column("f_table_schema", String),
     Column("f_table_name", String),
     Column("f_geometry_column", String),
@@ -321,7 +321,7 @@ class LocalizationMap(Base):
     reconstruction: Mapped["Reconstruction"] = relationship("Reconstruction", back_populates="localization_map")
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="localization_maps")
     localization_map_camera_positions: Mapped[list["LocalizationMapCameraPosition"]] = relationship(
-        "LocalizationMapCameraPosition", back_populates="localization_map"
+        "LocalizationMapCameraPosition", back_populates="localization_map", passive_deletes=True
     )
 
 

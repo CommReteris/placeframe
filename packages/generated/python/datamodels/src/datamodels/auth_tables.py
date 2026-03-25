@@ -27,7 +27,7 @@ class Tenant(Base):
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, server_default=text("gen_random_uuid()"))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), nullable=False, server_default=text("now()"))
 
-    memberships: Mapped[list["Membership"]] = relationship("Membership", back_populates="tenant")
+    memberships: Mapped[list["Membership"]] = relationship("Membership", back_populates="tenant", passive_deletes=True)
 
 
 class User(Base):
@@ -37,7 +37,7 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), nullable=False, server_default=text("now()"))
 
-    memberships: Mapped[list["Membership"]] = relationship("Membership", back_populates="user")
+    memberships: Mapped[list["Membership"]] = relationship("Membership", back_populates="user", passive_deletes=True)
 
 
 class Membership(Base):
