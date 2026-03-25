@@ -24,6 +24,7 @@ from placeframe_api_client.models.label_type import LabelType
 from placeframe_api_client.models.link_type import LinkType
 from typing import Optional, Set
 from typing_extensions import Self
+from pydantic_core import to_jsonable_python
 
 class NodeBatchUpdate(BaseModel):
     """
@@ -52,7 +53,8 @@ class NodeBatchUpdate(BaseModel):
     __properties: ClassVar[List[str]] = ["id", "rotation_z", "position_y", "position_z", "rotation_x", "rotation_y", "rotation_w", "position_x", "link_type", "label_type", "active", "layer_id", "parent_id", "label_width", "label_height", "label_scale", "link", "label", "name"]
 
     model_config = ConfigDict(
-        populate_by_name=True,
+        validate_by_name=True,
+        validate_by_alias=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
@@ -64,8 +66,7 @@ class NodeBatchUpdate(BaseModel):
 
     def to_json(self) -> str:
         """Returns the JSON representation of the model using alias"""
-        # TODO: pydantic v2: use .model_dump_json(by_alias=True, exclude_unset=True) instead
-        return json.dumps(self.to_dict())
+        return json.dumps(to_jsonable_python(self.to_dict()))
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
