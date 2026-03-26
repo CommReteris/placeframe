@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt
 from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing import Optional, Set
 from typing_extensions import Self
+from pydantic_core import to_jsonable_python
 
 class ReconstructionMetrics(BaseModel):
     """
@@ -55,7 +56,8 @@ class ReconstructionMetrics(BaseModel):
     __properties: ClassVar[List[str]] = ["total_images", "registered_images", "registration_rate", "num_3d_points", "average_keypoints_per_image", "reprojection_pixel_error_50th_percentile", "reprojection_pixel_error_90th_percentile", "track_length_50th_percentile", "percent_tracks_with_length_greater_than_or_equal_to_3", "all_verified_matches", "all_verified_match_rate", "all_verified_match_inliers_mean", "all_verified_match_inliers_median", "stereo_verified_matches", "stereo_verified_match_rate", "stereo_verified_match_inliers_mean", "stereo_verified_match_inliers_median", "same_sensor_verified_matches", "same_sensor_verified_match_rate", "same_sensor_verified_match_inliers_mean", "same_sensor_verified_match_inliers_median", "cross_sensor_verified_matches", "cross_sensor_verified_match_rate", "cross_sensor_verified_match_inliers_mean", "cross_sensor_verified_match_inliers_median"]
 
     model_config = ConfigDict(
-        populate_by_name=True,
+        validate_by_name=True,
+        validate_by_alias=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
@@ -67,8 +69,7 @@ class ReconstructionMetrics(BaseModel):
 
     def to_json(self) -> str:
         """Returns the JSON representation of the model using alias"""
-        # TODO: pydantic v2: use .model_dump_json(by_alias=True, exclude_unset=True) instead
-        return json.dumps(self.to_dict())
+        return json.dumps(to_jsonable_python(self.to_dict()))
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:

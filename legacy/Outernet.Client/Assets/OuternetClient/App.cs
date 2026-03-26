@@ -108,6 +108,8 @@ namespace Outernet.Client
                 domain
             );
 
+            Logger.EnableLoki(state.userSettings.domain.value);
+
 #if !AUTHORING_TOOLS_ENABLED
             ConnectionManager.HubConnectionRequested.EnqueueSet(true);
             ConnectionManager.RoomConnectionRequested.EnqueueSet("test");
