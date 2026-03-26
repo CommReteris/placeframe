@@ -66,7 +66,6 @@ The backend also includes the following admin UIs, accessible from your public d
 
 - **Grafana** (`/grafana/`) — centralized log viewer, aggregating logs from all services via Loki
 - **CloudBeaver** (`/cloudbeaver/`) — web-based database UI for browsing the PostgreSQL database
-- **MinIO Console** (`/minio/`) — web-based UI for browsing the S3-compatible object store
 
 ## Capture Tool
 
