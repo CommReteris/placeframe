@@ -28,7 +28,6 @@ services:
     environment:
       MINIO_ROOT_USER: "${MINIO_ACCESS_KEY:?err}"
       MINIO_ROOT_PASSWORD: "${MINIO_SECRET_KEY:?err}"
-      MINIO_BROWSER_REDIRECT_URL: "https://${PUBLIC_DOMAIN:?err}/minio/"
 
   initialize-minio:
     x-image-ref: docker.io/minio/mc:latest
@@ -89,10 +88,12 @@ services:
       - "${CLOUDBEAVER_PORT:?err}:8978"
     volumes:
       - cloudbeaver_data:/opt/cloudbeaver/workspace
+    environment:
+      CLOUDBEAVER_ROOT_URI: "/cloudbeaver"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8978" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8978/cloudbeaver/" ]
       interval: 1s
       timeout: 1s
       retries: 90

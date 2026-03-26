@@ -51,6 +51,12 @@ cat > /etc/caddy/Caddyfile <<EOF
         reverse_proxy loki:3100
     }
 
+    # CloudBeaver
+    redir /cloudbeaver /cloudbeaver/
+    handle /cloudbeaver/* {
+        reverse_proxy cloudbeaver:8978
+    }
+
     # API Service
     handle {
         reverse_proxy api:8000
