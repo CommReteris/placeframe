@@ -12,7 +12,7 @@ from common.bash import bash, bash_output
 from common.detect_gpu import GPU_TYPES, Gpu, detect_gpu
 from pydantic_settings import BaseSettings
 
-from .context_sha import compute_context_sha
+from .context_sha import compute_service_shas
 
 
 class Settings(BaseSettings):
@@ -120,8 +120,8 @@ def build(
         None, "--targets", "-t", help="Build only these services (from compose.bake.yml)."
     ),
 ) -> None:
-    context_sha = compute_context_sha(Path.cwd())
-    os.environ["CONTEXT_SHA"] = context_sha
+    service_shas = compute_service_shas(Path.cwd(), BAKE_FILE)
+    os.environ.update(service_shas)
 
     # Read bake, compose, and lock files
     bake_data: dict[str, Any] = yaml.safe_load(BAKE_FILE.read_text(encoding="utf-8"))
@@ -234,7 +234,7 @@ def build(
         raise RuntimeError("Baked images do not match target images; something went wrong during the bake.")
 
     if mode == "local":
-        local_lock_data["CONTEXT_SHA"] = context_sha
+        local_lock_data.update(service_shas)
         _write_lock_file(LOCAL_LOCK_FILE, local_lock_data)
 
 
