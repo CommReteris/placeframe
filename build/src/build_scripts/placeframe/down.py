@@ -10,16 +10,22 @@ LOCK_FILE = Path(".env.lock")
 LOCAL_LOCK_FILE = Path(".env.local.lock")
 
 
-def _resolve_context_sha() -> None:
+def _resolve_service_shas() -> None:
     if LOCAL_LOCK_FILE.exists():
+        shas: dict[str, str] = {}
         for line in LOCAL_LOCK_FILE.read_text(encoding="utf-8").splitlines():
-            if line.startswith("CONTEXT_SHA="):
-                os.environ["CONTEXT_SHA"] = line.split("=", 1)[1].strip()
-                return
+            if "=" not in line or line.startswith("#"):
+                continue
+            k, v = line.split("=", 1)
+            if k.strip().endswith("_SHA"):
+                shas[k.strip()] = v.strip()
+        if shas:
+            os.environ.update(shas)
+            return
 
-    from .context_sha import compute_context_sha
+    from .context_sha import compute_service_shas
 
-    os.environ["CONTEXT_SHA"] = compute_context_sha(Path.cwd())
+    os.environ.update(compute_service_shas(Path.cwd(), Path("compose.bake.yml")))
 
 
 app = typer.Typer(add_completion=False)
@@ -41,7 +47,7 @@ def down(
 
     lock_file = LOCAL_LOCK_FILE if LOCAL_LOCK_FILE.exists() else LOCK_FILE
 
-    _resolve_context_sha()
+    _resolve_service_shas()
 
     command = (
         "docker compose "

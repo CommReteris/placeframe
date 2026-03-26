@@ -64,7 +64,7 @@ services:
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY:?err}"
 
   initialize-cloudbeaver:
-    image: "ghcr.io/outernet-foundation/placeframe/cloudbeaver-initializer:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/cloudbeaver-initializer:${CLOUDBEAVER_INITIALIZER_SHA:?err}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -88,16 +88,18 @@ services:
       - "${CLOUDBEAVER_PORT:?err}:8978"
     volumes:
       - cloudbeaver_data:/opt/cloudbeaver/workspace
+    environment:
+      CLOUDBEAVER_ROOT_URI: "/cloudbeaver"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8978" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8978/cloudbeaver/" ]
       interval: 1s
       timeout: 1s
       retries: 90
 
   create-database:
-    image: "ghcr.io/outernet-foundation/placeframe/database-manager:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/database-manager:${DATABASE_MANAGER_SHA:?err}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -118,7 +120,7 @@ services:
       POSTGRES_ADMIN_PASSWORD: "${POSTGRES_ADMIN_PASSWORD:?err}"
 
   auth-initializer:
-    image: "ghcr.io/outernet-foundation/placeframe/auth-initializer:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/auth-initializer:${AUTH_INITIALIZER_SHA:?err}"
     restart: "no"
     volumes:
       - auth_data:/auth_data
@@ -156,7 +158,7 @@ services:
       KC_HOSTNAME_DEBUG: "true"
 
   gateway:
-    image: "ghcr.io/outernet-foundation/placeframe/gateway:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/gateway:${GATEWAY_SHA:?err}"
     depends_on:
       - keycloak
       - api
@@ -188,7 +190,7 @@ services:
       NGROK_AUTHTOKEN: "${NGROK_AUTHTOKEN:?err}"
 
   migrate-database:
-    image: "ghcr.io/outernet-foundation/placeframe/database-migrator:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/database-migrator:${DATABASE_MIGRATOR_SHA:?err}"
     depends_on:
       create-database:
         condition: service_completed_successfully
@@ -205,7 +207,7 @@ services:
       ALLOWED_HAZARDS: "HAS_UNTRACKABLE_DEPENDENCIES"
 
   api:
-    image: "ghcr.io/outernet-foundation/placeframe/api:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/api:${API_SHA:?err}"
     depends_on:
       keycloak:
         condition: service_healthy
@@ -252,7 +254,7 @@ services:
       DEBUG_WAIT: "${DEBUG_WAIT_API:?err}"
 
   state-sync:
-    image: "ghcr.io/outernet-foundation/placeframe/state-sync:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/state-sync:${STATE_SYNC_SHA:?err}"
     depends_on:
       api:
         condition: service_healthy

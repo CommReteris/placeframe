@@ -10,7 +10,7 @@ from common.bash import bash, bash_output
 from pydantic_settings import BaseSettings
 
 from ...shared.ci_step import ci_step
-from ..context_sha import compute_context_sha
+from ..context_sha import compute_service_shas
 from .git_tags import APP_TAG_PREFIXES, get_latest_tag_version
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
@@ -77,12 +77,17 @@ def _package_artifacts() -> list[Path]:
     return assets
 
 
-def _build_release_notes(context_sha: str) -> str:
+def _build_release_notes(service_shas: dict[str, str]) -> str:
     lines: list[str] = []
 
     lines.append("## Docker images")
     lines.append("")
-    lines.append(f"All images tagged [`{context_sha}`]({GHCR_URL}) on GHCR.")
+    lines.append(f"Images on [GHCR]({GHCR_URL}), per-service tags:")
+    lines.append("")
+    lines.append("| Env var | Tag |")
+    lines.append("|---|---|")
+    for var, sha in sorted(service_shas.items()):
+        lines.append(f"| `{var}` | `{sha}` |")
     lines.append("")
 
     lines.append("## Packages")
@@ -127,9 +132,10 @@ def main() -> None:
     settings = Settings.model_validate({})
     tag = _next_release_tag(settings.github_repository)
 
-    with ci_step("Compute context SHA"):
-        context_sha = compute_context_sha(Path.cwd())
-        print(f"  {context_sha}")
+    with ci_step("Compute service SHAs"):
+        service_shas = compute_service_shas(Path.cwd(), Path("compose.bake.yml"))
+        for var, sha in sorted(service_shas.items()):
+            print(f"  {var}={sha}")
 
     with ci_step("Package artifacts"):
         assets = _package_artifacts()
@@ -139,7 +145,7 @@ def main() -> None:
             print("  No build artifacts to attach")
 
     with ci_step("Create GitHub Release"):
-        notes = _build_release_notes(context_sha)
+        notes = _build_release_notes(service_shas)
         print(notes)
 
         asset_args = " ".join(f'"{a}"' for a in assets)
