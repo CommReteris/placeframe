@@ -21,12 +21,12 @@
                 "$ref": "#/components/schemas/LocalizationRequest"
               },
               "encoding": {
-                "reconstruction_ids": {
+                "camera_config": {
                   "contentType": "application/json",
                   "explode": false,
                   "allowReserved": false
                 },
-                "camera_config": {
+                "reconstruction_ids": {
                   "contentType": "application/json",
                   "explode": false,
                   "allowReserved": false
