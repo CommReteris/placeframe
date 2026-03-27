@@ -37,7 +37,7 @@ def main(
 
         with ci_step("Find successful CI run"):
             run_id = bash_output(
-                f'gh api "/repos/{repo}/actions/workflows/placeframe.yml/runs?head_sha={sha}&status=success"'
+                f'gh api "/repos/{repo}/actions/workflows/placeframe-ci.yml/runs?head_sha={sha}&status=success"'
                 " --jq '.workflow_runs[0].id // empty'"
             ).strip()
 
