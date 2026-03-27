@@ -1026,12 +1026,12 @@ paths:
         content:
           multipart/form-data:
             encoding:
-              map_ids:
+              camera_config:
                 allowReserved: false
                 contentType: application/json
                 explode: false
                 style: form
-              camera_config:
+              map_ids:
                 allowReserved: false
                 contentType: application/json
                 explode: false

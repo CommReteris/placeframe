@@ -2370,12 +2370,12 @@
                 "$ref": "#/components/schemas/LocalizationRequest"
               },
               "encoding": {
-                "map_ids": {
+                "camera_config": {
                   "contentType": "application/json",
                   "explode": false,
                   "allowReserved": false
                 },
-                "camera_config": {
+                "map_ids": {
                   "contentType": "application/json",
                   "explode": false,
                   "allowReserved": false

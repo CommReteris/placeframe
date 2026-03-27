@@ -67,7 +67,9 @@ class MultipartRequestOperation(Operation):
         json_fields = MultipartRequestModel.multipart_json_fields.get(model_name or "", set())
         if json_fields:
             encoding = media_type.encoding or {}
-            encoding.update({field_name: Encoding(content_type="application/json") for field_name in json_fields})
+            encoding.update({
+                field_name: Encoding(content_type="application/json") for field_name in sorted(json_fields)
+            })
             media_type.encoding = encoding
 
         return super().to_schema()
