@@ -37,7 +37,7 @@ class MultipartRequestModel(BaseModel):
     multipart_json_fields: ClassVar[dict[str, set[str]]] = {}
 
     @classmethod
-    def __pydantic_init_subclass__(cls, **kwargs: object) -> None:
+    def __pydantic_init_subclass__(cls, **kwargs: object) -> None:  # noqa: PLW3201
         super().__pydantic_init_subclass__(**kwargs)
         cls.multipart_json_fields[cls.__name__] = {
             field_name
