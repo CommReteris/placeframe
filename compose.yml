@@ -40,7 +40,8 @@ services:
       /bin/sh -c "
         mc alias set local http://minio:9000 '${MINIO_ACCESS_KEY:?err}' '${MINIO_SECRET_KEY:?err}' && \
         mc mb --ignore-existing local/dev-captures && \
-        mc mb --ignore-existing local/dev-reconstructions
+        mc mb --ignore-existing local/dev-reconstructions && \
+        mc mb --ignore-existing local/loki
       "
     environment:
       MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY:?err}"
@@ -63,7 +64,7 @@ services:
       MINIO_SECRET_KEY: "${MINIO_SECRET_KEY:?err}"
 
   initialize-cloudbeaver:
-    image: "ghcr.io/outernet-foundation/placeframe/cloudbeaver-initializer:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/cloudbeaver-initializer:${CLOUDBEAVER_INITIALIZER_SHA:?err}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,16 +88,18 @@ services:
       - "${CLOUDBEAVER_PORT:?err}:8978"
     volumes:
       - cloudbeaver_data:/opt/cloudbeaver/workspace
+    environment:
+      CLOUDBEAVER_ROOT_URI: "/cloudbeaver"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8978" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8978/cloudbeaver/" ]
       interval: 1s
       timeout: 1s
       retries: 90
 
   create-database:
-    image: "ghcr.io/outernet-foundation/placeframe/database-manager:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/database-manager:${DATABASE_MANAGER_SHA:?err}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -117,7 +120,7 @@ services:
       POSTGRES_ADMIN_PASSWORD: "${POSTGRES_ADMIN_PASSWORD:?err}"
 
   auth-initializer:
-    image: "ghcr.io/outernet-foundation/placeframe/auth-initializer:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/auth-initializer:${AUTH_INITIALIZER_SHA:?err}"
     restart: "no"
     volumes:
       - auth_data:/auth_data
@@ -155,7 +158,7 @@ services:
       KC_HOSTNAME_DEBUG: "true"
 
   gateway:
-    image: "ghcr.io/outernet-foundation/placeframe/gateway:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/gateway:${GATEWAY_SHA:?err}"
     depends_on:
       - keycloak
       - api
@@ -181,12 +184,13 @@ services:
       - "http"
       - "--domain=${PUBLIC_DOMAIN:?err}"
       - "--upstream-protocol=http2"
+      - "--log=stdout"
       - "http://gateway:8080"
     environment:
       NGROK_AUTHTOKEN: "${NGROK_AUTHTOKEN:?err}"
 
   migrate-database:
-    image: "ghcr.io/outernet-foundation/placeframe/database-migrator:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/database-migrator:${DATABASE_MIGRATOR_SHA:?err}"
     depends_on:
       create-database:
         condition: service_completed_successfully
@@ -203,7 +207,7 @@ services:
       ALLOWED_HAZARDS: "HAS_UNTRACKABLE_DEPENDENCIES"
 
   api:
-    image: "ghcr.io/outernet-foundation/placeframe/api:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/api:${API_SHA:?err}"
     depends_on:
       keycloak:
         condition: service_healthy
@@ -250,7 +254,7 @@ services:
       DEBUG_WAIT: "${DEBUG_WAIT_API:?err}"
 
   state-sync:
-    image: "ghcr.io/outernet-foundation/placeframe/state-sync:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/state-sync:${STATE_SYNC_SHA:?err}"
     depends_on:
       api:
         condition: service_healthy
@@ -260,3 +264,64 @@ services:
       AUTH_TOKEN_URL: "https://${PUBLIC_DOMAIN:?err}/auth/realms/placeframe-dev/protocol/openid-connect/token"
       AUTH_CLIENT_ID: "${AUTH_WORKER_CLIENT_ID:?err}"
       PRIVATE_KEY_PATH: /run/secrets/worker-private-key.pem
+
+  loki:
+    x-image-ref: grafana/loki:3.5.0
+    image: "${LOKI_IMAGE:?err}"
+    depends_on:
+      initialize-minio:
+        condition: service_completed_successfully
+    volumes:
+      - ./docker/loki/config.yaml:/etc/loki/config.yaml:ro
+    command: -config.file=/etc/loki/config.yaml -config.expand-env=true
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--output-document=-", "http://localhost:3100/ready" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    environment:
+      MINIO_ACCESS_KEY: "${MINIO_ACCESS_KEY:?err}"
+      MINIO_SECRET_KEY: "${MINIO_SECRET_KEY:?err}"
+
+  alloy:
+    x-image-ref: grafana/alloy:v1.9.0
+    image: "${ALLOY_IMAGE:?err}"
+    depends_on:
+      loki:
+        condition: service_healthy
+    volumes:
+      - ./docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: run /etc/alloy/config.alloy
+
+  grafana:
+    x-image-ref: grafana/grafana:11.6.0
+    image: "${GRAFANA_IMAGE:?err}"
+    depends_on:
+      loki:
+        condition: service_healthy
+    ports:
+      - "${GRAFANA_PORT:?err}:3000"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--output-document=-", "http://localhost:3000/grafana/api/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    environment:
+      GF_SERVER_ROOT_URL: "https://${PUBLIC_DOMAIN:?err}/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      # TODO FIXME: remove anonymous access — only enabled to bypass OAuth over plain HTTP for local dev
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+      GF_AUTH_GENERIC_OAUTH_NAME: Keycloak
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: placeframe-grafana
+      GF_AUTH_GENERIC_OAUTH_SCOPES: openid email profile
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://${PUBLIC_DOMAIN:?err}/auth/realms/placeframe-dev/protocol/openid-connect/auth"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://${PUBLIC_DOMAIN:?err}/auth/realms/placeframe-dev/protocol/openid-connect/token"
+      GF_AUTH_GENERIC_OAUTH_API_URL: "https://${PUBLIC_DOMAIN:?err}/auth/realms/placeframe-dev/protocol/openid-connect/userinfo"
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "'Admin'"

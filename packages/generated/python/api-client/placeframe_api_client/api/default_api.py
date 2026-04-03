@@ -7999,7 +7999,7 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> bytearray:
+    ) -> bytes:
         """GetReconstructionFramePoses
 
 
@@ -8039,7 +8039,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "bytearray",
+            '200': "bytes",
             '400': "GetCaptureSessions400Response",
         }
         response_data = await self.api_client.call_api(
@@ -8070,7 +8070,7 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[bytearray]:
+    ) -> ApiResponse[bytes]:
         """GetReconstructionFramePoses
 
 
@@ -8110,7 +8110,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "bytearray",
+            '200': "bytes",
             '400': "GetCaptureSessions400Response",
         }
         response_data = await self.api_client.call_api(
@@ -8181,7 +8181,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "bytearray",
+            '200': "bytes",
             '400': "GetCaptureSessions400Response",
         }
         response_data = await self.api_client.call_api(
@@ -8797,7 +8797,7 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> bytearray:
+    ) -> bytes:
         """GetReconstructionPoints
 
 
@@ -8837,7 +8837,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "bytearray",
+            '200': "bytes",
             '400': "GetCaptureSessions400Response",
         }
         response_data = await self.api_client.call_api(
@@ -8868,7 +8868,7 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[bytearray]:
+    ) -> ApiResponse[bytes]:
         """GetReconstructionPoints
 
 
@@ -8908,7 +8908,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "bytearray",
+            '200': "bytes",
             '400': "GetCaptureSessions400Response",
         }
         response_data = await self.api_client.call_api(
@@ -8979,7 +8979,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "bytearray",
+            '200': "bytes",
             '400': "GetCaptureSessions400Response",
         }
         response_data = await self.api_client.call_api(
@@ -9651,7 +9651,7 @@ class DefaultApi:
         :param ransac_threshold: (required)
         :type ransac_threshold: float
         :param image: (required)
-        :type image: bytearray
+        :type image: bytes
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -9738,7 +9738,7 @@ class DefaultApi:
         :param ransac_threshold: (required)
         :type ransac_threshold: float
         :param image: (required)
-        :type image: bytearray
+        :type image: bytes
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -9825,7 +9825,7 @@ class DefaultApi:
         :param ransac_threshold: (required)
         :type ransac_threshold: float
         :param image: (required)
-        :type image: bytearray
+        :type image: bytes
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -12261,7 +12261,7 @@ class DefaultApi:
         :param id: (required)
         :type id: UUID
         :param file:
-        :type file: bytearray
+        :type file: bytes
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -12332,7 +12332,7 @@ class DefaultApi:
         :param id: (required)
         :type id: UUID
         :param file:
-        :type file: bytearray
+        :type file: bytes
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -12403,7 +12403,7 @@ class DefaultApi:
         :param id: (required)
         :type id: UUID
         :param file:
-        :type file: bytearray
+        :type file: bytes
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of

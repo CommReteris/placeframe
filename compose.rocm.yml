@@ -1,6 +1,6 @@
 services:
   reconstructor-rocm:
-    image: "ghcr.io/outernet-foundation/placeframe/reconstructor-rocm:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/reconstructor-rocm:${RECONSTRUCTOR_SHA:?err}"
     depends_on:
       api:
         condition: service_healthy
@@ -27,7 +27,7 @@ services:
       MAX_KEYPOINTS_PER_IMAGE: "${MAX_KEYPOINTS_PER_IMAGE:?err}"
 
   localizer-rocm:
-    image: "ghcr.io/outernet-foundation/placeframe/localizer-rocm:${CONTEXT_SHA:?err}"
+    image: "ghcr.io/outernet-foundation/placeframe/localizer-rocm:${LOCALIZER_SHA:?err}"
     expose:
       - "8000"
     networks:

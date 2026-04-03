@@ -2,7 +2,27 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from build_scripts.placeframe.context_sha import compute_context_sha
+from build_scripts.placeframe.context_sha import compute_service_shas
+
+BAKE_CONTENT = """\
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+      tags:
+        - "registry/app:${APP_SHA}"
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker/Dockerfile
+      tags:
+        - "registry/worker:${WORKER_SHA}"
+  base:
+    build:
+      context: .
+      dockerfile: docker/base/Dockerfile
+"""
 
 
 def _init_repo(path: Path) -> None:
@@ -20,60 +40,70 @@ def _commit_all(path: Path) -> None:
 def repo(tmp_path: Path) -> Path:
     _init_repo(tmp_path)
     (tmp_path / ".dockerignore").write_text("*\n!docker/\n!packages/\n")
-    (tmp_path / "docker").mkdir()
-    (tmp_path / "docker" / "app.py").write_text("print('hello')")
+    (tmp_path / "docker" / "app").mkdir(parents=True)
+    (tmp_path / "docker" / "app" / "main.py").write_text("print('hello')")
+    (tmp_path / "docker" / "worker").mkdir(parents=True)
+    (tmp_path / "docker" / "worker" / "run.py").write_text("print('work')")
     (tmp_path / "packages").mkdir()
     (tmp_path / "packages" / "lib.py").write_text("x = 1")
     (tmp_path / "README.md").write_text("ignored")
+    bake_file = tmp_path / "compose.bake.yml"
+    bake_file.write_text(BAKE_CONTENT)
     _commit_all(tmp_path)
     return tmp_path
 
 
-class TestComputeContextSha:
-    def test_should_return_deterministic_hash(self, repo: Path):
-        sha1 = compute_context_sha(repo)
-        sha2 = compute_context_sha(repo)
+class TestComputeServiceShas:
+    def test_should_return_deterministic_hashes(self, repo: Path):
+        shas1 = compute_service_shas(repo, repo / "compose.bake.yml")
+        shas2 = compute_service_shas(repo, repo / "compose.bake.yml")
 
-        assert sha1 == sha2
+        assert shas1 == shas2
 
     def test_should_have_tree_prefix(self, repo: Path):
-        sha = compute_context_sha(repo)
+        shas = compute_service_shas(repo, repo / "compose.bake.yml")
 
-        assert sha.startswith("tree-")
+        for sha in shas.values():
+            assert sha.startswith("tree-")
 
-    def test_should_change_when_visible_file_changes(self, repo: Path):
-        sha_before = compute_context_sha(repo)
+    def test_should_return_only_tagged_services(self, repo: Path):
+        shas = compute_service_shas(repo, repo / "compose.bake.yml")
 
-        (repo / "docker" / "app.py").write_text("print('changed')")
+        assert set(shas.keys()) == {"APP_SHA", "WORKER_SHA"}
+
+    def test_should_change_only_affected_service_when_service_file_changes(self, repo: Path):
+        shas_before = compute_service_shas(repo, repo / "compose.bake.yml")
+
+        (repo / "docker" / "app" / "main.py").write_text("print('changed')")
         _commit_all(repo)
 
-        sha_after = compute_context_sha(repo)
-        assert sha_before != sha_after
+        shas_after = compute_service_shas(repo, repo / "compose.bake.yml")
+        assert shas_before["APP_SHA"] != shas_after["APP_SHA"]
+        assert shas_before["WORKER_SHA"] == shas_after["WORKER_SHA"]
+
+    def test_should_change_all_services_when_shared_file_changes(self, repo: Path):
+        shas_before = compute_service_shas(repo, repo / "compose.bake.yml")
+
+        (repo / "packages" / "lib.py").write_text("x = 2")
+        _commit_all(repo)
+
+        shas_after = compute_service_shas(repo, repo / "compose.bake.yml")
+        assert shas_before["APP_SHA"] != shas_after["APP_SHA"]
+        assert shas_before["WORKER_SHA"] != shas_after["WORKER_SHA"]
 
     def test_should_not_change_when_ignored_file_changes(self, repo: Path):
-        sha_before = compute_context_sha(repo)
+        shas_before = compute_service_shas(repo, repo / "compose.bake.yml")
 
         (repo / "README.md").write_text("changed readme")
         _commit_all(repo)
 
-        sha_after = compute_context_sha(repo)
-        assert sha_before == sha_after
+        shas_after = compute_service_shas(repo, repo / "compose.bake.yml")
+        assert shas_before == shas_after
 
-    def test_should_include_files_in_allowlisted_subdirectories(self, repo: Path):
-        sha_before = compute_context_sha(repo)
+    def test_should_not_change_from_uncommitted_edits(self, repo: Path):
+        shas_before = compute_service_shas(repo, repo / "compose.bake.yml")
 
-        (repo / "packages" / "new.py").write_text("new file")
-        _commit_all(repo)
+        (repo / "docker" / "app" / "main.py").write_text("print('uncommitted')")
 
-        sha_after = compute_context_sha(repo)
-        assert sha_before != sha_after
-
-    def test_should_exclude_files_not_in_allowlist(self, repo: Path):
-        sha_before = compute_context_sha(repo)
-
-        (repo / "scripts").mkdir()
-        (repo / "scripts" / "tool.py").write_text("tool")
-        _commit_all(repo)
-
-        sha_after = compute_context_sha(repo)
-        assert sha_before == sha_after
+        shas_after = compute_service_shas(repo, repo / "compose.bake.yml")
+        assert shas_before == shas_after

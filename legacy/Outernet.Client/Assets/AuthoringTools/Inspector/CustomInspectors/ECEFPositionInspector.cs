@@ -14,7 +14,7 @@ namespace Outernet.Client.AuthoringTools
         {
             var ecefPosition = (ObservablePrimitive<double3>)target;
             var ecefInput = UIBuilder.Double3Control("ECEF", LabelType.Adaptive, props.interactable.value);
-            var gpsInput = UIBuilder.Double3Control("GPS", LabelType.Adaptive, props.interactable.value);
+            var gpsInput = UIBuilder.LatLongHeightControl("GPS", LabelType.Adaptive, props.interactable.value);
             var localInput = UIBuilder.Vector3Control("Local", LabelType.Adaptive, props.interactable.value);
 
             ecefInput.transform.SetParent(rect, false);
