@@ -246,8 +246,8 @@
       "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }, "tooltip": { "mode": "multi" } },
       "targets": [{
         "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-        "expr": "DCGM_FI_DEV_GPU_UTIL{namespace=\"outernet\", pod=~\"placeframe-reconstructor-.*\"}",
-        "legendFormat": "{{gpu}} ({{pod}})"
+        "expr": "DCGM_FI_DEV_GPU_UTIL{job=\"dcgm-exporter\"}",
+        "legendFormat": "GPU {{gpu}} ({{Hostname}})"
       }]
     },
     {
@@ -259,8 +259,8 @@
       "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }, "tooltip": { "mode": "multi" } },
       "targets": [{
         "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-        "expr": "DCGM_FI_DEV_FB_USED{namespace=\"outernet\", pod=~\"placeframe-reconstructor-.*\"} * 1024 * 1024",
-        "legendFormat": "Used ({{gpu}})"
+        "expr": "DCGM_FI_DEV_FB_USED{job=\"dcgm-exporter\"} * 1024 * 1024",
+        "legendFormat": "Used GPU {{gpu}} ({{Hostname}})"
       }]
     },
     {

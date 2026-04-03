@@ -456,8 +456,8 @@
       "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }, "tooltip": { "mode": "multi" } },
       "targets": [{
         "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-        "expr": "DCGM_FI_DEV_GPU_UTIL{namespace=\"outernet\", pod=~\"placeframe-localizer-.*\"}",
-        "legendFormat": "{{gpu}} ({{pod}})"
+        "expr": "DCGM_FI_DEV_GPU_UTIL{job=\"dcgm-exporter\"}",
+        "legendFormat": "GPU {{gpu}} ({{Hostname}})"
       }]
     },
     {
@@ -469,8 +469,8 @@
       "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }, "tooltip": { "mode": "multi" } },
       "targets": [{
         "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-        "expr": "DCGM_FI_DEV_FB_USED{namespace=\"outernet\", pod=~\"placeframe-localizer-.*\"} * 1024 * 1024",
-        "legendFormat": "Used ({{gpu}})"
+        "expr": "DCGM_FI_DEV_FB_USED{job=\"dcgm-exporter\"} * 1024 * 1024",
+        "legendFormat": "Used GPU {{gpu}} ({{Hostname}})"
       }]
     },
     {
@@ -490,9 +490,142 @@
       "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }, "tooltip": { "mode": "multi" } },
       "targets": [{
         "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-        "expr": "DCGM_FI_DEV_GPU_TEMP{namespace=\"outernet\", pod=~\"placeframe-localizer-.*\"}",
-        "legendFormat": "{{gpu}} ({{pod}})"
+        "expr": "DCGM_FI_DEV_GPU_TEMP{job=\"dcgm-exporter\"}",
+        "legendFormat": "GPU {{gpu}} ({{Hostname}})"
       }]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 65 },
+      "id": 107,
+      "title": "Quality Classification (literature thresholds from Sattler et al CVPR 2018, Sarlin et al CVPR 2019)",
+      "type": "row"
+    },
+    {
+      "title": "Inlier Ratio Quality Bands",
+      "description": "Classification of localization quality based on RANSAC inlier ratio. Thresholds from visual localization benchmark literature:\n- Excellent (>0.5): Strong geometric consensus, reliable pose\n- Acceptable (0.3-0.5): Moderate consensus, pose likely correct but less confident\n- Poor (0.2-0.3): Weak consensus, high chance of incorrect pose\n- Critical (<0.2): Near-random, pipeline degradation likely\n\nPer Sarlin et al (CVPR 2019), inlier ratio is the primary diagnostic for RANSAC PnP quality. At >50% outlier ratio, even LO-RANSAC degrades significantly.",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 66 },
+      "id": 70,
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "points", "pointSize": 6, "spanNulls": false },
+          "min": 0, "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "dark-red", "value": null },
+            { "color": "red", "value": 0.2 },
+            { "color": "yellow", "value": 0.3 },
+            { "color": "green", "value": 0.5 },
+            { "color": "dark-green", "value": 0.8 }
+          ] },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [{
+        "datasource": { "type": "loki", "uid": "placeframe-loki" },
+        "expr": "last_over_time({service=\"localizer\", container=\"app\"} |= `\"inlier_ratio\"` | regexp `\"inlier_ratio\": (?P<val>[0-9.]+)` | unwrap val [$__auto]) by ()",
+        "queryType": "range",
+        "legendFormat": "inlier_ratio (per query)",
+        "refId": "A"
+      }]
+    },
+    {
+      "title": "Inlier Count Quality Bands",
+      "description": "Absolute inlier count per localization query. Thresholds from literature:\n- Robust (>30): Well-constrained pose, sufficient for P3P+RANSAC\n- Marginal (12-30): Minimum for reliable pose, sensitive to outlier distribution\n- Critical (<12): Below minimum for P3P, pose estimation unreliable\n\nPer the Image Matching Challenge (2021-2024), minimum 12 correspondences are needed for geometric verification. Below this, RANSAC cannot reliably distinguish inliers from outliers.",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 66 },
+      "id": 71,
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "points", "pointSize": 6, "spanNulls": false },
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "dark-red", "value": null },
+            { "color": "red", "value": 12 },
+            { "color": "yellow", "value": 30 },
+            { "color": "green", "value": 50 },
+            { "color": "dark-green", "value": 100 }
+          ] },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [{
+        "datasource": { "type": "loki", "uid": "placeframe-loki" },
+        "expr": "last_over_time({service=\"localizer\", container=\"app\"} |= `\"num_inliers\"` | regexp `\"num_inliers\": (?P<val>[0-9]+)` | unwrap val [$__auto]) by ()",
+        "queryType": "range",
+        "legendFormat": "inlier count (per query)",
+        "refId": "A"
+      }]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 76 },
+      "id": 108,
+      "title": "Degradation Cascade Monitoring (per Sattler et al, failure modes propagate downstream)",
+      "type": "row"
+    },
+    {
+      "title": "Feature Matching Pipeline Health",
+      "description": "The localization pipeline has three stages that cascade: matches → correspondences → inliers. This panel shows the ratios between stages, which diagnose WHERE failures originate.\n\n- Low correspondences/matches = many LightGlue matches lack valid 3D points in the map (map coverage gap or stale map)\n- Low inliers/correspondences = RANSAC rejecting most correspondences (viewpoint change, moving objects, or wrong retrieval)\n\nPer the degradation cascade model from Sattler et al (CVPR 2018): low-texture → fewer features → fewer matches → low inliers → pose failure. The first ratio to degrade identifies the pipeline bottleneck.",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 77 },
+      "id": 72,
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "spanNulls": true },
+          "min": 0
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "p50 matches" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "p50 correspondences" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "p50 inliers" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "p10 inliers" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }, { "id": "custom.lineStyle", "value": { "fill": "dash" } }] }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "min", "lastNotNull"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "placeframe-loki" },
+          "expr": "quantile_over_time(0.5, {service=\"localizer\", container=\"app\"} |= `\"num_matches\"` | regexp `\"num_matches\": (?P<val>[0-9]+)` | unwrap val [$__auto]) by ()",
+          "queryType": "range",
+          "legendFormat": "p50 matches",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "placeframe-loki" },
+          "expr": "quantile_over_time(0.5, {service=\"localizer\", container=\"app\"} |= `\"num_correspondences\"` | regexp `\"num_correspondences\": (?P<val>[0-9]+)` | unwrap val [$__auto]) by ()",
+          "queryType": "range",
+          "legendFormat": "p50 correspondences",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "placeframe-loki" },
+          "expr": "quantile_over_time(0.5, {service=\"localizer\", container=\"app\"} |= `\"num_inliers\"` | regexp `\"num_inliers\": (?P<val>[0-9]+)` | unwrap val [$__auto]) by ()",
+          "queryType": "range",
+          "legendFormat": "p50 inliers",
+          "refId": "C"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "placeframe-loki" },
+          "expr": "quantile_over_time(0.1, {service=\"localizer\", container=\"app\"} |= `\"num_inliers\"` | regexp `\"num_inliers\": (?P<val>[0-9]+)` | unwrap val [$__auto]) by ()",
+          "queryType": "range",
+          "legendFormat": "p10 inliers",
+          "refId": "D"
+        }
+      ]
     }
   ],
   "schemaVersion": 39,

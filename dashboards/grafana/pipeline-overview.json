@@ -30,7 +30,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-          "expr": "up{namespace=\"outernet\", pod=~\"placeframe-api-.*\", container=\"app\"}",
+          "expr": "kube_pod_status_ready{namespace=\"outernet\", pod=~\"placeframe-api-.*\", condition=\"true\"}",
           "legendFormat": "API"
         }
       ]
@@ -53,7 +53,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-          "expr": "up{namespace=\"outernet\", pod=~\"placeframe-localizer-.*\", container=\"app\"}",
+          "expr": "kube_pod_status_ready{namespace=\"outernet\", pod=~\"placeframe-localizer-.*\", condition=\"true\"}",
           "legendFormat": "Localizer"
         }
       ]
@@ -76,7 +76,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-          "expr": "up{namespace=\"outernet\", pod=~\"placeframe-reconstructor-.*\", container=\"app\"}",
+          "expr": "kube_pod_status_ready{namespace=\"outernet\", pod=~\"placeframe-reconstructor-.*\", condition=\"true\"}",
           "legendFormat": "Reconstructor"
         }
       ]
@@ -99,7 +99,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-          "expr": "up{namespace=\"outernet\", pod=~\"placeframe-state-sync-.*\", container=\"app\"}",
+          "expr": "kube_pod_status_ready{namespace=\"outernet\", pod=~\"placeframe-state-sync-.*\", condition=\"true\"}",
           "legendFormat": "State Sync"
         }
       ]
@@ -122,7 +122,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "placeframe-prometheus" },
-          "expr": "up{namespace=\"outernet\", pod=~\"placeframe-keycloak-.*\", container=\"app\"}",
+          "expr": "kube_pod_status_ready{namespace=\"outernet\", pod=~\"placeframe-keycloak-.*\", condition=\"true\"}",
           "legendFormat": "Keycloak"
         }
       ]
